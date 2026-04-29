@@ -39,7 +39,7 @@ cp .env.example .env.local
 
 # Editar .env.local con tus credenciales de Supabase
 # VITE_SUPABASE_URL=...
-# VITE_SUPABASE_ANON_KEY=...
+# VITE_SUPABASE_PUBLISHABLE_KEY=...
 
 # Iniciar servidor de desarrollo
 npm run dev
@@ -64,7 +64,7 @@ src/
 | Variable | Descripción |
 |---|---|
 | `VITE_SUPABASE_URL` | URL del proyecto en Supabase |
-| `VITE_SUPABASE_ANON_KEY` | Clave pública anónima de Supabase |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Publishable key de Supabase (antes "anon key") |
 
 > La clave de OpenAI se configura en las Edge Functions de Supabase, nunca en el frontend.
 
