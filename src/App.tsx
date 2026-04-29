@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from '@/features/auth/context/AuthContext'
 import ProtectedRoute from '@/components/layout/ProtectedRoute'
+import AppLayout from '@/components/layout/AppLayout'
 import LoginPage from '@/features/auth/pages/LoginPage'
+import DashboardPage from '@/features/dashboard/pages/DashboardPage'
 import PatientsPage from '@/features/patients/pages/PatientsPage'
 import PlansPage from '@/features/plans/pages/PlansPage'
 import HistoryPage from '@/features/history/pages/HistoryPage'
@@ -15,45 +17,17 @@ function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
           <Route
-            path="/dashboard"
             element={
               <ProtectedRoute>
-                <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                  <div className="text-center">
-                    <h1 className="text-3xl font-bold text-gray-900">NutriAI</h1>
-                    <p className="mt-2 text-gray-500">Dashboard — próximamente</p>
-                  </div>
-                </div>
+                <AppLayout />
               </ProtectedRoute>
             }
-          />
-
-          <Route
-            path="/patients"
-            element={
-              <ProtectedRoute>
-                <PatientsPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/plans"
-            element={
-              <ProtectedRoute>
-                <PlansPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/history"
-            element={
-              <ProtectedRoute>
-                <HistoryPage />
-              </ProtectedRoute>
-            }
-          />
+          >
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/patients"  element={<PatientsPage />} />
+            <Route path="/plans"     element={<PlansPage />} />
+            <Route path="/history"   element={<HistoryPage />} />
+          </Route>
         </Routes>
       </AuthProvider>
     </BrowserRouter>
