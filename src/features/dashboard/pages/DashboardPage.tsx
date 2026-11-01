@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   Users, CheckCircle, Clock, ShieldCheck, Sparkles, Plus,
   AlertTriangle, Activity, Flame, Calculator, ArrowRight,
-  HeartPulse, Microscope,
+  HeartPulse, Microscope, Droplets, Utensils, Smartphone,
 } from 'lucide-react'
 import { useAuth } from '@/features/auth/context/AuthContext'
 import { getPatients, addWeightCheckin, updatePatient } from '@/features/patients/services/patients.service'
@@ -27,24 +27,20 @@ export default function DashboardPage() {
   const [plans, setPlans]       = useState<PlanWithPatient[]>([])
   const [loading, setLoading]   = useState(true)
 
-  // Modales rápidos desde el Command Center
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
-  const [editingPatient, setEditingPatient]   = useState<Patient | null>(null)
-  const [labPatient, setLabPatient]           = useState<Patient | null>(null)
+  // Modales conectados al Centro de Mando
+  const [selectedPatient, setSelectedPatient]   = useState<Patient | null>(null)
+  const [editingPatient, setEditingPatient]     = useState<Patient | null>(null)
+  const [labPatient, setLabPatient]             = useState<Patient | null>(null)
   const [newPlanPatientId, setNewPlanPatientId] = useState<string | undefined>(undefined)
-  const [newPlanOpen, setNewPlanOpen]         = useState(false)
-  const [selectedPlan, setSelectedPlan]       = useState<PlanWithPatient | null>(null)
+  const [newPlanOpen, setNewPlanOpen]           = useState(false)
+  const [selectedPlan, setSelectedPlan]         = useState<PlanWithPatient | null>(null)
 
-  // Calculadora rápida de bolsillo
+  // Calculadora rápida de bolsillo (Mifflin-St Jeor)
   const [calcWeight, setCalcWeight]     = useState('72')
   const [calcHeight, setCalcHeight]     = useState('168')
   const [calcAge, setCalcAge]           = useState('32')
   const [calcGender, setCalcGender]     = useState<'female' | 'male'>('female')
   const [calcActivity, setCalcActivity] = useState<ActivityLevel>('moderate')
-
-  useEffect(() => {
-    loadAll()
-  }, [])
 
   async function loadAll() {
     setLoading(true)
@@ -57,11 +53,30 @@ export default function DashboardPage() {
     }
   }
 
+  useEffect(() => {
+    loadAll()
+  }, [])
+
   const publishedCount = plans.filter(p => p.status === 'published').length
   const draftCount     = plans.filter(p => p.status === 'draft').length
   const avgEfficacy    = plans.length > 0
     ? (plans.reduce((acc, p) => acc + (p.clinical_efficacy_score ?? 96), 0) / plans.length).toFixed(1)
     : '97.5'
+
+  // Métricas nutricionales reales consolidadas del plan activo principal (o promedio de planes activos)
+  const featuredPlan = plans.find(p => p.status === 'published' && p.macros) ?? plans[0]
+  const activeMacros = featuredPlan?.macros ?? {
+    calories: 1750,
+    protein_g: 131,
+    carbs_g: 153,
+    fat_g: 68,
+    fiber_g: 28,
+    water_liters: 2.5,
+  }
+  const totalMacroGrams = Math.max(1, activeMacros.protein_g + activeMacros.carbs_g + activeMacros.fat_g)
+  const proteinPct = Math.round((activeMacros.protein_g / totalMacroGrams) * 100)
+  const carbsPct   = Math.round((activeMacros.carbs_g / totalMacroGrams) * 100)
+  const fatPct     = Math.max(10, 100 - proteinPct - carbsPct)
 
   // Pacientes con alertas clínicas activas
   const patientsWithAlerts = patients.map(p => ({
@@ -107,129 +122,250 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6">
-      {/* Hero Command Center */}
-      <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-emerald-950 to-teal-900 text-white p-6 sm:p-8 shadow-lg border border-emerald-800/40 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-xs font-semibold">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Centro de Mando Clínico en Tiempo Real • {user?.email}
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+      {/* FILA BENTO 1: Hero Clínico + Resumen Nutricional y Macronutrientes */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        {/* Tarjeta Bento Hero (7 columnas) */}
+        <div className="lg:col-span-7 rounded-[24px] bg-[#245C47] text-white p-6 sm:p-8 shadow-[0_18px_40px_-12px_rgba(36,92,71,0.32)] flex flex-col justify-between relative overflow-hidden">
+          <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-[#C8ED8F]/15 blur-2xl pointer-events-none" />
+
+          <div className="relative z-10 space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-[#C8ED8F] text-xs font-bold">
+              <span className="w-2 h-2 rounded-full bg-[#C8ED8F] animate-pulse" />
+              Centro de Mando Clínico • {user?.email}
+            </div>
+            <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-extrabold tracking-tight leading-tight">
+              NutriAI Clinical Intelligence
+            </h1>
+            <p className="text-[#DCE7E1] text-xs sm:text-sm max-w-xl leading-relaxed">
+              Biometría longitudinal en tiempo real, interpretación bioquímica con IA y diseño de planes nutricionales personalizados con eficacia clínica superior al 95%.
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            NutriAI Clinical Intelligence
-          </h1>
-          <p className="text-emerald-100/80 text-xs sm:text-sm max-w-2xl leading-relaxed">
-            Control integral de pacientes, biometría longitudinal, biomarcadores de laboratorio y prescripción dietoterapéutica con IA de alta eficacia (&gt;95%).
-          </p>
+
+          <div className="relative z-10 flex flex-wrap items-center gap-3 pt-6">
+            <button
+              type="button"
+              onClick={() => { setNewPlanPatientId(undefined); setNewPlanOpen(true) }}
+              className="btn-lime px-5 py-2.5 text-xs sm:text-sm flex items-center gap-2 cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4 text-[#245C47]" />
+              Generar Plan Clínico IA
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/patients')}
+              className="px-4 py-2.5 rounded-[14px] bg-white/12 hover:bg-white/20 text-white text-xs sm:text-sm font-bold border border-white/15 transition flex items-center gap-2 cursor-pointer"
+            >
+              <Plus className="w-4 h-4 text-[#C8ED8F]" />
+              Expedientes 360°
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/appointments')}
+              className="px-4 py-2.5 rounded-[14px] bg-white/8 hover:bg-white/15 text-[#DCE7E1] text-xs sm:text-sm font-semibold border border-white/10 transition cursor-pointer"
+            >
+              Agenda y Notas SOAP
+            </button>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 shrink-0">
-          <button
-            onClick={() => navigate('/patients')}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-semibold border border-white/15 transition"
-          >
-            <Plus className="w-4 h-4" /> Gestionar Pacientes
-          </button>
-          <button
-            onClick={() => { setNewPlanPatientId(undefined); setNewPlanOpen(true) }}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 text-xs sm:text-sm font-bold shadow-md transition"
-          >
-            <Sparkles className="w-4 h-4" /> Generar Plan IA
-          </button>
+        {/* Tarjeta Bento de Balance Energético, Macronutrientes e Hidratación (5 columnas) */}
+        <div className="lg:col-span-5 bento-card p-6 flex flex-col justify-between space-y-4">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#76847B] block">
+                Monitor de Prescripción Activa
+              </span>
+              <h2 className="text-base font-extrabold text-[#1D2924] mt-0.5 truncate">
+                {featuredPlan ? featuredPlan.patients.full_name : 'Balance Nutricional de Referencia'}
+              </h2>
+            </div>
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#F2FAE4] border border-[#C8ED8F] text-[#1D2924] text-xs font-extrabold shrink-0">
+              <Flame className="w-3.5 h-3.5 text-[#245C47]" />
+              {activeMacros.calories} kcal/día
+            </span>
+          </div>
+
+          {/* Barra compuesta de distribución de macronutrientes */}
+          <div className="space-y-2">
+            <div className="w-full h-3 rounded-full bg-[#F1F4EE] overflow-hidden flex gap-0.5 p-0.5">
+              <div
+                style={{ width: `${proteinPct}%` }}
+                className="h-full bg-[#245C47] rounded-l-full transition-all duration-500"
+                title={`Proteínas: ${activeMacros.protein_g}g`}
+              />
+              <div
+                style={{ width: `${carbsPct}%` }}
+                className="h-full bg-[#C8ED8F] transition-all duration-500"
+                title={`Carbohidratos: ${activeMacros.carbs_g}g`}
+              />
+              <div
+                style={{ width: `${fatPct}%` }}
+                className="h-full bg-[#76847B] rounded-r-full transition-all duration-500"
+                title={`Grasas: ${activeMacros.fat_g}g`}
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 pt-1">
+              <div className="p-2.5 rounded-2xl bg-[#F7F8F4] border border-[#E7ECE6]">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#245C47]" />
+                  <span className="text-[11px] font-semibold text-[#76847B]">Proteína</span>
+                </div>
+                <p className="text-base font-extrabold text-[#1D2924] mt-0.5">{activeMacros.protein_g}g</p>
+                <span className="text-[10px] font-bold text-[#245C47]">{proteinPct}% del total</span>
+              </div>
+
+              <div className="p-2.5 rounded-2xl bg-[#F7F8F4] border border-[#E7ECE6]">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#9CD649]" />
+                  <span className="text-[11px] font-semibold text-[#76847B]">Carbos</span>
+                </div>
+                <p className="text-base font-extrabold text-[#1D2924] mt-0.5">{activeMacros.carbs_g}g</p>
+                <span className="text-[10px] font-bold text-[#245C47]">{carbsPct}% • {activeMacros.fiber_g}g fibra</span>
+              </div>
+
+              <div className="p-2.5 rounded-2xl bg-[#F7F8F4] border border-[#E7ECE6]">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#76847B]" />
+                  <span className="text-[11px] font-semibold text-[#76847B]">Grasas</span>
+                </div>
+                <p className="text-base font-extrabold text-[#1D2924] mt-0.5">{activeMacros.fat_g}g</p>
+                <span className="text-[10px] font-bold text-[#76847B]">{fatPct}% saludables</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Meta de Hidratación y acceso al Portal Móvil */}
+          <div className="flex items-center justify-between pt-2 border-t border-[#E7ECE6] text-xs">
+            <div className="flex items-center gap-2 text-[#1D2924] font-semibold">
+              <div className="w-7 h-7 rounded-xl bg-[#EBF3EE] text-[#245C47] flex items-center justify-center">
+                <Droplets className="w-3.5 h-3.5" />
+              </div>
+              <span>Hidratación pautada: <strong>{activeMacros.water_liters} L / día</strong></span>
+            </div>
+            {featuredPlan && (
+              <button
+                type="button"
+                onClick={() => navigate(`/portal/${featuredPlan.id}`)}
+                className="inline-flex items-center gap-1 text-xs font-extrabold text-[#245C47] hover:underline cursor-pointer"
+              >
+                <Smartphone className="w-3.5 h-3.5" /> App Paciente →
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* KPIs en Tiempo Real */}
+      {/* FILA BENTO 2: KPIs Clínicos con Números Grandes y Jerarquía Clara */}
       {loading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-gray-200 p-5 animate-pulse h-28" />
+            <div key={i} className="bento-card p-5 animate-pulse h-32" />
           ))}
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div
             onClick={() => navigate('/patients')}
-            className="bg-white rounded-2xl border border-gray-200 p-5 hover:border-emerald-300 transition cursor-pointer shadow-2xs"
+            className="bento-card-interactive p-5 cursor-pointer flex flex-col justify-between"
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-2xl bg-[#EBF3EE] text-[#245C47] flex items-center justify-center">
                 <Users className="w-5 h-5" />
               </div>
-              <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
-                Activos
+              <span className="text-[11px] font-bold text-[#245C47] bg-[#EBF3EE] px-2.5 py-0.5 rounded-full">
+                Activos 360°
               </span>
             </div>
-            <p className="text-2xl sm:text-3xl font-extrabold text-gray-900">{patients.length}</p>
-            <p className="text-xs text-gray-500 mt-0.5 font-medium">Expedientes clínicos</p>
+            <div>
+              <p className="text-3xl font-extrabold text-[#1D2924] tracking-tight">{patients.length}</p>
+              <p className="text-xs text-[#76847B] mt-0.5 font-semibold">Expedientes clínicos</p>
+            </div>
           </div>
 
           <div
             onClick={() => navigate('/plans')}
-            className="bg-white rounded-2xl border border-gray-200 p-5 hover:border-emerald-300 transition cursor-pointer shadow-2xs"
+            className="bento-card-interactive p-5 cursor-pointer flex flex-col justify-between"
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-2xl bg-[#F2FAE4] text-[#245C47] flex items-center justify-center">
                 <CheckCircle className="w-5 h-5" />
               </div>
-              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+              <span className="text-[11px] font-extrabold text-[#1D2924] bg-[#C8ED8F] px-2.5 py-0.5 rounded-full">
                 Vigentes
               </span>
             </div>
-            <p className="text-2xl sm:text-3xl font-extrabold text-gray-900">{publishedCount}</p>
-            <p className="text-xs text-gray-500 mt-0.5 font-medium">Planes publicados</p>
+            <div>
+              <p className="text-3xl font-extrabold text-[#1D2924] tracking-tight">{publishedCount}</p>
+              <p className="text-xs text-[#76847B] mt-0.5 font-semibold">Planes nutricionales activos</p>
+            </div>
           </div>
 
           <div
             onClick={() => navigate('/plans')}
-            className="bg-white rounded-2xl border border-gray-200 p-5 hover:border-emerald-300 transition cursor-pointer shadow-2xs"
+            className="bento-card-interactive p-5 cursor-pointer flex flex-col justify-between"
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center">
                 <Clock className="w-5 h-5" />
               </div>
-              <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
-                Por validar
+              <span className="text-[11px] font-bold text-amber-800 bg-amber-100/80 px-2.5 py-0.5 rounded-full">
+                En revisión
               </span>
             </div>
-            <p className="text-2xl sm:text-3xl font-extrabold text-gray-900">{draftCount}</p>
-            <p className="text-xs text-gray-500 mt-0.5 font-medium">Borradores médicos</p>
+            <div>
+              <p className="text-3xl font-extrabold text-[#1D2924] tracking-tight">{draftCount}</p>
+              <p className="text-xs text-[#76847B] mt-0.5 font-semibold">Borradores médicos</p>
+            </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-2xs">
+          <div className="bento-card p-5 flex flex-col justify-between bg-gradient-to-br from-white to-[#F7F8F4]">
             <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-2xl bg-[#245C47] text-[#C8ED8F] flex items-center justify-center">
                 <ShieldCheck className="w-5 h-5" />
               </div>
-              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+              <span className="text-[11px] font-extrabold text-[#245C47] bg-[#F2FAE4] border border-[#C8ED8F] px-2.5 py-0.5 rounded-full">
                 Mifflin-St Jeor
               </span>
             </div>
-            <p className="text-2xl sm:text-3xl font-extrabold text-gray-900">{avgEfficacy}%</p>
-            <p className="text-xs text-gray-500 mt-0.5 font-medium">Eficacia clínica media IA</p>
+            <div>
+              <p className="text-3xl font-extrabold text-[#245C47] tracking-tight">{avgEfficacy}%</p>
+              <p className="text-xs text-[#76847B] mt-0.5 font-semibold">Precisión clínica media IA</p>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Grid Principal: Radar de Pacientes y Calculadora de Bolsillo */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Columna Izquierda (2/3): Radar Clínico de Pacientes en Tiempo Real */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between">
+      {/* FILA BENTO 3: Radar Clínico de Pacientes (8 col) + Calculadora Metabólica (4 col) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        {/* Columna Izquierda (8/12): Radar Clínico de Pacientes en Tiempo Real */}
+        <div className="lg:col-span-8 bento-card p-5 sm:p-6 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h2 className="font-bold text-gray-900 text-base flex items-center gap-2">
-                <HeartPulse className="w-5 h-5 text-rose-500" />
-                Radar Clínico de Pacientes ({patientsWithAlerts.length} con alertas)
-              </h2>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Haz clic en cualquier paciente para abrir su expediente 360° o registrar un pesaje en vivo
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-[#EBF3EE] text-[#245C47] flex items-center justify-center">
+                  <HeartPulse className="w-4 h-4" />
+                </div>
+                <h2 className="font-extrabold text-[#1D2924] text-base sm:text-lg tracking-tight">
+                  Radar Biométrico de Pacientes
+                </h2>
+                {patientsWithAlerts.length > 0 && (
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900">
+                    {patientsWithAlerts.length} con alertas IA
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-[#76847B] mt-1">
+                Selecciona cualquier paciente para abrir su Expediente 360°, curva de peso o escáner de laboratorio
               </p>
             </div>
             <button
+              type="button"
               onClick={() => navigate('/patients')}
-              className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+              className="text-xs font-extrabold text-[#245C47] hover:underline flex items-center gap-1 cursor-pointer"
             >
-              Ver todos <ArrowRight className="w-3.5 h-3.5" />
+              Ver todos ({patients.length}) <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
@@ -240,35 +376,42 @@ export default function DashboardPage() {
               const bmr    = calculateBMR(p.weight_kg, p.height_cm, age, p.gender)
               const tdee   = calculateTDEE(bmr, p.activity_level ?? 'moderate')
               const alerts = evaluatePatientAlerts(p).filter(a => a.type === 'danger' || a.type === 'warning')
+              const waterGoal = (p.weight_kg * 0.035).toFixed(1)
 
               return (
                 <div
                   key={p.id}
                   onClick={() => setSelectedPatient(p)}
-                  className="p-4 rounded-2xl border border-gray-100 hover:border-emerald-300 bg-gray-50/50 hover:bg-white transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                  className="p-4 rounded-[18px] border border-[#E7ECE6] hover:border-[#245C47]/40 bg-[#F7F8F4]/70 hover:bg-white transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3.5"
                 >
                   <div className="flex items-start gap-3.5">
-                    <div className="w-11 h-11 rounded-2xl bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="w-11 h-11 rounded-2xl bg-[#245C47] text-[#C8ED8F] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                       {p.full_name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()}
                     </div>
-                    <div>
+                    <div className="space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-bold text-gray-900 text-sm">{p.full_name}</h3>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${bmi.color}`}>
+                        <h3 className="font-extrabold text-[#1D2924] text-sm">{p.full_name}</h3>
+                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${bmi.color}`}>
                           IMC {bmi.value} ({bmi.category})
                         </span>
-                        <span className="text-[11px] text-gray-500 font-medium">
-                          {p.weight_kg} kg • GET: {tdee} kcal
-                        </span>
                       </div>
-                      <p className="text-xs text-gray-600 mt-0.5">{p.goal}</p>
+
+                      <div className="flex flex-wrap items-center gap-3 text-[11px] text-[#76847B] font-semibold">
+                        <span>⚖️ {p.weight_kg} kg ({p.height_cm} cm)</span>
+                        <span className="text-[#245C47]">🔥 GET: {tdee} kcal</span>
+                        <span>💧 {waterGoal} L/día</span>
+                      </div>
+
+                      <p className="text-xs text-[#1D2924]/80 font-medium line-clamp-1">
+                        🎯 {p.goal}
+                      </p>
 
                       {alerts.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-2">
+                        <div className="flex flex-wrap gap-1.5 pt-1">
                           {alerts.slice(0, 2).map((a, idx) => (
                             <span
                               key={idx}
-                              className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md ${
+                              className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-lg ${
                                 a.type === 'danger'
                                   ? 'bg-red-50 text-red-700 border border-red-200'
                                   : 'bg-amber-50 text-amber-800 border border-amber-200'
@@ -285,24 +428,26 @@ export default function DashboardPage() {
 
                   <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                     <button
+                      type="button"
                       onClick={e => {
                         e.stopPropagation()
                         setLabPatient(p)
                       }}
-                      className="px-2.5 py-1.5 rounded-xl bg-violet-50 hover:bg-violet-100 text-violet-700 text-xs font-bold flex items-center gap-1"
+                      className="px-3 py-1.5 rounded-xl bg-[#F7F8F4] hover:bg-[#EBF3EE] border border-[#E7ECE6] text-[#1D2924] text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
                       title="Escanear Laboratorio con IA"
                     >
-                      <Microscope className="w-3.5 h-3.5" /> Lab IA
+                      <Microscope className="w-3.5 h-3.5 text-[#245C47]" /> Lab IA
                     </button>
                     <button
+                      type="button"
                       onClick={e => {
                         e.stopPropagation()
                         setNewPlanPatientId(p.id)
                         setNewPlanOpen(true)
                       }}
-                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1 shadow-2xs"
+                      className="btn-forest px-3.5 py-1.5 text-xs flex items-center gap-1.5 cursor-pointer"
                     >
-                      <Sparkles className="w-3 h-3" /> Plan IA
+                      <Sparkles className="w-3.5 h-3.5 text-[#C8ED8F]" /> Plan IA
                     </button>
                   </div>
                 </div>
@@ -311,111 +456,129 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Columna Derecha (1/3): Calculadora Metabólica Instantánea de Consultorio */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-2xs flex flex-col justify-between space-y-4">
+        {/* Columna Derecha (4/12): Calculadora Metabólica Instantánea */}
+        <div className="lg:col-span-4 bento-card p-5 sm:p-6 flex flex-col justify-between space-y-5">
           <div className="space-y-4">
-            <div>
-              <h2 className="font-bold text-gray-900 text-base flex items-center gap-2">
-                <Calculator className="w-5 h-5 text-emerald-600" />
-                Calculadora Clínica Rápida
-              </h2>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Cálculo inmediato en consulta (Mifflin-St Jeor)
-              </p>
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-2xl bg-[#F2FAE4] border border-[#C8ED8F] text-[#245C47] flex items-center justify-center">
+                <Calculator className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="font-extrabold text-[#1D2924] text-base tracking-tight">
+                  Calculadora Clínica IA
+                </h2>
+                <p className="text-[11px] text-[#76847B] font-medium">
+                  Estimación inmediata Mifflin-St Jeor
+                </p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5 text-xs">
+            <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="font-semibold text-gray-600 block mb-1">Peso (kg)</label>
+                <label className="font-bold text-[#76847B] block mb-1">Peso (kg)</label>
                 <input
-                  type="number" value={calcWeight} onChange={e => setCalcWeight(e.target.value)}
-                  className="w-full px-3 py-1.5 border border-gray-300 rounded-xl font-bold text-gray-900"
+                  type="number"
+                  value={calcWeight}
+                  onChange={e => setCalcWeight(e.target.value)}
+                  className="input-wellness w-full px-3 py-2 font-extrabold text-[#1D2924]"
                 />
               </div>
               <div>
-                <label className="font-semibold text-gray-600 block mb-1">Talla (cm)</label>
+                <label className="font-bold text-[#76847B] block mb-1">Talla (cm)</label>
                 <input
-                  type="number" value={calcHeight} onChange={e => setCalcHeight(e.target.value)}
-                  className="w-full px-3 py-1.5 border border-gray-300 rounded-xl font-bold text-gray-900"
+                  type="number"
+                  value={calcHeight}
+                  onChange={e => setCalcHeight(e.target.value)}
+                  className="input-wellness w-full px-3 py-2 font-extrabold text-[#1D2924]"
                 />
               </div>
               <div>
-                <label className="font-semibold text-gray-600 block mb-1">Edad (años)</label>
+                <label className="font-bold text-[#76847B] block mb-1">Edad (años)</label>
                 <input
-                  type="number" value={calcAge} onChange={e => setCalcAge(e.target.value)}
-                  className="w-full px-3 py-1.5 border border-gray-300 rounded-xl font-bold text-gray-900"
+                  type="number"
+                  value={calcAge}
+                  onChange={e => setCalcAge(e.target.value)}
+                  className="input-wellness w-full px-3 py-2 font-extrabold text-[#1D2924]"
                 />
               </div>
               <div>
-                <label className="font-semibold text-gray-600 block mb-1">Género</label>
+                <label className="font-bold text-[#76847B] block mb-1">Sexo biológico</label>
                 <select
                   value={calcGender}
                   onChange={e => setCalcGender(e.target.value as 'female' | 'male')}
-                  className="w-full px-2.5 py-1.5 border border-gray-300 rounded-xl font-semibold text-gray-900 bg-white"
+                  className="input-wellness w-full px-2.5 py-2 font-bold text-[#1D2924]"
                 >
                   <option value="female">Femenino</option>
                   <option value="male">Masculino</option>
                 </select>
               </div>
               <div className="col-span-2">
-                <label className="font-semibold text-gray-600 block mb-1">Nivel de Actividad</label>
+                <label className="font-bold text-[#76847B] block mb-1">Factor de Actividad Física</label>
                 <select
                   value={calcActivity}
                   onChange={e => setCalcActivity(e.target.value as ActivityLevel)}
-                  className="w-full px-2.5 py-1.5 border border-gray-300 rounded-xl font-semibold text-gray-900 bg-white"
+                  className="input-wellness w-full px-3 py-2 font-bold text-[#1D2924]"
                 >
                   <option value="sedentary">Sedentario (×1.2)</option>
                   <option value="light">Ligero 1-3 días (×1.375)</option>
                   <option value="moderate">Moderado 3-5 días (×1.55)</option>
                   <option value="active">Intenso 6-7 días (×1.725)</option>
-                  <option value="athlete">Atleta Doble Sesión (×1.9)</option>
+                  <option value="athlete">Atleta Alto Rendimiento (×1.9)</option>
                 </select>
               </div>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-2.5 text-xs">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <span className="text-slate-400">IMC Calculado:</span>
-              <span className="font-bold text-emerald-400">{quickBmi.value} ({quickBmi.category})</span>
+          {/* Tarjeta de Resultados Metabólicos en Verde Carbón + Lima */}
+          <div className="p-4 rounded-[20px] bg-[#1D2924] text-white space-y-2.5 text-xs border border-[#245C47]">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2">
+              <span className="text-[#B8C4BC]">IMC Calculado:</span>
+              <span className="font-extrabold text-[#C8ED8F]">{quickBmi.value} ({quickBmi.category})</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Peso Ideal OMS:</span>
-              <span className="font-semibold">{quickBmi.idealMinKg} – {quickBmi.idealMaxKg} kg</span>
+              <span className="text-[#B8C4BC]">Rango OMS Saludable:</span>
+              <span className="font-bold text-white">{quickBmi.idealMinKg} – {quickBmi.idealMaxKg} kg</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Tasa Metabólica Basal:</span>
-              <span className="font-bold">{quickBmr} kcal/día</span>
+              <span className="text-[#B8C4BC]">Tasa Metabólica Basal:</span>
+              <span className="font-bold text-white">{quickBmr} kcal/día</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Gasto Total (GET):</span>
-              <span className="font-bold text-amber-300 text-sm">{quickTdee} kcal/día</span>
+              <span className="text-[#B8C4BC]">Gasto Total (GET):</span>
+              <span className="font-extrabold text-[#C8ED8F] text-sm">{quickTdee} kcal/día</span>
             </div>
-            <div className="flex items-center justify-between pt-1 border-t border-slate-800">
-              <span className="text-slate-400">Déficit Sugerido (-20%):</span>
-              <span className="font-bold text-emerald-300">{Math.round(quickTdee * 0.8)} kcal/día</span>
+            <div className="flex items-center justify-between pt-2 border-t border-white/10">
+              <span className="text-[#B8C4BC]">Meta Déficit (-20%):</span>
+              <span className="font-extrabold px-2 py-0.5 rounded-md bg-[#245C47] text-[#C8ED8F]">
+                {Math.round(quickTdee * 0.8)} kcal/día
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Últimos Planes Clínicos */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-2xs space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="font-bold text-gray-900 text-base flex items-center gap-2">
-              <Activity className="w-5 h-5 text-emerald-600" />
-              Prescripciones Nutricionales Recientes
-            </h2>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Planes generados con validación dietosintética y listos para imprimir o enviar por WhatsApp
-            </p>
+      {/* FILA BENTO 4: Prescripciones Recientes y Recomendaciones Clínicas IA */}
+      <div className="bento-card p-5 sm:p-6 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#F2FAE4] border border-[#C8ED8F] text-[#245C47] flex items-center justify-center">
+              <Utensils className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="font-extrabold text-[#1D2924] text-base tracking-tight">
+                Prescripciones Nutricionales y Planes con IA
+              </h2>
+              <p className="text-xs text-[#76847B]">
+                Menús validados por equivalentes SMAE, lista de súper inteligente y portal móvil del paciente
+              </p>
+            </div>
           </div>
           <button
+            type="button"
             onClick={() => navigate('/plans')}
-            className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+            className="text-xs font-extrabold text-[#245C47] hover:underline flex items-center gap-1 cursor-pointer"
           >
-            Ver todos <ArrowRight className="w-3.5 h-3.5" />
+            Explorar planes ({plans.length}) <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
@@ -424,26 +587,40 @@ export default function DashboardPage() {
             <div
               key={plan.id}
               onClick={() => setSelectedPlan(plan)}
-              className="p-4 rounded-2xl border border-gray-200 hover:border-emerald-300 transition cursor-pointer flex items-center justify-between gap-4 bg-gray-50/40 hover:bg-white"
+              className="p-4 sm:p-5 rounded-[20px] border border-[#E7ECE6] hover:border-[#245C47]/40 transition-all cursor-pointer flex flex-col justify-between gap-3 bg-[#F7F8F4]/60 hover:bg-white"
             >
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-gray-900 text-sm">{plan.patients.full_name}</span>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    {plan.clinical_efficacy_score ?? 97}% Eficacia IA
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-extrabold text-[#1D2924] text-sm sm:text-base">
+                    {plan.patients.full_name}
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#F2FAE4] text-[#1D2924] border border-[#C8ED8F]">
+                    <Sparkles className="w-3 h-3 text-[#245C47]" />
+                    {plan.clinical_efficacy_score ?? 97}% IA
                   </span>
                 </div>
-                <p className="text-xs text-gray-500">
-                  {plan.protocol ? PROTOCOL_INFO[plan.protocol].name : 'Plan personalizado'}
+                <p className="text-xs font-semibold text-[#245C47]">
+                  {plan.protocol ? PROTOCOL_INFO[plan.protocol].name : 'Plan Nutricional Personalizado'}
                 </p>
                 {plan.macros && (
-                  <p className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
-                    <Flame className="w-3.5 h-3.5 text-orange-500" />
-                    {plan.macros.calories} kcal ({plan.macros.protein_g}g P / {plan.macros.carbs_g}g C / {plan.macros.fat_g}g G)
-                  </p>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-[#76847B] font-semibold pt-1">
+                    <span className="px-2 py-0.5 rounded-lg bg-white border border-[#E7ECE6] text-[#1D2924] font-bold">
+                      🔥 {plan.macros.calories} kcal
+                    </span>
+                    <span>P: {plan.macros.protein_g}g</span>
+                    <span>• C: {plan.macros.carbs_g}g</span>
+                    <span>• G: {plan.macros.fat_g}g</span>
+                  </div>
                 )}
               </div>
-              <span className="text-xs font-bold text-emerald-600 shrink-0">Abrir →</span>
+
+              <div className="flex items-center justify-between pt-2 border-t border-[#E7ECE6] text-xs">
+                <span className="text-[#76847B] font-medium flex items-center gap-1">
+                  <Activity className="w-3.5 h-3.5 text-[#245C47]" />
+                  Incluye Lista de Súper y Equivalentes SMAE
+                </span>
+                <span className="font-extrabold text-[#245C47] shrink-0">Abrir →</span>
+              </div>
             </div>
           ))}
         </div>

@@ -28,21 +28,21 @@ export default function PatientsPage() {
   const [filterAlert, setFilterAlert] = useState<'all' | 'alerts' | 'allergies'>('all')
   const [viewMode, setViewMode]       = useState<'cards' | 'table'>('cards')
 
-  const [modalOpen, setModalOpen]         = useState(false)
-  const [editing, setEditing]             = useState<Patient | null>(null)
+  const [modalOpen, setModalOpen]           = useState(false)
+  const [editing, setEditing]               = useState<Patient | null>(null)
   const [dossierPatient, setDossierPatient] = useState<Patient | null>(null)
   const [labPatient, setLabPatient]         = useState<Patient | null>(null)
   const [planPatientId, setPlanPatientId]   = useState<string | undefined>(undefined)
   const [newPlanOpen, setNewPlanOpen]       = useState(false)
-  const [deleting, setDeleting]           = useState<string | null>(null)
-
-  useEffect(() => { load() }, [])
+  const [deleting, setDeleting]             = useState<string | null>(null)
 
   async function load() {
     setLoading(true)
     try { setPatients(await getPatients()) }
     finally { setLoading(false) }
   }
+
+  useEffect(() => { load() }, [])
 
   async function handleSave(data: PatientInsert | PatientUpdate) {
     if (editing) {
@@ -113,39 +113,46 @@ export default function PatientsPage() {
   })
 
   return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       {/* Cabecera */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Expedientes Clínicos de Pacientes</h1>
-          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-            Biometría en tiempo real, cálculo metabólico Mifflin-St Jeor y seguimiento longitudinal
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#EBF3EE] text-[#245C47] text-[11px] font-bold mb-1.5">
+            <Users className="w-3.5 h-3.5" />
+            Expedientes Longitudinales 360°
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1D2924] tracking-tight">
+            Pacientes y Biometría Clínica
+          </h1>
+          <p className="text-xs sm:text-sm text-[#76847B] mt-0.5">
+            Seguimiento antropométrico en tiempo real, cálculo metabólico Mifflin-St Jeor y análisis de laboratorio con IA
           </p>
         </div>
         <button
+          type="button"
           onClick={openCreate}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition-colors"
+          className="btn-forest flex items-center justify-center gap-2 px-5 py-2.5 text-xs sm:text-sm cursor-pointer shrink-0"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 text-[#C8ED8F]" />
           Nuevo Paciente Clínico
         </button>
       </div>
 
-      {/* Barra de búsqueda y filtros rápidos */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-gray-200 shadow-2xs">
+      {/* Barra de búsqueda y filtros rápidos en Bento Card */}
+      <div className="bento-card p-3.5 sm:p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#76847B] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Buscar paciente por nombre, patología, alergia u objetivo..."
-            className="w-full pl-9 pr-4 py-2 text-xs sm:text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="input-wellness w-full pl-10 pr-4 py-2 text-xs sm:text-sm font-medium"
           />
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center bg-gray-100 p-1 rounded-xl text-xs font-medium">
+          <div className="flex items-center bg-[#F7F8F4] border border-[#E7ECE6] p-1 rounded-xl text-xs font-semibold">
             {[
               { id: 'all',       label: `Todos (${patients.length})` },
               { id: 'alerts',    label: 'Con Alertas Clínicas' },
@@ -153,9 +160,12 @@ export default function PatientsPage() {
             ].map(f => (
               <button
                 key={f.id}
+                type="button"
                 onClick={() => setFilterAlert(f.id as typeof filterAlert)}
-                className={`px-3 py-1.5 rounded-lg transition-colors ${
-                  filterAlert === f.id ? 'bg-white text-emerald-700 font-bold shadow-2xs' : 'text-gray-600 hover:text-gray-900'
+                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  filterAlert === f.id
+                    ? 'bg-[#245C47] text-white font-bold shadow-2xs'
+                    : 'text-[#76847B] hover:text-[#1D2924]'
                 }`}
               >
                 {f.label}
@@ -163,17 +173,23 @@ export default function PatientsPage() {
             ))}
           </div>
 
-          <div className="flex items-center border border-gray-200 rounded-xl p-1 bg-white">
+          <div className="flex items-center border border-[#E7ECE6] rounded-xl p-1 bg-[#F7F8F4]">
             <button
+              type="button"
               onClick={() => setViewMode('cards')}
-              className={`p-1.5 rounded-lg ${viewMode === 'cards' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-400 hover:text-gray-700'}`}
-              title="Vista Tarjetas 360°"
+              className={`p-1.5 rounded-lg transition cursor-pointer ${
+                viewMode === 'cards' ? 'bg-white text-[#245C47] shadow-2xs' : 'text-[#76847B] hover:text-[#1D2924]'
+              }`}
+              title="Vista Tarjetas Bento 360°"
             >
               <LayoutGrid className="w-4 h-4" />
             </button>
             <button
+              type="button"
               onClick={() => setViewMode('table')}
-              className={`p-1.5 rounded-lg ${viewMode === 'table' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-400 hover:text-gray-700'}`}
+              className={`p-1.5 rounded-lg transition cursor-pointer ${
+                viewMode === 'table' ? 'bg-white text-[#245C47] shadow-2xs' : 'text-[#76847B] hover:text-[#1D2924]'
+              }`}
               title="Vista Tabla"
             >
               <List className="w-4 h-4" />
@@ -183,46 +199,50 @@ export default function PatientsPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bento-card p-6 h-64 animate-pulse" />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64 bg-white rounded-2xl border border-gray-200 text-center p-6">
-          <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mb-3">
-            <Users className="w-6 h-6 text-emerald-600" />
+        <div className="bento-card flex flex-col items-center justify-center h-64 text-center p-6">
+          <div className="w-12 h-12 bg-[#EBF3EE] rounded-2xl flex items-center justify-center mb-3">
+            <Users className="w-6 h-6 text-[#245C47]" />
           </div>
-          <p className="font-bold text-gray-900">No se encontraron pacientes</p>
-          <p className="text-xs text-gray-500 mt-1">Intenta con otro término o registra un nuevo expediente clínico</p>
+          <p className="font-extrabold text-[#1D2924]">No se encontraron pacientes</p>
+          <p className="text-xs text-[#76847B] mt-1">
+            Intenta con otro término o registra un nuevo expediente clínico
+          </p>
         </div>
       ) : viewMode === 'cards' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {filtered.map(p => {
-            const age  = calculateAge(p.birth_date)
-            const bmi  = calculateBMI(p.weight_kg, p.height_cm)
-            const bmr  = calculateBMR(p.weight_kg, p.height_cm, age, p.gender)
-            const tdee = calculateTDEE(bmr, p.activity_level ?? 'moderate')
+            const age    = calculateAge(p.birth_date)
+            const bmi    = calculateBMI(p.weight_kg, p.height_cm)
+            const bmr    = calculateBMR(p.weight_kg, p.height_cm, age, p.gender)
+            const tdee   = calculateTDEE(bmr, p.activity_level ?? 'moderate')
             const alerts = evaluatePatientAlerts(p).filter(a => a.type === 'danger' || a.type === 'warning')
 
             return (
               <div
                 key={p.id}
-                className="bg-white rounded-2xl border border-gray-200 hover:border-emerald-300 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden"
+                className="bento-card-interactive flex flex-col justify-between overflow-hidden"
               >
-                <div className="p-5 space-y-4">
+                <div className="p-5 sm:p-6 space-y-4">
                   {/* Encabezado de tarjeta */}
                   <div className="flex items-start justify-between gap-3">
                     <div
                       onClick={() => setDossierPatient(p)}
-                      className="flex items-center gap-3 cursor-pointer group"
+                      className="flex items-center gap-3.5 cursor-pointer group"
                     >
-                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+                      <div className="w-11 h-11 rounded-2xl bg-[#245C47] text-[#C8ED8F] flex items-center justify-center font-extrabold text-sm shrink-0 shadow-xs">
                         {p.full_name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()}
                       </div>
                       <div>
-                        <h3 className="font-bold text-gray-900 group-hover:text-emerald-600 transition-colors text-base leading-tight">
+                        <h3 className="font-extrabold text-[#1D2924] group-hover:text-[#245C47] transition-colors text-base leading-tight">
                           {p.full_name}
                         </h3>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-xs text-[#76847B] font-medium mt-0.5">
                           {age} años • {genderLabel[p.gender]}
                         </p>
                       </div>
@@ -234,30 +254,30 @@ export default function PatientsPage() {
                   </div>
 
                   {/* Objetivo */}
-                  <div className="text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-slate-700 font-medium line-clamp-1">
+                  <div className="text-xs bg-[#F7F8F4] p-3 rounded-2xl border border-[#E7ECE6] text-[#1D2924] font-semibold line-clamp-1">
                     🎯 {p.goal}
                   </div>
 
-                  {/* Métricas rápidas */}
-                  <div className="grid grid-cols-3 gap-2 text-center bg-gray-50/70 p-2.5 rounded-xl border border-gray-100">
+                  {/* Métricas rápidas Bento */}
+                  <div className="grid grid-cols-3 gap-2 text-center bg-[#F7F8F4]/70 p-3 rounded-2xl border border-[#E7ECE6]">
                     <div>
-                      <span className="text-[10px] text-gray-400 block">Peso / Talla</span>
-                      <span className="text-xs font-bold text-gray-900">{p.weight_kg}kg</span>
-                      <span className="text-[10px] text-gray-500 block">{p.height_cm} cm</span>
+                      <span className="text-[10px] font-semibold text-[#76847B] block">Peso / Talla</span>
+                      <span className="text-sm font-extrabold text-[#1D2924]">{p.weight_kg} kg</span>
+                      <span className="text-[10px] text-[#76847B] block">{p.height_cm} cm</span>
                     </div>
-                    <div>
-                      <span className="text-[10px] text-gray-400 block">GET Diario</span>
-                      <span className="text-xs font-bold text-emerald-700 flex items-center justify-center gap-0.5">
-                        <Flame className="w-3 h-3 text-orange-500" /> {tdee}
+                    <div className="border-x border-[#E7ECE6]">
+                      <span className="text-[10px] font-semibold text-[#76847B] block">GET Diario</span>
+                      <span className="text-sm font-extrabold text-[#245C47] flex items-center justify-center gap-0.5">
+                        <Flame className="w-3.5 h-3.5 text-[#245C47]" /> {tdee}
                       </span>
-                      <span className="text-[10px] text-gray-500 block">kcal/día</span>
+                      <span className="text-[10px] text-[#76847B] block">kcal/día</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-gray-400 block">Comp. Grasa</span>
-                      <span className="text-xs font-bold text-gray-900">
+                      <span className="text-[10px] font-semibold text-[#76847B] block">Comp. Grasa</span>
+                      <span className="text-sm font-extrabold text-[#1D2924]">
                         {p.body_fat_pct ? `${p.body_fat_pct}%` : bmi.category}
                       </span>
-                      <span className="text-[10px] text-gray-500 block">
+                      <span className="text-[10px] text-[#76847B] block">
                         {p.muscle_mass_kg ? `${p.muscle_mass_kg}kg músc.` : 'OMS'}
                       </span>
                     </div>
@@ -266,59 +286,64 @@ export default function PatientsPage() {
                   {/* Etiquetas de alertas / alergias */}
                   <div className="flex flex-wrap gap-1.5">
                     {p.allergies && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-red-50 text-red-700 border border-red-200">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-red-50 text-red-700 border border-red-200">
                         <AlertTriangle className="w-3 h-3" /> Alergia: {p.allergies}
                       </span>
                     )}
                     {p.conditions && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 line-clamp-1">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 line-clamp-1">
                         <Activity className="w-3 h-3 shrink-0" /> {p.conditions}
                       </span>
                     )}
                     {!p.allergies && !p.conditions && alerts.length === 0 && (
-                      <span className="text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md font-medium">
-                        ✓ Sin alertas patológicas activas
+                      <span className="text-[11px] text-[#245C47] bg-[#F2FAE4] border border-[#C8ED8F] px-2.5 py-0.5 rounded-lg font-bold">
+                        ✓ Biometría estable sin alertas
                       </span>
                     )}
                   </div>
                 </div>
 
                 {/* Pie de tarjeta con acciones */}
-                <div className="px-5 py-3 bg-gray-50/80 border-t border-gray-100 flex items-center justify-between gap-2">
+                <div className="px-5 py-3.5 bg-[#F7F8F4]/90 border-t border-[#E7ECE6] flex items-center justify-between gap-2">
                   <button
+                    type="button"
                     onClick={() => setDossierPatient(p)}
-                    className="flex items-center gap-1.5 text-xs font-bold text-gray-700 hover:text-emerald-700 transition-colors"
+                    className="flex items-center gap-1.5 text-xs font-extrabold text-[#1D2924] hover:text-[#245C47] transition-colors cursor-pointer"
                   >
-                    <Eye className="w-3.5 h-3.5 text-emerald-600" />
+                    <Eye className="w-3.5 h-3.5 text-[#245C47]" />
                     Expediente 360°
                   </button>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     <button
+                      type="button"
                       onClick={() => setLabPatient(p)}
-                      className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-700 text-xs font-bold transition-colors"
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white hover:bg-[#EBF3EE] border border-[#E7ECE6] text-[#1D2924] text-xs font-bold transition-colors cursor-pointer"
                       title="Analizar Laboratorio con IA"
                     >
-                      <Microscope className="w-3.5 h-3.5" /> Lab IA
+                      <Microscope className="w-3.5 h-3.5 text-[#245C47]" /> Lab IA
                     </button>
                     <button
+                      type="button"
                       onClick={() => openPlanFor(p)}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors shadow-2xs"
+                      className="btn-forest flex items-center gap-1 px-3 py-1.5 text-xs cursor-pointer"
                       title="Generar Plan IA para este paciente"
                     >
-                      <Sparkles className="w-3 h-3" /> Plan IA
+                      <Sparkles className="w-3 h-3 text-[#C8ED8F]" /> Plan IA
                     </button>
                     <button
+                      type="button"
                       onClick={() => openEdit(p)}
-                      className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                      className="p-1.5 text-[#76847B] hover:text-[#245C47] hover:bg-white rounded-xl transition-colors cursor-pointer"
                       title="Editar"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleDelete(p.id)}
                       disabled={deleting === p.id}
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                      className="p-1.5 text-[#76847B] hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
                       title="Eliminar"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -330,76 +355,81 @@ export default function PatientsPage() {
           })}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-x-auto shadow-2xs">
+        <div className="bento-card overflow-x-auto">
           <table className="w-full text-xs sm:text-sm">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50/80 text-gray-600">
-                <th className="text-left px-4 py-3 font-semibold">Paciente</th>
-                <th className="text-left px-4 py-3 font-semibold">Antropometría</th>
-                <th className="text-left px-4 py-3 font-semibold">IMC / Estado</th>
-                <th className="text-left px-4 py-3 font-semibold">GET Estimado</th>
-                <th className="text-left px-4 py-3 font-semibold">Clínica / Alergias</th>
-                <th className="px-4 py-3 text-right font-semibold">Acciones</th>
+              <tr className="border-b border-[#E7ECE6] bg-[#F7F8F4] text-[#76847B]">
+                <th className="text-left px-5 py-3.5 font-bold">Paciente</th>
+                <th className="text-left px-5 py-3.5 font-bold">Antropometría</th>
+                <th className="text-left px-5 py-3.5 font-bold">IMC / Estado</th>
+                <th className="text-left px-5 py-3.5 font-bold">GET Estimado</th>
+                <th className="text-left px-5 py-3.5 font-bold">Clínica / Alergias</th>
+                <th className="px-5 py-3.5 text-right font-bold">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-[#E7ECE6]">
               {filtered.map(p => {
                 const age  = calculateAge(p.birth_date)
                 const bmi  = calculateBMI(p.weight_kg, p.height_cm)
                 const bmr  = calculateBMR(p.weight_kg, p.height_cm, age, p.gender)
                 const tdee = calculateTDEE(bmr, p.activity_level ?? 'moderate')
                 return (
-                  <tr key={p.id} className="hover:bg-gray-50/80 transition-colors">
-                    <td className="px-4 py-3">
+                  <tr key={p.id} className="hover:bg-[#F7F8F4]/70 transition-colors">
+                    <td className="px-5 py-3.5">
                       <button
+                        type="button"
                         onClick={() => setDossierPatient(p)}
-                        className="font-bold text-gray-900 hover:text-emerald-600 text-left block"
+                        className="font-extrabold text-[#1D2924] hover:text-[#245C47] text-left block cursor-pointer"
                       >
                         {p.full_name}
                       </button>
-                      <span className="text-xs text-gray-400">{age} años • {genderLabel[p.gender]}</span>
+                      <span className="text-xs text-[#76847B]">{age} años • {genderLabel[p.gender]}</span>
                     </td>
-                    <td className="px-4 py-3 text-gray-700 font-medium">
+                    <td className="px-5 py-3.5 text-[#1D2924] font-semibold">
                       {p.weight_kg} kg / {p.height_cm} cm
-                      {p.body_fat_pct && <span className="block text-xs text-gray-400">{p.body_fat_pct}% grasa</span>}
+                      {p.body_fat_pct && <span className="block text-xs text-[#76847B]">{p.body_fat_pct}% grasa</span>}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-3.5">
                       <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${bmi.color}`}>
                         {bmi.value} • {bmi.category}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-semibold text-gray-800">
+                    <td className="px-5 py-3.5 font-bold text-[#245C47]">
                       {tdee} kcal/día
-                      <span className="block text-[11px] text-gray-400 font-normal">TMB: {bmr} kcal</span>
+                      <span className="block text-[11px] text-[#76847B] font-normal">TMB: {bmr} kcal</span>
                     </td>
-                    <td className="px-4 py-3 max-w-[220px]">
-                      <p className="truncate font-medium text-gray-800">{p.goal}</p>
-                      {p.allergies && <span className="text-[11px] text-red-600 font-semibold">⚠️ {p.allergies}</span>}
+                    <td className="px-5 py-3.5 max-w-[220px]">
+                      <p className="truncate font-semibold text-[#1D2924]">{p.goal}</p>
+                      {p.allergies && <span className="text-[11px] text-red-700 font-bold">⚠️ {p.allergies}</span>}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-3.5">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
+                          type="button"
                           onClick={() => setDossierPatient(p)}
-                          className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg"
+                          className="px-3 py-1.5 text-xs font-bold text-[#245C47] bg-[#EBF3EE] hover:bg-[#C8ED8F]/50 rounded-xl cursor-pointer"
                         >
                           Ficha 360°
                         </button>
                         <button
+                          type="button"
                           onClick={() => openPlanFor(p)}
-                          className="px-2.5 py-1 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg flex items-center gap-1"
+                          className="btn-forest px-3 py-1.5 text-xs flex items-center gap-1 cursor-pointer"
                         >
-                          <Sparkles className="w-3 h-3" /> Plan IA
+                          <Sparkles className="w-3 h-3 text-[#C8ED8F]" /> Plan IA
                         </button>
                         <button
+                          type="button"
                           onClick={() => openEdit(p)}
-                          className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg"
+                          className="p-1.5 text-[#76847B] hover:text-[#245C47] hover:bg-[#F7F8F4] rounded-xl cursor-pointer"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleDelete(p.id)}
                           disabled={deleting === p.id}
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                          className="p-1.5 text-[#76847B] hover:text-red-600 hover:bg-red-50 rounded-xl cursor-pointer"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
