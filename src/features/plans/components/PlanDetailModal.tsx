@@ -3,11 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import {
   CheckCircle, Archive, ShieldCheck, Copy, Check, Printer,
   Edit3, Eye, Flame, Droplets, Smartphone, Share2,
+  ShoppingCart, Scale, FileText,
 } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
 import { updatePlan } from '../services/plans.service'
-import { PROTOCOL_INFO } from '@/lib/clinicalEngine'
+import { getPatientById } from '@/features/patients/services/patients.service'
+import { PROTOCOL_INFO, calculateClinicalMacros } from '@/lib/clinicalEngine'
+import GroceryAndSmaeView from './GroceryAndSmaeView'
 import type { NutritionPlan, PlanWithPatient, PlanStatus } from '@/types/plan'
+import type { Patient } from '@/types/patient'
 
 interface Props {
   open: boolean
@@ -31,11 +35,15 @@ const statusColor: Record<PlanStatus, string> = {
   archived:  'bg-gray-100 text-gray-600 border-gray-200',
 }
 
+type ModalTab = 'prescription' | 'grocery' | 'smae'
+
 export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Props) {
   const navigate = useNavigate()
   const [content, setContent]         = useState('')
   const [doctorNotes, setDoctorNotes] = useState('')
+  const [activeTab, setActiveTab]     = useState<ModalTab>('prescription')
   const [mode, setMode]               = useState<'preview' | 'edit'>('preview')
+  const [patient, setPatient]         = useState<Patient | null>(null)
   const [saving, setSaving]           = useState(false)
   const [saved, setSaved]             = useState(false)
   const [copied, setCopied]           = useState(false)
@@ -47,10 +55,30 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
       setDoctorNotes(plan.doctor_notes ?? '')
       setSaved(false)
       setMode('preview')
+      setActiveTab('prescription')
+      getPatientById(plan.patient_id).then(setPatient)
     }
   }, [plan])
 
   if (!plan) return null
+
+  const fallbackPatient: Patient = patient ?? {
+    id: plan.patient_id,
+    created_at: plan.created_at,
+    updated_at: plan.updated_at,
+    doctor_id: plan.doctor_id,
+    full_name: plan.patients.full_name,
+    birth_date: '1990-01-01',
+    gender: 'female',
+    weight_kg: 70,
+    height_cm: 165,
+    goal: 'Salud metabólica',
+    allergies: null,
+    conditions: null,
+    notes: null,
+  }
+
+  const macros = plan.macros ?? calculateClinicalMacros(fallbackPatient, plan.protocol ?? 'balanced', plan.calories_target ?? undefined)
 
   async function handleSave(newStatus?: PlanStatus) {
     if (!plan) return
@@ -78,7 +106,7 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
   async function handleCopyPatientLink() {
     if (!plan) return
     const url = `${window.location.origin}/portal/${plan.id}`
-    const msg = `Hola ${plan.patients.full_name.split(' ')[0]} 👋, aquí tienes el acceso a tu Plan Nutricional Interactivo en NutriAI (menú diario, intercambios SMAE, contador de agua y registro de progreso): ${url}`
+    const msg = `Hola ${plan.patients.full_name.split(' ')[0]} 👋, aquí tienes el acceso a tu Plan Nutricional Interactivo en NutriAI (menú diario, lista de supermercado inteligente, intercambios SMAE y registro de progreso): ${url}`
     await navigator.clipboard.writeText(msg)
     setLinkCopied(true)
     setTimeout(() => setLinkCopied(false), 2500)
@@ -114,8 +142,6 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
     win.print()
   }
 
-  const macros = plan.macros
-
   return (
     <Modal
       open={open}
@@ -147,21 +173,23 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
           </div>
 
           <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => setMode(mode === 'preview' ? 'edit' : 'preview')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
-                mode === 'edit'
-                  ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
-                  : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              {mode === 'preview' ? (
-                <><Edit3 className="w-3.5 h-3.5" /> Editar Plan</>
-              ) : (
-                <><Eye className="w-3.5 h-3.5" /> Vista Lectura</>
-              )}
-            </button>
+            {activeTab === 'prescription' && (
+              <button
+                type="button"
+                onClick={() => setMode(mode === 'preview' ? 'edit' : 'preview')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                  mode === 'edit'
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                    : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {mode === 'preview' ? (
+                  <><Edit3 className="w-3.5 h-3.5" /> Editar Plan</>
+                ) : (
+                  <><Eye className="w-3.5 h-3.5" /> Vista Lectura</>
+                )}
+              </button>
+            )}
 
             <button
               type="button"
@@ -169,7 +197,7 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-              {copied ? 'Copiado' : 'Copiar p/ WhatsApp'}
+              {copied ? 'Copiado' : 'Copiar Receta'}
             </button>
 
             <button
@@ -193,7 +221,7 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
                 Portal Móvil Interactivo del Paciente (PWA)
               </h4>
               <p className="text-[11px] text-emerald-800">
-                Checklist de comidas, contador de agua, intercambios SMAE y reporte de peso en vivo
+                Checklist de comidas, lista del súper interactiva, equivalentes SMAE y reporte de peso
               </p>
             </div>
           </div>
@@ -222,78 +250,110 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
           </div>
         </div>
 
-        {/* Resumen de Macros si existe */}
-        {macros && (
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 bg-slate-900 text-white p-3.5 rounded-2xl text-xs">
-            <div className="flex items-center gap-2">
-              <Flame className="w-4 h-4 text-orange-400 shrink-0" />
-              <div>
-                <span className="text-slate-400 block text-[10px]">Meta Diaria</span>
-                <span className="font-bold text-sm">{macros.calories} kcal</span>
-              </div>
-            </div>
+        {/* Resumen de Macros */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 bg-slate-900 text-white p-3.5 rounded-2xl text-xs">
+          <div className="flex items-center gap-2">
+            <Flame className="w-4 h-4 text-orange-400 shrink-0" />
             <div>
-              <span className="text-slate-400 block text-[10px]">Proteínas ({macros.protein_pct}%)</span>
-              <span className="font-bold text-blue-300 text-sm">{macros.protein_g} g</span>
-            </div>
-            <div>
-              <span className="text-slate-400 block text-[10px]">Carbohidratos ({macros.carbs_pct}%)</span>
-              <span className="font-bold text-emerald-300 text-sm">{macros.carbs_g} g</span>
-            </div>
-            <div>
-              <span className="text-slate-400 block text-[10px]">Lípidos ({macros.fat_pct}%)</span>
-              <span className="font-bold text-amber-300 text-sm">{macros.fat_g} g</span>
-            </div>
-            <div className="flex items-center gap-1.5 col-span-2 sm:col-span-1">
-              <Droplets className="w-4 h-4 text-sky-400 shrink-0" />
-              <div>
-                <span className="text-slate-400 block text-[10px]">Agua / Fibra</span>
-                <span className="font-bold text-sky-200 text-sm">{macros.water_liters}L • {macros.fiber_g}g</span>
-              </div>
+              <span className="text-slate-400 block text-[10px]">Meta Diaria</span>
+              <span className="font-bold text-sm">{macros.calories} kcal</span>
             </div>
           </div>
-        )}
-
-        {/* Contenido del plan */}
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className={labelClass}>
-              {mode === 'edit' ? 'Editor Clínico del Plan (Puedes modificar cualquier platillo o porción)' : 'Documento de Prescripción Nutricional'}
-            </label>
-            {content !== plan.ai_generated_content && (
-              <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md">
-                ✓ Personalizado manualmente por el médico
-              </span>
-            )}
+          <div>
+            <span className="text-slate-400 block text-[10px]">Proteínas ({macros.protein_pct}%)</span>
+            <span className="font-bold text-blue-300 text-sm">{macros.protein_g} g</span>
           </div>
-
-          {mode === 'edit' ? (
-            <textarea
-              rows={16}
-              value={content}
-              onChange={e => { setContent(e.target.value); setSaved(false) }}
-              className={inputClass + ' font-mono leading-relaxed resize-y bg-white'}
-            />
-          ) : (
-            <div className="p-5 rounded-2xl border border-gray-200 bg-slate-50/70 max-h-[420px] overflow-y-auto space-y-2 text-xs text-gray-800 leading-relaxed whitespace-pre-wrap font-sans">
-              {content}
+          <div>
+            <span className="text-slate-400 block text-[10px]">Carbohidratos ({macros.carbs_pct}%)</span>
+            <span className="font-bold text-emerald-300 text-sm">{macros.carbs_g} g</span>
+          </div>
+          <div>
+            <span className="text-slate-400 block text-[10px]">Lípidos ({macros.fat_pct}%)</span>
+            <span className="font-bold text-amber-300 text-sm">{macros.fat_g} g</span>
+          </div>
+          <div className="flex items-center gap-1.5 col-span-2 sm:col-span-1">
+            <Droplets className="w-4 h-4 text-sky-400 shrink-0" />
+            <div>
+              <span className="text-slate-400 block text-[10px]">Agua / Fibra</span>
+              <span className="font-bold text-sky-200 text-sm">{macros.water_liters}L • {macros.fiber_g}g</span>
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Notas clínicas privadas */}
-        <div>
-          <label className={labelClass}>
-            Notas Clínicas de Seguimiento <span className="text-gray-400 font-normal">(Internas del consultorio)</span>
-          </label>
-          <textarea
-            rows={2}
-            value={doctorNotes}
-            onChange={e => { setDoctorNotes(e.target.value); setSaved(false) }}
-            className={inputClass}
-            placeholder="Observaciones de adherencia, laboratorios pendientes, ajustes para la próxima cita..."
+        {/* Pestañas de Herramientas del Plan: Prescripción | Lista del Súper | Equivalentes SMAE */}
+        <div className="flex border-b border-gray-200 gap-1">
+          {[
+            { id: 'prescription' as ModalTab, label: '1. Prescripción Clínica',           icon: FileText },
+            { id: 'grocery' as ModalTab,      label: '2. Lista de Supermercado Inteligente', icon: ShoppingCart },
+            { id: 'smae' as ModalTab,         label: '3. Equivalentes Clínicos SMAE',     icon: Scale },
+          ].map(t => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setActiveTab(t.id)}
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-extrabold border-b-2 transition-colors ${
+                activeTab === t.id
+                  ? 'border-emerald-600 text-emerald-700 bg-emerald-50/60 rounded-t-xl'
+                  : 'border-transparent text-gray-500 hover:text-gray-900'
+              }`}
+            >
+              <t.icon className="w-3.5 h-3.5" />
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === 'prescription' ? (
+          <>
+            {/* Contenido del plan */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className={labelClass}>
+                  {mode === 'edit' ? 'Editor Clínico del Plan (Puedes modificar cualquier platillo o porción)' : 'Documento de Prescripción Nutricional'}
+                </label>
+                {content !== plan.ai_generated_content && (
+                  <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md">
+                    ✓ Personalizado manualmente por el médico
+                  </span>
+                )}
+              </div>
+
+              {mode === 'edit' ? (
+                <textarea
+                  rows={14}
+                  value={content}
+                  onChange={e => { setContent(e.target.value); setSaved(false) }}
+                  className={inputClass + ' font-mono leading-relaxed resize-y bg-white'}
+                />
+              ) : (
+                <div className="p-5 rounded-2xl border border-gray-200 bg-slate-50/70 max-h-[380px] overflow-y-auto space-y-2 text-xs text-gray-800 leading-relaxed whitespace-pre-wrap font-sans">
+                  {content}
+                </div>
+              )}
+            </div>
+
+            {/* Notas clínicas privadas */}
+            <div>
+              <label className={labelClass}>
+                Notas Clínicas de Seguimiento <span className="text-gray-400 font-normal">(Internas del consultorio)</span>
+              </label>
+              <textarea
+                rows={2}
+                value={doctorNotes}
+                onChange={e => { setDoctorNotes(e.target.value); setSaved(false) }}
+                className={inputClass}
+                placeholder="Observaciones de adherencia, laboratorios pendientes, ajustes para la próxima cita..."
+              />
+            </div>
+          </>
+        ) : (
+          <GroceryAndSmaeView
+            patient={fallbackPatient}
+            macros={macros}
+            protocol={plan.protocol}
+            initialSubTab={activeTab === 'grocery' ? 'grocery' : 'smae'}
           />
-        </div>
+        )}
 
         {saved && (
           <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium rounded-xl px-4 py-2.5">

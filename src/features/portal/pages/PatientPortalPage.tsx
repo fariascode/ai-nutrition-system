@@ -3,15 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   Utensils, Droplets, CheckCircle2, RefreshCw, TrendingDown,
   TrendingUp, Sparkles, ArrowLeft, Flame, ShieldCheck,
-  FileText, Activity, Scale, Plus, Check, AlertTriangle,
+  FileText, Activity, Scale, Plus, AlertTriangle, ShoppingCart,
 } from 'lucide-react'
 import { getPlanById } from '@/features/plans/services/plans.service'
 import { getPatientById, addWeightCheckin } from '@/features/patients/services/patients.service'
 import { PROTOCOL_INFO, calculateBMI, calculateClinicalMacros } from '@/lib/clinicalEngine'
+import GroceryAndSmaeView from '@/features/plans/components/GroceryAndSmaeView'
 import type { PlanWithPatient } from '@/types/plan'
 import type { Patient } from '@/types/patient'
 
-type PortalTab = 'today' | 'swaps' | 'progress' | 'prescription'
+type PortalTab = 'today' | 'grocery' | 'swaps' | 'progress' | 'prescription'
 
 interface MealSlot {
   id: string
@@ -22,50 +23,6 @@ interface MealSlot {
   optionB: string
   smaeSwap: string
 }
-
-const SMAE_EQUIVALENTS = [
-  {
-    group: '🥩 Proteínas Magras (1 porción = ~140-160g cocido | ~35g Proteína)',
-    color: 'border-blue-200 bg-blue-50/50 text-blue-900',
-    items: [
-      '150g Pechuga de pollo o pavo a la plancha',
-      '160g Filete de pescado blanco (robalo, tilapia, huachinango)',
-      '140g Salmón chileno o atún fresco sellado',
-      '140g Bistec de res magro (filete / cuete) sin grasa visible',
-      '2 huevos enteros + 4 claras (o 220g de tofu firme orgánico)',
-    ],
-  },
-  {
-    group: '🌾 Carbohidratos Complejos (1 porción = ~30g Carbohidratos de Bajo IG)',
-    color: 'border-emerald-200 bg-emerald-50/50 text-emerald-900',
-    items: [
-      '120g Quinoa cocida o Arroz integral al vapor',
-      '45g Avena integral laminada (peso en crudo)',
-      '140g Camote horneado o papa cocida y enfriada (almidón resistente)',
-      '2 tortillas de maíz nixtamalizado o 1 rebanada gruesa de pan masa madre',
-      '3/4 taza de lentejas, garbanzos o frijoles negros en bola',
-    ],
-  },
-  {
-    group: '🥑 Grasas Cardioprotectoras (1 porción = ~12-15g Lípidos MUFAs/PUFAs)',
-    color: 'border-amber-200 bg-amber-50/50 text-amber-900',
-    items: [
-      '1/3 a 1/2 pieza de Aguacate Hass mediano',
-      '1 cucharada sopera (10-12 ml) de Aceite de Oliva Extra Virgen en crudo',
-      '20g de Nueces de castilla, almendras fileteadas o pistachos naturales',
-      '1 cucharada de semillas de chía, linaza molida o crema de almendra 100%',
-    ],
-  },
-  {
-    group: '🥦 Vegetales Fibrosos Libres (Mínimo 2 tazas por comida principal)',
-    color: 'border-teal-200 bg-teal-50/50 text-teal-900',
-    items: [
-      'Espinaca baby, arúgula, lechugas mixtas, acelgas y kale',
-      'Brócoli, coliflor, espárragos, ejotes y coles de Bruselas',
-      'Pepino, calabacita, chayote, nopales, apio, champiñones y pimientos',
-    ],
-  },
-]
 
 export default function PatientPortalPage() {
   const { planId } = useParams<{ planId: string }>()
@@ -489,32 +446,13 @@ export default function PatientPortalPage() {
             </>
           )}
 
-          {tab === 'swaps' && (
-            <div className="space-y-4">
-              <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-2xs">
-                <h2 className="font-bold text-gray-900 text-sm flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4 text-emerald-600" />
-                  Tabla Interactiva de Equivalentes Clínicos (SMAE)
-                </h2>
-                <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                  Si no tienes un ingrediente en casa o comes fuera, puedes intercambiar cualquier alimento dentro del mismo grupo respetando las porciones indicadas sin alterar tus resultados.
-                </p>
-              </div>
-
-              {SMAE_EQUIVALENTS.map((grp, idx) => (
-                <div key={idx} className={`rounded-2xl border p-4 space-y-2.5 ${grp.color}`}>
-                  <h3 className="font-extrabold text-xs">{grp.group}</h3>
-                  <ul className="space-y-1.5 text-xs">
-                    {grp.items.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 bg-white/80 p-2 rounded-xl border border-black/5">
-                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
+          {(tab === 'grocery' || tab === 'swaps') && (
+            <GroceryAndSmaeView
+              patient={patient}
+              macros={macros}
+              protocol={plan.protocol}
+              initialSubTab={tab === 'grocery' ? 'grocery' : 'smae'}
+            />
           )}
 
           {tab === 'progress' && (
@@ -647,17 +585,18 @@ export default function PatientPortalPage() {
 
       {/* Barra de Navegación Inferior estilo App Móvil del Paciente */}
       <nav className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 z-40 shadow-lg">
-        <div className="max-w-xl mx-auto flex items-center justify-around py-2 px-2">
+        <div className="max-w-xl mx-auto flex items-center justify-around py-2 px-1">
           {[
-            { id: 'today' as PortalTab,        icon: Utensils,  label: 'Mi Día' },
-            { id: 'swaps' as PortalTab,        icon: RefreshCw, label: 'Equivalentes' },
-            { id: 'progress' as PortalTab,     icon: Activity,  label: 'Mi Progreso' },
-            { id: 'prescription' as PortalTab, icon: FileText,  label: 'Receta PDF' },
+            { id: 'today' as PortalTab,        icon: Utensils,     label: 'Mi Día' },
+            { id: 'grocery' as PortalTab,      icon: ShoppingCart, label: 'Mi Súper' },
+            { id: 'swaps' as PortalTab,        icon: RefreshCw,    label: 'SMAE' },
+            { id: 'progress' as PortalTab,     icon: Activity,     label: 'Progreso' },
+            { id: 'prescription' as PortalTab, icon: FileText,     label: 'Receta' },
           ].map(item => (
             <button
               key={item.id}
               onClick={() => setTab(item.id)}
-              className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-colors ${
+              className={`flex flex-col items-center gap-1 px-2.5 py-1.5 rounded-xl text-[10px] sm:text-[11px] font-bold transition-colors ${
                 tab === item.id ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500 hover:text-gray-800'
               }`}
             >
