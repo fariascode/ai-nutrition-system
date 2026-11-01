@@ -6,6 +6,7 @@ import LoginPage from '@/features/auth/pages/LoginPage'
 import DashboardPage from '@/features/dashboard/pages/DashboardPage'
 import PatientsPage from '@/features/patients/pages/PatientsPage'
 import PlansPage from '@/features/plans/pages/PlansPage'
+import AppointmentsPage from '@/features/appointments/pages/AppointmentsPage'
 import HistoryPage from '@/features/history/pages/HistoryPage'
 import PatientPortalPage from '@/features/portal/pages/PatientPortalPage'
 
@@ -26,10 +27,11 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/patients"  element={<PatientsPage />} />
-            <Route path="/plans"     element={<PlansPage />} />
-            <Route path="/history"   element={<HistoryPage />} />
+            <Route path="/dashboard"    element={<DashboardPage />} />
+            <Route path="/patients"     element={<PatientsPage />} />
+            <Route path="/plans"        element={<PlansPage />} />
+            <Route path="/appointments" element={<AppointmentsPage />} />
+            <Route path="/history"      element={<HistoryPage />} />
           </Route>
         </Routes>
       </AuthProvider>

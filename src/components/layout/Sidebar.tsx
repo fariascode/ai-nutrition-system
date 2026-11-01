@@ -1,13 +1,14 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Users, FileText, History, LogOut, Utensils, ShieldCheck } from 'lucide-react'
+import { LayoutDashboard, Users, FileText, Calendar, History, LogOut, Utensils, ShieldCheck } from 'lucide-react'
 import { useAuth } from '@/features/auth/context/AuthContext'
 import { cn } from '@/utils/cn'
 
 export const navItems = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Centro de Mando' },
-  { to: '/patients',  icon: Users,           label: 'Pacientes 360°' },
-  { to: '/plans',     icon: FileText,        label: 'Planes con IA' },
-  { to: '/history',   icon: History,         label: 'Historial Clínico' },
+  { to: '/dashboard',    icon: LayoutDashboard, label: 'Centro de Mando' },
+  { to: '/patients',     icon: Users,           label: 'Pacientes 360°' },
+  { to: '/plans',        icon: FileText,        label: 'Planes con IA' },
+  { to: '/appointments', icon: Calendar,        label: 'Agenda y SOAP' },
+  { to: '/history',      icon: History,         label: 'Historial Clínico' },
 ]
 
 export default function Sidebar() {
