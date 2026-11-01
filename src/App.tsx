@@ -7,6 +7,7 @@ import DashboardPage from '@/features/dashboard/pages/DashboardPage'
 import PatientsPage from '@/features/patients/pages/PatientsPage'
 import PlansPage from '@/features/plans/pages/PlansPage'
 import HistoryPage from '@/features/history/pages/HistoryPage'
+import PatientPortalPage from '@/features/portal/pages/PatientPortalPage'
 
 function App() {
   return (
@@ -14,6 +15,8 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          {/* Ruta pública / móvil para el Portal del Paciente */}
+          <Route path="/portal/:planId" element={<PatientPortalPage />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
           <Route

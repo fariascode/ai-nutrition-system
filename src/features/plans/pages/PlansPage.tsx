@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
-  Plus, FileText, Sparkles, ShieldCheck, Flame, Search,
+  Plus, FileText, Sparkles, ShieldCheck, Flame, Search, Smartphone,
 } from 'lucide-react'
 import { useAuth } from '@/features/auth/context/AuthContext'
 import { getPlans } from '../services/plans.service'
@@ -23,6 +24,7 @@ const statusColor: Record<PlanStatus, string> = {
 
 export default function PlansPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [plans, setPlans]             = useState<PlanWithPatient[]>([])
   const [loading, setLoading]         = useState(true)
   const [search, setSearch]           = useState('')
@@ -197,9 +199,16 @@ export default function PlansPage() {
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-xs">
-                  <span className="text-gray-400">
-                    {plan.meals_per_day ? `${plan.meals_per_day} tiempos de comida` : 'Menú estructurado'}
-                  </span>
+                  <button
+                    type="button"
+                    onClick={e => {
+                      e.stopPropagation()
+                      navigate(`/portal/${plan.id}`)
+                    }}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold transition"
+                  >
+                    <Smartphone className="w-3.5 h-3.5" /> App Paciente
+                  </button>
                   <span className="font-bold text-emerald-600 hover:text-emerald-700">
                     Abrir Prescripción / Imprimir →
                   </span>

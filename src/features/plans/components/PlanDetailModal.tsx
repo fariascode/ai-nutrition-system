@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   CheckCircle, Archive, ShieldCheck, Copy, Check, Printer,
-  Edit3, Eye, Flame, Droplets,
+  Edit3, Eye, Flame, Droplets, Smartphone, Share2,
 } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
 import { updatePlan } from '../services/plans.service'
@@ -31,12 +32,14 @@ const statusColor: Record<PlanStatus, string> = {
 }
 
 export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Props) {
+  const navigate = useNavigate()
   const [content, setContent]         = useState('')
   const [doctorNotes, setDoctorNotes] = useState('')
   const [mode, setMode]               = useState<'preview' | 'edit'>('preview')
   const [saving, setSaving]           = useState(false)
   const [saved, setSaved]             = useState(false)
   const [copied, setCopied]           = useState(false)
+  const [linkCopied, setLinkCopied]   = useState(false)
 
   useEffect(() => {
     if (plan) {
@@ -70,6 +73,15 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
     await navigator.clipboard.writeText(content)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  async function handleCopyPatientLink() {
+    if (!plan) return
+    const url = `${window.location.origin}/portal/${plan.id}`
+    const msg = `Hola ${plan.patients.full_name.split(' ')[0]} 👋, aquí tienes el acceso a tu Plan Nutricional Interactivo en NutriAI (menú diario, intercambios SMAE, contador de agua y registro de progreso): ${url}`
+    await navigator.clipboard.writeText(msg)
+    setLinkCopied(true)
+    setTimeout(() => setLinkCopied(false), 2500)
   }
 
   function handlePrint() {
@@ -166,6 +178,46 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition"
             >
               <Printer className="w-3.5 h-3.5" /> Imprimir / PDF
+            </button>
+          </div>
+        </div>
+
+        {/* Tarjeta del Portal Móvil Interactivo del Paciente */}
+        <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+              <Smartphone className="w-4 h-4" />
+            </div>
+            <div>
+              <h4 className="text-xs font-extrabold text-emerald-950">
+                Portal Móvil Interactivo del Paciente (PWA)
+              </h4>
+              <p className="text-[11px] text-emerald-800">
+                Checklist de comidas, contador de agua, intercambios SMAE y reporte de peso en vivo
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handleCopyPatientLink}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-emerald-100/60 text-emerald-800 border border-emerald-300 text-xs font-bold transition"
+            >
+              {linkCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Share2 className="w-3.5 h-3.5" />}
+              {linkCopied ? '¡Enlace copiado!' : 'Copiar Link p/ Paciente'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                onClose()
+                navigate(`/portal/${plan.id}`)
+              }}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              Abrir App del Paciente →
             </button>
           </div>
         </div>

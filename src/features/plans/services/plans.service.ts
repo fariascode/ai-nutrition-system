@@ -24,6 +24,21 @@ export async function getPlans(): Promise<PlanWithPatient[]> {
   return data as PlanWithPatient[]
 }
 
+export async function getPlanById(id: string): Promise<PlanWithPatient | null> {
+  if (isDemo) {
+    return getMockPlans().find(p => p.id === id) ?? null
+  }
+
+  const { data, error } = await supabase
+    .from('nutrition_plans')
+    .select('*, patients(full_name)')
+    .eq('id', id)
+    .single()
+
+  if (error) return null
+  return data as PlanWithPatient
+}
+
 export async function createPlan(input: PlanInsert): Promise<NutritionPlan> {
   if (isDemo) {
     return createMockPlan(input)
