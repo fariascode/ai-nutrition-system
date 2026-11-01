@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   Users, CheckCircle, Clock, ShieldCheck, Sparkles, Plus,
   AlertTriangle, Activity, Flame, Calculator, ArrowRight,
-  HeartPulse,
+  HeartPulse, Microscope,
 } from 'lucide-react'
 import { useAuth } from '@/features/auth/context/AuthContext'
 import { getPatients, addWeightCheckin, updatePatient } from '@/features/patients/services/patients.service'
@@ -14,9 +14,10 @@ import {
 } from '@/lib/clinicalEngine'
 import PatientDossierModal from '@/features/patients/components/PatientDossierModal'
 import PatientModal from '@/features/patients/components/PatientModal'
+import LabScannerModal from '@/features/patients/components/LabScannerModal'
 import NewPlanModal from '@/features/plans/components/NewPlanModal'
 import PlanDetailModal from '@/features/plans/components/PlanDetailModal'
-import type { Patient, PatientUpdate, WeightRecord, ActivityLevel } from '@/types/patient'
+import type { Patient, PatientUpdate, WeightRecord, ActivityLevel, LabBiomarkers } from '@/types/patient'
 import type { PlanWithPatient } from '@/types/plan'
 
 export default function DashboardPage() {
@@ -29,6 +30,7 @@ export default function DashboardPage() {
   // Modales rápidos desde el Command Center
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
   const [editingPatient, setEditingPatient]   = useState<Patient | null>(null)
+  const [labPatient, setLabPatient]           = useState<Patient | null>(null)
   const [newPlanPatientId, setNewPlanPatientId] = useState<string | undefined>(undefined)
   const [newPlanOpen, setNewPlanOpen]         = useState(false)
   const [selectedPlan, setSelectedPlan]       = useState<PlanWithPatient | null>(null)
@@ -87,6 +89,21 @@ export default function DashboardPage() {
     const updated = await updatePatient(editingPatient.id, data)
     setPatients(ps => ps.map(p => p.id === updated.id ? updated : p))
     setEditingPatient(null)
+  }
+
+  async function handleSaveBiomarkers(
+    patientId: string,
+    biomarkers: LabBiomarkers,
+    updatedConditions?: string,
+    updatedMedications?: string,
+  ) {
+    const updated = await updatePatient(patientId, {
+      biomarkers,
+      ...(updatedConditions ? { conditions: updatedConditions } : {}),
+      ...(updatedMedications ? { medications: updatedMedications } : {}),
+    })
+    setPatients(ps => ps.map(p => p.id === updated.id ? updated : p))
+    if (selectedPatient?.id === updated.id) setSelectedPatient(updated)
   }
 
   return (
@@ -270,6 +287,16 @@ export default function DashboardPage() {
                     <button
                       onClick={e => {
                         e.stopPropagation()
+                        setLabPatient(p)
+                      }}
+                      className="px-2.5 py-1.5 rounded-xl bg-violet-50 hover:bg-violet-100 text-violet-700 text-xs font-bold flex items-center gap-1"
+                      title="Escanear Laboratorio con IA"
+                    >
+                      <Microscope className="w-3.5 h-3.5" /> Lab IA
+                    </button>
+                    <button
+                      onClick={e => {
+                        e.stopPropagation()
                         setNewPlanPatientId(p.id)
                         setNewPlanOpen(true)
                       }}
@@ -434,6 +461,19 @@ export default function DashboardPage() {
           setNewPlanOpen(true)
         }}
         onAddCheckin={handleAddCheckin}
+        onOpenLabScanner={p => { setSelectedPatient(null); setLabPatient(p) }}
+      />
+
+      <LabScannerModal
+        open={!!labPatient}
+        patient={labPatient}
+        onClose={() => setLabPatient(null)}
+        onSaveBiomarkers={handleSaveBiomarkers}
+        onGeneratePlanAfterSave={patientId => {
+          setLabPatient(null)
+          setNewPlanPatientId(patientId)
+          setNewPlanOpen(true)
+        }}
       />
 
       <PatientModal

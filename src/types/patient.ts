@@ -11,11 +11,20 @@ export interface WeightRecord {
 
 export interface LabBiomarkers {
   fasting_glucose?: number    // mg/dL (normal: 70-99)
+  fasting_insulin?: number    // uU/mL (normal: 2-10) -> para cálculo HOMA-IR
   hba1c?: number              // % (normal: < 5.7)
   systolic_bp?: number        // mmHg (normal: < 120)
   diastolic_bp?: number       // mmHg (normal: < 80)
   cholesterol_total?: number  // mg/dL (normal: < 200)
+  ldl_cholesterol?: number    // mg/dL (normal: < 100)
+  hdl_cholesterol?: number    // mg/dL (normal: > 45 H / > 55 M)
   triglycerides?: number      // mg/dL (normal: < 150)
+  uric_acid?: number          // mg/dL (normal: 3.5-7.0)
+  creatinine?: number         // mg/dL (normal: 0.6-1.2)
+  tsh?: number                // mUI/L (normal: 0.5-4.0)
+  vitamin_d?: number          // ng/mL (óptimo: 30-60)
+  ferritin?: number           // ng/mL (óptimo: 40-200)
+  last_lab_date?: string
 }
 
 export interface Patient {

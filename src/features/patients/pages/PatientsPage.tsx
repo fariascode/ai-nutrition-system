@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Plus, Pencil, Trash2, Users, Search, Sparkles, Activity,
-  Flame, AlertTriangle, Eye, LayoutGrid, List,
+  Flame, AlertTriangle, Eye, LayoutGrid, List, Microscope,
 } from 'lucide-react'
 import { useAuth } from '@/features/auth/context/AuthContext'
 import {
@@ -10,11 +10,12 @@ import {
 } from '../services/patients.service'
 import PatientModal from '../components/PatientModal'
 import PatientDossierModal from '../components/PatientDossierModal'
+import LabScannerModal from '../components/LabScannerModal'
 import NewPlanModal from '@/features/plans/components/NewPlanModal'
 import {
   calculateAge, calculateBMI, calculateBMR, calculateTDEE, evaluatePatientAlerts,
 } from '@/lib/clinicalEngine'
-import type { Patient, PatientInsert, PatientUpdate, WeightRecord } from '@/types/patient'
+import type { Patient, PatientInsert, PatientUpdate, WeightRecord, LabBiomarkers } from '@/types/patient'
 
 const genderLabel = { male: 'Masculino', female: 'Femenino', other: 'Otro' }
 
@@ -30,6 +31,7 @@ export default function PatientsPage() {
   const [modalOpen, setModalOpen]         = useState(false)
   const [editing, setEditing]             = useState<Patient | null>(null)
   const [dossierPatient, setDossierPatient] = useState<Patient | null>(null)
+  const [labPatient, setLabPatient]         = useState<Patient | null>(null)
   const [planPatientId, setPlanPatientId]   = useState<string | undefined>(undefined)
   const [newPlanOpen, setNewPlanOpen]       = useState(false)
   const [deleting, setDeleting]           = useState<string | null>(null)
@@ -57,6 +59,21 @@ export default function PatientsPage() {
     const updated = await addWeightCheckin(patientId, record)
     setPatients(ps => ps.map(p => p.id === updated.id ? updated : p))
     setDossierPatient(updated)
+  }
+
+  async function handleSaveBiomarkers(
+    patientId: string,
+    biomarkers: LabBiomarkers,
+    updatedConditions?: string,
+    updatedMedications?: string,
+  ) {
+    const updated = await updatePatient(patientId, {
+      biomarkers,
+      ...(updatedConditions ? { conditions: updatedConditions } : {}),
+      ...(updatedMedications ? { medications: updatedMedications } : {}),
+    })
+    setPatients(ps => ps.map(p => p.id === updated.id ? updated : p))
+    if (dossierPatient?.id === updated.id) setDossierPatient(updated)
   }
 
   async function handleDelete(id: string) {
@@ -278,6 +295,13 @@ export default function PatientsPage() {
 
                   <div className="flex items-center gap-1">
                     <button
+                      onClick={() => setLabPatient(p)}
+                      className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-700 text-xs font-bold transition-colors"
+                      title="Analizar Laboratorio con IA"
+                    >
+                      <Microscope className="w-3.5 h-3.5" /> Lab IA
+                    </button>
+                    <button
                       onClick={() => openPlanFor(p)}
                       className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors shadow-2xs"
                       title="Generar Plan IA para este paciente"
@@ -397,6 +421,20 @@ export default function PatientsPage() {
         onEdit={p => { setDossierPatient(null); openEdit(p) }}
         onGeneratePlan={p => openPlanFor(p)}
         onAddCheckin={handleAddCheckin}
+        onOpenLabScanner={p => { setDossierPatient(null); setLabPatient(p) }}
+      />
+
+      {/* Modal Escáner de Laboratorio Clínico con IA */}
+      <LabScannerModal
+        open={!!labPatient}
+        patient={labPatient}
+        onClose={() => setLabPatient(null)}
+        onSaveBiomarkers={handleSaveBiomarkers}
+        onGeneratePlanAfterSave={patientId => {
+          setLabPatient(null)
+          setPlanPatientId(patientId)
+          setNewPlanOpen(true)
+        }}
       />
 
       {/* Modal Crear / Editar Paciente */}

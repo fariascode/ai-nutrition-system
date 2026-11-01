@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import {
   Activity, Flame, Droplets, Scale, AlertTriangle, CheckCircle2,
   Sparkles, Plus, TrendingDown, TrendingUp, HeartPulse, Pill,
-  Phone, Mail, Calendar, Pencil, Ruler,
+  Phone, Mail, Calendar, Pencil, Ruler, Microscope,
 } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
 import {
@@ -18,6 +18,7 @@ interface Props {
   onEdit: (patient: Patient) => void
   onGeneratePlan: (patient: Patient) => void
   onAddCheckin: (patientId: string, record: WeightRecord) => Promise<void>
+  onOpenLabScanner?: (patient: Patient) => void
 }
 
 export default function PatientDossierModal({
@@ -27,6 +28,7 @@ export default function PatientDossierModal({
   onEdit,
   onGeneratePlan,
   onAddCheckin,
+  onOpenLabScanner,
 }: Props) {
   const [showCheckin, setShowCheckin] = useState(false)
   const [weight, setWeight]       = useState('')
@@ -130,6 +132,14 @@ export default function PatientDossierModal({
           </div>
 
           <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {onOpenLabScanner && (
+              <button
+                onClick={() => onOpenLabScanner(patient)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold border border-white/20 transition"
+              >
+                <Microscope className="w-3.5 h-3.5 text-emerald-300" /> Laboratorio IA
+              </button>
+            )}
             <button
               onClick={() => onEdit(patient)}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-medium border border-white/15 transition"
@@ -386,35 +396,60 @@ export default function PatientDossierModal({
         {/* Laboratorio / Biomarcadores y Antecedentes */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-4 rounded-2xl border border-gray-200 bg-white">
-            <h4 className="font-bold text-gray-900 text-xs uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <HeartPulse className="w-4 h-4 text-rose-500" />
-              Química Sanguínea y Signos Vitales
-            </h4>
-            <div className="grid grid-cols-2 gap-2.5 text-xs">
-              <div className="p-2.5 rounded-lg bg-gray-50 flex justify-between items-center">
-                <span className="text-gray-500">Glucosa ayuno:</span>
-                <span className={`font-bold ${(patient.biomarkers?.fasting_glucose ?? 0) >= 100 ? 'text-amber-600' : 'text-gray-900'}`}>
-                  {patient.biomarkers?.fasting_glucose ? `${patient.biomarkers.fasting_glucose} mg/dL` : 'Sin registro'}
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-bold text-gray-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                <HeartPulse className="w-4 h-4 text-rose-500" />
+                Química Sanguínea, HOMA-IR y Hormonal
+              </h4>
+              {onOpenLabScanner && (
+                <button
+                  type="button"
+                  onClick={() => onOpenLabScanner(patient)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-bold transition"
+                >
+                  <Microscope className="w-3.5 h-3.5" /> Escanear Estudio IA
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+              <div className="p-2.5 rounded-lg bg-gray-50 flex flex-col justify-between">
+                <span className="text-[11px] text-gray-500">Glucosa ayuno</span>
+                <span className={`font-bold mt-0.5 ${(patient.biomarkers?.fasting_glucose ?? 0) >= 100 ? 'text-amber-600' : 'text-gray-900'}`}>
+                  {patient.biomarkers?.fasting_glucose ? `${patient.biomarkers.fasting_glucose} mg/dL` : 'Sin reg.'}
                 </span>
               </div>
-              <div className="p-2.5 rounded-lg bg-gray-50 flex justify-between items-center">
-                <span className="text-gray-500">HbA1c:</span>
-                <span className="font-bold text-gray-900">
-                  {patient.biomarkers?.hba1c ? `${patient.biomarkers.hba1c}%` : 'Sin registro'}
+              <div className="p-2.5 rounded-lg bg-gray-50 flex flex-col justify-between">
+                <span className="text-[11px] text-gray-500">HOMA-IR / Insulina</span>
+                <span className="font-bold text-gray-900 mt-0.5">
+                  {patient.biomarkers?.fasting_glucose && patient.biomarkers?.fasting_insulin
+                    ? `${((patient.biomarkers.fasting_glucose * patient.biomarkers.fasting_insulin) / 405).toFixed(1)} (${patient.biomarkers.fasting_insulin}µU)`
+                    : patient.biomarkers?.hba1c ? `HbA1c ${patient.biomarkers.hba1c}%` : 'Sin reg.'}
                 </span>
               </div>
-              <div className="p-2.5 rounded-lg bg-gray-50 flex justify-between items-center">
-                <span className="text-gray-500">Presión Art.:</span>
-                <span className={`font-bold ${(patient.biomarkers?.systolic_bp ?? 0) >= 130 ? 'text-amber-600' : 'text-gray-900'}`}>
+              <div className="p-2.5 rounded-lg bg-gray-50 flex flex-col justify-between">
+                <span className="text-[11px] text-gray-500">Presión Art.</span>
+                <span className={`font-bold mt-0.5 ${(patient.biomarkers?.systolic_bp ?? 0) >= 130 ? 'text-amber-600' : 'text-gray-900'}`}>
                   {patient.biomarkers?.systolic_bp
-                    ? `${patient.biomarkers.systolic_bp}/${patient.biomarkers.diastolic_bp ?? 80} mmHg`
-                    : 'Sin registro'}
+                    ? `${patient.biomarkers.systolic_bp}/${patient.biomarkers.diastolic_bp ?? 80}`
+                    : 'Sin reg.'}
                 </span>
               </div>
-              <div className="p-2.5 rounded-lg bg-gray-50 flex justify-between items-center">
-                <span className="text-gray-500">Triglicéridos:</span>
-                <span className={`font-bold ${(patient.biomarkers?.triglycerides ?? 0) >= 150 ? 'text-amber-600' : 'text-gray-900'}`}>
-                  {patient.biomarkers?.triglycerides ? `${patient.biomarkers.triglycerides} mg/dL` : 'Sin registro'}
+              <div className="p-2.5 rounded-lg bg-gray-50 flex flex-col justify-between">
+                <span className="text-[11px] text-gray-500">Triglicéridos</span>
+                <span className={`font-bold mt-0.5 ${(patient.biomarkers?.triglycerides ?? 0) >= 150 ? 'text-amber-600' : 'text-gray-900'}`}>
+                  {patient.biomarkers?.triglycerides ? `${patient.biomarkers.triglycerides} mg/dL` : 'Sin reg.'}
+                </span>
+              </div>
+              <div className="p-2.5 rounded-lg bg-gray-50 flex flex-col justify-between">
+                <span className="text-[11px] text-gray-500">TSH Tiroides</span>
+                <span className={`font-bold mt-0.5 ${(patient.biomarkers?.tsh ?? 0) > 4.0 ? 'text-amber-600' : 'text-gray-900'}`}>
+                  {patient.biomarkers?.tsh ? `${patient.biomarkers.tsh} mUI/L` : 'Sin reg.'}
+                </span>
+              </div>
+              <div className="p-2.5 rounded-lg bg-gray-50 flex flex-col justify-between">
+                <span className="text-[11px] text-gray-500">Vitamina D 25-OH</span>
+                <span className={`font-bold mt-0.5 ${(patient.biomarkers?.vitamin_d ?? 35) < 30 ? 'text-amber-600' : 'text-gray-900'}`}>
+                  {patient.biomarkers?.vitamin_d ? `${patient.biomarkers.vitamin_d} ng/mL` : 'Sin reg.'}
                 </span>
               </div>
             </div>
