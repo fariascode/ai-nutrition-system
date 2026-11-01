@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Utensils } from 'lucide-react'
+import { Utensils, Sparkles } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { isDemo } from '@/lib/mockData'
 
 export default function LoginPage() {
   const { signIn } = useAuth()
@@ -26,6 +27,12 @@ export default function LoginPage() {
     }
   }
 
+  async function handleDemoLogin() {
+    setLoading(true)
+    await signIn('doctor@nutriai.demo', 'demo1234')
+    navigate('/dashboard')
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-8">
@@ -36,7 +43,31 @@ export default function LoginPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900">NutriAI</h1>
           <p className="text-gray-500 mt-1 text-sm">Sistema de Planes Nutricionales</p>
+
+          {isDemo && (
+            <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-full font-medium">
+              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+              Modo Demo Activo (Sin Supabase)
+            </div>
+          )}
         </div>
+
+        {isDemo && (
+          <div className="mb-6 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-left">
+            <p className="text-xs text-emerald-800 font-medium mb-2">
+              Puedes ingresar con cualquier correo/contraseña o hacer clic abajo para entrar al instante:
+            </p>
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              disabled={loading}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Entrar directamente como Doctor Demo
+            </button>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

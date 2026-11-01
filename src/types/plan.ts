@@ -1,5 +1,27 @@
 export type PlanStatus = 'draft' | 'published' | 'archived'
 
+export type ClinicalProtocol =
+  | 'caloric_deficit'
+  | 'recomposition'
+  | 'muscle_gain'
+  | 'glycemic_control'
+  | 'dash_cardio'
+  | 'mediterranean'
+  | 'ketogenic'
+  | 'balanced'
+
+export interface MacroTargets {
+  calories: number
+  protein_g: number
+  carbs_g: number
+  fat_g: number
+  protein_pct: number
+  carbs_pct: number
+  fat_pct: number
+  fiber_g: number
+  water_liters: number
+}
+
 export interface NutritionPlan {
   id: string
   created_at: string
@@ -13,6 +35,12 @@ export interface NutritionPlan {
   calories_target: number | null
   valid_from: string | null
   valid_until: string | null
+
+  // Campos clínicos de alta precisión (opcionales)
+  protocol?: ClinicalProtocol
+  meals_per_day?: number
+  macros?: MacroTargets | null
+  clinical_efficacy_score?: number
 }
 
 export type PlanInsert = Omit<NutritionPlan, 'id' | 'created_at' | 'updated_at'>
