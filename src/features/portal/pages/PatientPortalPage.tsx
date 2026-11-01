@@ -9,6 +9,7 @@ import { getPlanById } from '@/features/plans/services/plans.service'
 import { getPatientById, addWeightCheckin } from '@/features/patients/services/patients.service'
 import { PROTOCOL_INFO, calculateBMI, calculateClinicalMacros } from '@/lib/clinicalEngine'
 import GroceryAndSmaeView from '@/features/plans/components/GroceryAndSmaeView'
+import { ThemeToggle } from '@/context/ThemeContext'
 import type { PlanWithPatient } from '@/types/plan'
 import type { Patient } from '@/types/patient'
 
@@ -241,9 +242,12 @@ export default function PatientPortalPage() {
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Volver al Consultorio
         </button>
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#F2FAE4] border border-[#C8ED8F] text-[#1D2924] text-[10px] font-extrabold">
-          <Sparkles className="w-3 h-3 text-[#245C47]" /> App Móvil Paciente (PWA)
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#F2FAE4] border border-[#C8ED8F] text-[#1D2924] text-[10px] font-extrabold">
+            <Sparkles className="w-3 h-3 text-[#245C47]" /> App Móvil Paciente (PWA)
+          </span>
+          <ThemeToggle compact />
+        </div>
       </div>
 
       {/* Contenedor Móvil / Tablet Centrado */}

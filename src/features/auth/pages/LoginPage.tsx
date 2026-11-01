@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Utensils, Sparkles, ShieldCheck, Activity, ArrowRight, Lock, Mail } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { ThemeToggle } from '@/context/ThemeContext'
 import { isDemo } from '@/lib/mockData'
 
 export default function LoginPage() {
@@ -91,12 +92,15 @@ export default function LoginPage() {
               <div className="inline-flex items-center justify-center w-12 h-12 bg-[#245C47] rounded-2xl shadow-[0_8px_20px_rgba(36,92,71,0.22)]">
                 <Utensils className="w-6 h-6 text-[#C8ED8F]" />
               </div>
-              {isDemo && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F2FAE4] border border-[#C8ED8F] text-[#1D2924] text-xs rounded-full font-extrabold">
-                  <Sparkles className="w-3.5 h-3.5 text-[#245C47]" />
-                  Modo Demo Interactivo
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {isDemo && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F2FAE4] border border-[#C8ED8F] text-[#1D2924] text-xs rounded-full font-extrabold">
+                    <Sparkles className="w-3.5 h-3.5 text-[#245C47]" />
+                    Modo Demo Interactivo
+                  </span>
+                )}
+                <ThemeToggle compact />
+              </div>
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1D2924] tracking-tight">

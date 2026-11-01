@@ -2,6 +2,7 @@ import { Outlet, NavLink } from 'react-router-dom'
 import { Utensils, LogOut, Sparkles } from 'lucide-react'
 import Sidebar, { navItems } from './Sidebar'
 import { useAuth } from '@/features/auth/context/AuthContext'
+import { ThemeToggle } from '@/context/ThemeContext'
 import { cn } from '@/utils/cn'
 
 export default function AppLayout() {
@@ -28,15 +29,18 @@ export default function AppLayout() {
             </span>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={signOut}
-          className="p-2 text-[#76847B] hover:text-red-700 hover:bg-red-50/70 rounded-xl transition-colors"
-          title="Cerrar sesión"
-          aria-label="Cerrar sesión"
-        >
-          <LogOut className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1.5">
+          <ThemeToggle compact />
+          <button
+            type="button"
+            onClick={signOut}
+            className="p-2 text-[#76847B] hover:text-red-700 hover:bg-red-50/70 rounded-xl transition-colors"
+            title="Cerrar sesión"
+            aria-label="Cerrar sesión"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
       </header>
 
       <Sidebar />
@@ -48,11 +52,12 @@ export default function AppLayout() {
             <span className="w-2 h-2 rounded-full bg-[#245C47]" />
             <span>Sistema Clínico de Nutrición e Inteligencia Artificial</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F2FAE4] border border-[#C8ED8F] text-[#1D2924] text-[11px] font-bold">
               <Sparkles className="w-3 h-3 text-[#245C47]" />
               IA Dietoterapéutica Activa
             </span>
+            <ThemeToggle />
           </div>
         </div>
 
