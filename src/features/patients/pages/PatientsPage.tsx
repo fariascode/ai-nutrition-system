@@ -82,7 +82,7 @@ export default function PatientsPage() {
 
   async function handleSyncClinicalText(
     patientId: string,
-    data: { allergies: string | null; medications: string | null; conditions: string | null },
+    data: PatientUpdate,
   ) {
     const updated = await updatePatient(patientId, data)
     setPatients(ps => ps.map(p => p.id === updated.id ? updated : p))

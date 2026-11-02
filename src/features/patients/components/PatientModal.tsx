@@ -99,6 +99,7 @@ export default function PatientModal({ open, patient, doctorId, onClose, onSave 
         medications:    form.medications || null,
         notes:          form.notes || null,
         biomarkers: {
+          ...patient?.biomarkers,
           fasting_glucose: form.fasting_glucose ? parseFloat(form.fasting_glucose) : undefined,
           hba1c:           form.hba1c ? parseFloat(form.hba1c) : undefined,
           systolic_bp:     form.systolic_bp ? parseFloat(form.systolic_bp) : undefined,

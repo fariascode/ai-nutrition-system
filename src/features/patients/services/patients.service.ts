@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { syncMedicalRecordFromPatient } from '@/features/medical-record/services/medicalRecord.service'
 import type { Patient, PatientInsert, PatientUpdate, WeightRecord } from '@/types/patient'
 import {
   isDemo,
@@ -55,6 +56,9 @@ export async function createPatient(input: PatientInsert): Promise<Patient> {
 
 export async function updatePatient(id: string, input: PatientUpdate): Promise<Patient> {
   if (isDemo) {
+    const previous = getMockPatients().find(patient => patient.id === id)
+    if (!previous) throw new Error('Paciente no encontrado')
+    syncMedicalRecordFromPatient(previous, input)
     return updateMockPatient(id, input)
   }
 

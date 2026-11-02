@@ -12,13 +12,14 @@ import type {
   HospitalizationItem, AllergyItem, MedicationItem,
 } from '@/types/medicalRecord'
 import type { Patient } from '@/types/patient'
+import type { PatientUpdate } from '@/types/patient'
 
 interface Props {
   open: boolean
   patient: Patient | null
   onClose: () => void
   /** Sincroniza alergias y medicamentos con la ficha del paciente para que el motor clínico los siga respetando. */
-  onSyncPatient?: (patientId: string, data: { allergies: string | null; medications: string | null; conditions: string | null }) => Promise<void>
+  onSyncPatient?: (patientId: string, data: PatientUpdate) => Promise<void>
 }
 
 type Tab = 'history' | 'surgical' | 'allergies' | 'medications' | 'habits'
@@ -174,6 +175,8 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
           allergies:   join(persisted.allergies.map(a => a.substance)),
           medications: join(persisted.medications.filter(m => m.status === 'active').map(m => m.name)),
           conditions:  join(persisted.personal.filter(p => p.status === 'active').map(p => p.condition)),
+          sleep_hours: persisted.habits.sleep_hours ?? null,
+          water_liters: persisted.habits.water_liters ?? null,
         })
       }
       setSaved(true)

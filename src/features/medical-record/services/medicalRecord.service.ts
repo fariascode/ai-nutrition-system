@@ -1,4 +1,4 @@
-import type { Patient } from '@/types/patient'
+import type { Patient, PatientUpdate } from '@/types/patient'
 import type { MedicalRecord } from '@/types/medicalRecord'
 
 const STORAGE_KEY = 'nutriai_medical_records_v1'
@@ -72,5 +72,41 @@ export async function saveMedicalRecord(record: MedicalRecord): Promise<MedicalR
 
 export function hasMedicalRecord(patientId: string): boolean {
   return Boolean(readAll()[patientId])
+}
+
+/** Conserva detalles del expediente cuando cambia la ficha o el laboratorio. */
+export function syncMedicalRecordFromPatient(patient: Patient, changes: PatientUpdate): void {
+  const all = readAll()
+  const record = all[patient.id]
+  if (!record) return
+  const key = (value: string) => value.trim().toLocaleLowerCase('es-MX')
+  const next = { ...record, habits: { ...record.habits } }
+  if (changes.allergies !== undefined && changes.allergies !== patient.allergies) {
+    next.allergies = splitList(changes.allergies).map(substance =>
+      record.allergies.find(item => key(item.substance) === key(substance)) ??
+      { id: newId('alg'), substance, severity: 'moderate' as const },
+    )
+  }
+  if (changes.conditions !== undefined && changes.conditions !== patient.conditions) {
+    const names = splitList(changes.conditions)
+    next.personal = [
+      ...record.personal.map(item => ({ ...item, status: names.some(name => key(name) === key(item.condition)) ? 'active' as const : 'resolved' as const })),
+      ...names.filter(name => !record.personal.some(item => key(item.condition) === key(name)))
+        .map(condition => ({ id: newId('per'), condition, status: 'active' as const })),
+    ]
+  }
+  if (changes.medications !== undefined && changes.medications !== patient.medications) {
+    const names = splitList(changes.medications)
+    next.medications = [
+      ...record.medications.map(item => ({ ...item, status: names.some(name => key(name) === key(item.name)) ? 'active' as const : 'suspended' as const })),
+      ...names.filter(name => !record.medications.some(item => key(item.name) === key(name)))
+        .map(name => ({ id: newId('med'), name, status: 'active' as const })),
+    ]
+  }
+  if (changes.sleep_hours !== undefined) next.habits.sleep_hours = changes.sleep_hours ?? undefined
+  if (changes.water_liters !== undefined) next.habits.water_liters = changes.water_liters ?? undefined
+  if (JSON.stringify(next) === JSON.stringify(record)) return
+  all[patient.id] = { ...next, updated_at: new Date().toISOString() }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(all))
 }
 
