@@ -12,6 +12,9 @@
   --color-lime-strong: #B5E46C;
   --color-lime-soft: #F2FAE4;
   --text-primary: #1D2924;
+  --text-accent: #245C47;
+  --status-danger-text: #B42333;
+  --status-danger-bg: #FFF0F1;
   --text-secondary: #76847B;
   --border-wellness: #E7ECE6;
 
@@ -35,6 +38,9 @@ html.dark {
   --color-lime-strong: #D6F3A7;
   --color-lime-soft: rgba(200, 237, 143, 0.14);
   --text-primary: #EFF4F0;
+  --text-accent: #C8ED8F;
+  --status-danger-text: #FFB6BE;
+  --status-danger-bg: #391E26;
   --text-secondary: #94A89D;
   --border-wellness: #25352E;
 
@@ -133,6 +139,9 @@ html.dark .liquid-glass-nav {
 }
 
 /* Botones del Sistema de Diseño */
+.account-logout { color: var(--status-danger-text); }
+.account-logout:hover { background-color: var(--status-danger-bg); }
+
 .btn-forest {
   background-color: var(--color-forest);
   color: #FFFFFF;

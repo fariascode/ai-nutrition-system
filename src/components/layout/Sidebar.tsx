@@ -1,9 +1,8 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Users, FileText, Calendar, History,
-  LogOut, Utensils, Sparkles, ShieldCheck,
+  Utensils, Sparkles, ShieldCheck,
 } from 'lucide-react'
-import { useAuth } from '@/features/auth/context/AuthContext'
 import { cn } from '@/utils/cn'
 
 export const navItems = [
@@ -15,7 +14,6 @@ export const navItems = [
 ]
 
 export default function Sidebar() {
-  const { user, signOut } = useAuth()
 
   return (
     <aside className="hidden md:flex w-68 sticky top-16 h-[calc(100dvh-4rem)] overflow-y-auto bg-white border-r border-[#E7ECE6] flex-col shrink-0 select-none">
@@ -103,30 +101,6 @@ export default function Sidebar() {
         </p>
       </div>
 
-      {/* Perfil del Especialista y Cierre de Sesión */}
-      <div className="px-4 py-4 border-t border-[#E7ECE6] bg-[#F7F8F4]/60 space-y-2.5">
-        <div className="flex items-center gap-3 px-2">
-          <div className="w-8 h-8 rounded-xl bg-[#EBF3EE] border border-[#245C47]/15 text-[#245C47] font-extrabold text-xs flex items-center justify-center shrink-0">
-            DR
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold text-[#1D2924] truncate">
-              {user?.email || 'Dr. Especialista'}
-            </p>
-            <p className="text-[11px] text-[#76847B] truncate">
-              Nutrición Clínica y Metabolismo
-            </p>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={signOut}
-          className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-xs font-semibold text-[#76847B] hover:bg-red-50/80 hover:text-red-700 transition-colors"
-        >
-          <LogOut className="w-4 h-4 shrink-0" />
-          Cerrar sesión
-        </button>
-      </div>
     </aside>
   )
 }
