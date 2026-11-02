@@ -18,7 +18,7 @@ export default function Sidebar() {
   const { user, signOut } = useAuth()
 
   return (
-    <aside className="hidden md:flex w-68 min-h-screen bg-white border-r border-[#E7ECE6] flex-col shrink-0 select-none">
+    <aside className="hidden md:flex w-68 sticky top-16 h-[calc(100dvh-4rem)] overflow-y-auto bg-white border-r border-[#E7ECE6] flex-col shrink-0 select-none">
       {/* Cabecera de Marca */}
       <div className="flex items-center justify-between px-6 py-6 border-b border-[#E7ECE6]/80">
         <div className="flex items-center gap-3.5">
