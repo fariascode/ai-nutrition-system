@@ -306,7 +306,7 @@ export default function LabScannerModal({
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900 text-white shadow-2xs">
+            <div className="p-4 rounded-2xl surface-inverse bg-slate-900 text-white shadow-2xs">
               <span className="text-[11px] font-bold text-emerald-400 uppercase flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5" /> Protocolo Sugerido por IA
               </span>

@@ -158,7 +158,7 @@ export default function NewPlanModal({ open, doctorId, initialPatientId, onClose
           {/* Resumen Biometría en Tiempo Real del Paciente Seleccionado */}
           {selectedPatient && bmi && macros && efficacy && (
             <>
-              <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-3">
+              <div className="p-4 rounded-2xl surface-inverse bg-slate-900 text-white space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
                   <div className="flex items-center gap-2">
                     <Activity className="w-4 h-4 text-emerald-400" />
@@ -173,20 +173,20 @@ export default function NewPlanModal({ open, doctorId, initialPatientId, onClose
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                  <div className="bg-slate-800/80 p-2.5 rounded-xl">
+                  <div className="surface-inverse bg-slate-800/80 p-2.5 rounded-xl">
                     <span className="text-muted block text-[11px]">IMC / Estado</span>
                     <span className="font-bold text-white text-sm">{bmi.value}</span>
                     <span className="text-emerald-400 text-[11px] ml-1">({bmi.category})</span>
                   </div>
-                  <div className="bg-slate-800/80 p-2.5 rounded-xl">
+                  <div className="surface-inverse bg-slate-800/80 p-2.5 rounded-xl">
                     <span className="text-muted block text-[11px]">TMB Basal</span>
                     <span className="font-bold text-white text-sm">{bmr} kcal</span>
                   </div>
-                  <div className="bg-slate-800/80 p-2.5 rounded-xl">
+                  <div className="surface-inverse bg-slate-800/80 p-2.5 rounded-xl">
                     <span className="text-muted block text-[11px]">GET Mantenimiento</span>
                     <span className="font-bold text-amber-300 text-sm">{tdee} kcal</span>
                   </div>
-                  <div className="bg-slate-800/80 p-2.5 rounded-xl">
+                  <div className="surface-inverse bg-slate-800/80 p-2.5 rounded-xl">
                     <span className="text-muted block text-[11px]">Hidratación Meta</span>
                     <span className="font-bold text-sky-300 text-sm">{macros.water_liters} L/día</span>
                   </div>

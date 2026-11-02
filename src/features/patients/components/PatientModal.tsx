@@ -151,7 +151,7 @@ export default function PatientModal({ open, patient, doctorId, onClose, onSave 
 
         {/* Barra de previsualización metabólica en vivo */}
         {liveBmi && liveTdee && (
-          <div className="p-3 rounded-xl bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="p-3 rounded-xl surface-inverse bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2 text-xs">
             <div className="flex items-center gap-2">
               <span className="text-muted">Cálculo en vivo:</span>
               <span className="font-bold text-emerald-400">IMC {liveBmi.value} ({liveBmi.category})</span>

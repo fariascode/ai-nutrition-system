@@ -251,7 +251,7 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
         </div>
 
         {/* Resumen de Macros */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 bg-slate-900 text-white p-3.5 rounded-2xl text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 surface-inverse bg-slate-900 text-white p-3.5 rounded-2xl text-xs">
           <div className="flex items-center gap-2">
             <Flame className="w-4 h-4 text-orange-400 shrink-0" />
             <div>

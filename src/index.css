@@ -195,6 +195,12 @@ html.dark .liquid-glass-nav {
 }
 
 /* Botones del Sistema de Diseño */
+.surface-inverse {
+  --text-primary: #EFF4F0;
+  --text-secondary: #B5C6BD;
+  --text-accent: #C8ED8F;
+  color: var(--text-primary);
+}
 .bg-lime-solid.text-content, .bg-lime-solid .text-content,
 .bg-lime-solid.text-accent, .bg-lime-solid .text-accent,
 .bg-emerald-400.text-content { color: #14201B; }
@@ -215,6 +221,7 @@ html.dark .liquid-glass-nav {
   box-shadow: var(--shadow-float);
 }
 .navigation-drawer::backdrop { background: rgb(0 0 0 / 55%); }
+.navigation-drawer[open] { display: flex; flex-direction: column; }
 .skip-link { position: fixed; top: -10rem; left: 1rem; z-index: 110; padding: .75rem; background: var(--bg-surface); color: var(--text-primary); }
 .skip-link:focus { top: .5rem; }
 

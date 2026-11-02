@@ -201,7 +201,7 @@ export default function GroceryAndSmaeView({
           </div>
 
           {/* Barra de progreso del carrito */}
-          <div className="bg-slate-900 text-white p-3.5 rounded-2xl flex items-center justify-between gap-4">
+          <div className="surface-inverse bg-slate-900 text-white p-3.5 rounded-2xl flex items-center justify-between gap-4">
             <div className="flex-1 space-y-1">
               <div className="flex justify-between text-xs">
                 <span className="font-bold text-emerald-300">
@@ -209,7 +209,7 @@ export default function GroceryAndSmaeView({
                 </span>
                 <span className="font-extrabold">{progressPct}%</span>
               </div>
-              <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+              <div className="w-full h-2 surface-inverse bg-slate-800 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-emerald-400 to-teal-300 transition-all duration-300"
                   style={{ width: `${progressPct}%` }}
@@ -337,7 +337,7 @@ export default function GroceryAndSmaeView({
                 </p>
               </div>
 
-              <div className="flex items-center gap-1.5 bg-slate-900 text-white p-1.5 rounded-xl shrink-0">
+              <div className="flex items-center gap-1.5 surface-inverse bg-slate-900 text-white p-1.5 rounded-xl shrink-0">
                 <span className="text-[11px] font-semibold px-2 text-muted">Porción en comida:</span>
                 {[1, 2, 3, 4, 5, 6].map(num => (
                   <button

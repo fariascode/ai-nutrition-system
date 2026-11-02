@@ -10,7 +10,7 @@ export default function Navbar({ onToggleNavigation, navigationOpen, navigationI
           aria-label={navigationOpen ? 'Ocultar menú de navegación' : 'Abrir menú de navegación'} className="btn-secondary p-2.5 min-h-11 min-w-11">
           <Menu className="h-5 w-5" />
         </button>
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#245C47] text-white"><Utensils className="h-4 w-4" /></span>
+        <span className="hidden sm:flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#245C47] text-white"><Utensils className="h-4 w-4" /></span>
         <div className="min-w-0">
           <p className="font-extrabold text-sm">NutriAI</p>
           <p className="hidden sm:block text-xs text-[var(--text-secondary)]">Consultorio médico integral</p>

@@ -16,7 +16,7 @@ export const navItems = [
 export default function Sidebar({ mobile = false, onNavigate }: { mobile?: boolean; onNavigate?: () => void }) {
 
   return (
-    <aside id={mobile ? undefined : 'desktop-navigation'} className={cn('bg-[var(--bg-surface)] text-[var(--text-primary)] flex-col shrink-0 select-none', mobile ? 'flex w-full min-h-full' : 'hidden md:flex w-68 sticky top-16 h-[calc(100dvh-4rem)] overflow-y-auto border-r border-[var(--border-wellness)]')}>
+    <aside id={mobile ? undefined : 'desktop-navigation'} className={cn('bg-[var(--bg-surface)] text-[var(--text-primary)] flex-col shrink-0 select-none', mobile ? 'flex w-full flex-1' : 'hidden md:flex w-68 sticky top-16 h-[calc(100dvh-4rem)] overflow-y-auto border-r border-[var(--border-wellness)]')}>
       {/* Cabecera de Marca */}
       <div className="flex items-center justify-between px-6 py-6 border-b border-line/80">
         <div className="flex items-center gap-3.5">

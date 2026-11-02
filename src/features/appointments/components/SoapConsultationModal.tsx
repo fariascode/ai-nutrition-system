@@ -166,7 +166,7 @@ export default function SoapConsultationModal({
     >
       <form onSubmit={e => handleSave(e, false)} className="space-y-4">
         {/* Barra de Antropometría en Vivo durante la Consulta */}
-        <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-3">
+        <div className="p-4 rounded-2xl surface-inverse bg-slate-900 text-white space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-xs font-extrabold text-emerald-400 flex items-center gap-1.5">
               <Scale className="w-4 h-4" />
@@ -185,7 +185,7 @@ export default function SoapConsultationModal({
               <input
                 type="number" step="0.1" required value={weight}
                 onChange={e => setWeight(e.target.value)}
-                className="w-full px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 font-bold text-white"
+                className="w-full px-3 py-1.5 rounded-xl surface-inverse bg-slate-800 border border-slate-700 font-bold text-white"
               />
             </div>
             <div>
@@ -194,7 +194,7 @@ export default function SoapConsultationModal({
                 type="number" step="0.1" value={bodyFat}
                 onChange={e => setBodyFat(e.target.value)}
                 placeholder="Ej. 25.4"
-                className="w-full px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 font-bold text-white"
+                className="w-full px-3 py-1.5 rounded-xl surface-inverse bg-slate-800 border border-slate-700 font-bold text-white"
               />
             </div>
             <div>
@@ -203,7 +203,7 @@ export default function SoapConsultationModal({
                 type="number" step="0.1" value={muscle}
                 onChange={e => setMuscle(e.target.value)}
                 placeholder="Ej. 27.5"
-                className="w-full px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 font-bold text-white"
+                className="w-full px-3 py-1.5 rounded-xl surface-inverse bg-slate-800 border border-slate-700 font-bold text-white"
               />
             </div>
             <div>
@@ -212,7 +212,7 @@ export default function SoapConsultationModal({
                 type="number" step="0.1" value={waist}
                 onChange={e => setWaist(e.target.value)}
                 placeholder="Ej. 76"
-                className="w-full px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 font-bold text-white"
+                className="w-full px-3 py-1.5 rounded-xl surface-inverse bg-slate-800 border border-slate-700 font-bold text-white"
               />
             </div>
           </div>
