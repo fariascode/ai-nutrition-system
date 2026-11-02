@@ -13,10 +13,10 @@ export const navItems = [
   { to: '/history',      icon: History,         label: 'Historial Clínico' },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ mobile = false, onNavigate }: { mobile?: boolean; onNavigate?: () => void }) {
 
   return (
-    <aside className="hidden md:flex w-68 sticky top-16 h-[calc(100dvh-4rem)] overflow-y-auto bg-white border-r border-[#E7ECE6] flex-col shrink-0 select-none">
+    <aside id={mobile ? undefined : 'desktop-navigation'} className={cn('bg-[var(--bg-surface)] text-[var(--text-primary)] flex-col shrink-0 select-none', mobile ? 'flex w-full min-h-full' : 'hidden md:flex w-68 sticky top-16 h-[calc(100dvh-4rem)] overflow-y-auto border-r border-[var(--border-wellness)]')}>
       {/* Cabecera de Marca */}
       <div className="flex items-center justify-between px-6 py-6 border-b border-[#E7ECE6]/80">
         <div className="flex items-center gap-3.5">
@@ -55,6 +55,7 @@ export default function Sidebar() {
           <NavLink
             key={to}
             to={to}
+            onClick={onNavigate}
             className={({ isActive }) =>
               cn(
                 'group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200',

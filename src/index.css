@@ -139,6 +139,25 @@ html.dark .liquid-glass-nav {
 }
 
 /* Botones del Sistema de Diseño */
+.navigation-drawer {
+  position: fixed;
+  inset: 0 auto 0 0;
+  margin: 0;
+  padding: 0;
+  width: min(20rem, calc(100vw - 3rem));
+  height: 100dvh;
+  max-height: none;
+  border: 0;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-shadow: var(--shadow-float);
+}
+.navigation-drawer::backdrop { background: rgb(0 0 0 / 55%); }
+.skip-link { position: fixed; top: -10rem; left: 1rem; z-index: 110; padding: .75rem; background: var(--bg-surface); color: var(--text-primary); }
+.skip-link:focus { top: .5rem; }
+
 .account-logout { color: var(--status-danger-text); }
 .account-logout:hover { background-color: var(--status-danger-bg); }
 
