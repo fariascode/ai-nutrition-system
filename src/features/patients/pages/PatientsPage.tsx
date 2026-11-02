@@ -11,6 +11,7 @@ import {
 import PatientModal from '../components/PatientModal'
 import PatientDossierModal from '../components/PatientDossierModal'
 import LabScannerModal from '../components/LabScannerModal'
+import MedicalRecordModal from '@/features/medical-record/components/MedicalRecordModal'
 import NewPlanModal from '@/features/plans/components/NewPlanModal'
 import {
   calculateAge, calculateBMI, calculateBMR, calculateTDEE, evaluatePatientAlerts,
@@ -32,6 +33,7 @@ export default function PatientsPage() {
   const [editing, setEditing]               = useState<Patient | null>(null)
   const [dossierPatient, setDossierPatient] = useState<Patient | null>(null)
   const [labPatient, setLabPatient]         = useState<Patient | null>(null)
+  const [recordPatient, setRecordPatient]   = useState<Patient | null>(null)
   const [planPatientId, setPlanPatientId]   = useState<string | undefined>(undefined)
   const [newPlanOpen, setNewPlanOpen]       = useState(false)
   const [deleting, setDeleting]             = useState<string | null>(null)
@@ -74,6 +76,14 @@ export default function PatientsPage() {
     })
     setPatients(ps => ps.map(p => p.id === updated.id ? updated : p))
     if (dossierPatient?.id === updated.id) setDossierPatient(updated)
+  }
+
+  async function handleSyncClinicalText(
+    patientId: string,
+    data: { allergies: string | null; medications: string | null; conditions: string | null },
+  ) {
+    const updated = await updatePatient(patientId, data)
+    setPatients(ps => ps.map(p => p.id === updated.id ? updated : p))
   }
 
   async function handleDelete(id: string) {
@@ -452,6 +462,15 @@ export default function PatientsPage() {
         onGeneratePlan={p => openPlanFor(p)}
         onAddCheckin={handleAddCheckin}
         onOpenLabScanner={p => { setDossierPatient(null); setLabPatient(p) }}
+        onOpenMedicalRecord={p => { setDossierPatient(null); setRecordPatient(p) }}
+      />
+
+      {/* Modal Expediente Médico Integral */}
+      <MedicalRecordModal
+        open={!!recordPatient}
+        patient={recordPatient}
+        onClose={() => setRecordPatient(null)}
+        onSyncPatient={handleSyncClinicalText}
       />
 
       {/* Modal Escáner de Laboratorio Clínico con IA */}
