@@ -16,8 +16,10 @@ const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved === 'dark' || saved === 'light') return saved
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved === 'dark' || saved === 'light') return saved
+    } catch { /* El tema sigue funcionando si el navegador bloquea el almacenamiento. */ }
     return 'light'
   })
 
@@ -30,7 +32,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.classList.remove('dark')
       root.setAttribute('data-theme', 'light')
     }
-    localStorage.setItem(STORAGE_KEY, theme)
+    try { localStorage.setItem(STORAGE_KEY, theme) } catch { /* Preferencia solo para esta sesión. */ }
 
     const metaTheme = document.querySelector('meta[name="theme-color"]')
     if (metaTheme) {
@@ -73,7 +75,7 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
       } ${
         isDark
           ? 'bg-[#1C2923] border-[#2C3F37] text-[#C8ED8F] hover:bg-[#24352D]'
-          : 'bg-white border-[#E7ECE6] text-[#1D2924] hover:bg-[#F7F8F4]'
+          : 'bg-surface border-line text-content hover:bg-canvas'
       }`}
     >
       {isDark ? (
@@ -83,7 +85,7 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
         </>
       ) : (
         <>
-          <Moon className="w-4 h-4 text-[#245C47]" />
+          <Moon className="w-4 h-4 text-accent" />
           {!compact && <span>Modo Oscuro</span>}
         </>
       )}

@@ -16,31 +16,31 @@ const DEMO_APPOINTMENTS_KEY = 'nutriai_demo_appointments_v1'
 export const APPOINTMENT_TYPE_LABELS: Record<AppointmentType, { label: string; color: string; prep: string }> = {
   first_visit: {
     label: 'Consulta Inicial 1ª Vez',
-    color: 'bg-violet-50 text-violet-800 border-violet-200',
+    color: 'bg-purple-soft text-purple border-purple-line',
     prep: 'Acudir con ayuno ligero de 3 horas para bioimpedancia InBody y traer últimos estudios de laboratorio.',
   },
   follow_up: {
     label: 'Control y Seguimiento',
-    color: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    color: 'bg-accent-soft text-accent border-accent-line',
     prep: 'Acudir con ropa ligera y 2 horas sin ingesta de alimentos sólidos para pesaje clínico.',
   },
   body_comp: {
     label: 'Antropometría / InBody',
-    color: 'bg-blue-50 text-blue-800 border-blue-200',
+    color: 'bg-info-soft text-info border-info-line',
     prep: 'No realizar ejercicio intenso 12h antes y mantener hidratación habitual.',
   },
   lab_review: {
     label: 'Interpretación de Laboratorio',
-    color: 'bg-amber-50 text-amber-800 border-amber-200',
+    color: 'bg-warning-soft text-warning border-warning-line',
     prep: 'Enviar o traer resultados de Química Sanguínea, Perfil Lipídico e Insulina Basal.',
   },
 }
 
 export const APPOINTMENT_STATUS_LABELS: Record<AppointmentStatus, { label: string; color: string }> = {
-  scheduled: { label: 'Programada',  color: 'bg-amber-100 text-amber-800 border-amber-200' },
-  confirmed: { label: 'Confirmada',  color: 'bg-blue-100 text-blue-800 border-blue-200' },
-  completed: { label: 'Concluida (SOAP)', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-  cancelled: { label: 'Cancelada',   color: 'bg-gray-100 text-gray-500 border-gray-200' },
+  scheduled: { label: 'Programada',  color: 'bg-warning-soft text-warning border-warning-line' },
+  confirmed: { label: 'Confirmada',  color: 'bg-info-soft text-info border-info-line' },
+  completed: { label: 'Concluida (SOAP)', color: 'bg-accent-soft text-accent border-accent-line' },
+  cancelled: { label: 'Cancelada',   color: 'bg-subtle text-muted border-line' },
 }
 
 function getInitialAppointments(): Appointment[] {

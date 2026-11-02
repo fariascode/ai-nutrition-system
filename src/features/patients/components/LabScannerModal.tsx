@@ -145,17 +145,17 @@ export default function LabScannerModal({
       {step === 'input' && (
         <div className="space-y-5">
           {/* Presets rápidos de demostración en 1 clic */}
-          <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-2.5">
+          <div className="p-4 rounded-2xl bg-accent-soft/70 border border-accent-line space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold text-emerald-950 flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-emerald-600" />
+              <span className="text-xs font-extrabold text-content flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-accent" />
                 Cargar Estudio Clínico de Prueba en 1 Clic (Simulación Instantánea):
               </span>
               {patient.biomarkers?.fasting_glucose && (
                 <button
                   type="button"
                   onClick={() => setStep('review')}
-                  className="text-xs font-bold text-emerald-700 underline hover:text-emerald-900"
+                  className="text-xs font-bold text-accent underline hover:text-accent"
                 >
                   Ver estudios actuales del paciente →
                 </button>
@@ -168,10 +168,10 @@ export default function LabScannerModal({
                   key={preset.id}
                   type="button"
                   onClick={() => handlePresetClick(preset.id)}
-                  className="p-3 rounded-xl bg-white hover:bg-emerald-50 border border-emerald-200 hover:border-emerald-400 text-left transition shadow-2xs"
+                  className="p-3 rounded-xl bg-surface hover:bg-accent-soft border border-accent-line hover:border-emerald-400 text-left transition shadow-2xs"
                 >
-                  <p className="text-xs font-extrabold text-gray-900">{preset.title}</p>
-                  <p className="text-[11px] text-gray-500 mt-1 leading-snug">{preset.subtitle}</p>
+                  <p className="text-xs font-extrabold text-content">{preset.title}</p>
+                  <p className="text-[11px] text-muted mt-1 leading-snug">{preset.subtitle}</p>
                 </button>
               ))}
             </div>
@@ -179,16 +179,16 @@ export default function LabScannerModal({
 
           {/* Zona de subida de archivo PDF / Imagen / TXT */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 hover:border-emerald-500 rounded-2xl bg-gray-50/60 hover:bg-emerald-50/30 cursor-pointer transition text-center">
-              <Upload className="w-8 h-8 text-emerald-600 mb-2" />
-              <span className="text-xs font-bold text-gray-900">
+            <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-line hover:border-emerald-500 rounded-2xl bg-subtle/60 hover:bg-accent-soft/30 cursor-pointer transition text-center">
+              <Upload className="w-8 h-8 text-accent mb-2" />
+              <span className="text-xs font-bold text-content">
                 Subir PDF, Imagen o TXT
               </span>
-              <span className="text-[11px] text-gray-500 mt-1">
+              <span className="text-[11px] text-muted mt-1">
                 Química sanguínea, biometría o perfil hormonal
               </span>
               {fileName && (
-                <span className="mt-2 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">
+                <span className="mt-2 px-2.5 py-1 rounded-full bg-accent-soft text-accent text-[11px] font-bold">
                   📄 {fileName}
                 </span>
               )}
@@ -201,8 +201,8 @@ export default function LabScannerModal({
             </label>
 
             <div className="md:col-span-2 flex flex-col">
-              <label className="block text-xs font-bold text-gray-700 mb-1.5 flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-emerald-600" />
+              <label className="block text-xs font-bold text-muted mb-1.5 flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-accent" />
                 Texto del Estudio de Laboratorio (OCR / Copiar y Pegar resultados)
               </label>
               <textarea
@@ -210,23 +210,23 @@ export default function LabScannerModal({
                 value={rawText}
                 onChange={e => setRawText(e.target.value)}
                 placeholder={`Pega aquí los resultados del laboratorio o selecciona uno de los 3 casos clínicos de arriba...\n\nEjemplo:\nGlucosa en ayuno: 108 mg/dL\nInsulina basal: 14.2 uU/mL\nHbA1c: 5.8 %\nTriglicéridos: 195 mg/dL\nColesterol HDL: 40 mg/dL\nTSH: 4.5 mUI/L\nVitamina D: 19 ng/mL`}
-                className="w-full flex-1 px-3.5 py-2.5 border border-gray-300 rounded-2xl text-xs font-mono bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full flex-1 px-3.5 py-2.5 border border-line rounded-2xl text-xs font-mono bg-surface focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
           </div>
 
-          <div className="flex justify-end gap-2.5 pt-2 border-t border-gray-100">
+          <div className="flex justify-end gap-2.5 pt-2 border-t border-line">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl"
+              className="px-4 py-2 text-xs font-semibold text-muted bg-subtle hover:bg-subtle rounded-xl"
             >
               Cancelar
             </button>
             <button
               type="button"
               onClick={startAiAnalysis}
-              className="flex items-center gap-2 px-5 py-2.5 text-xs font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition"
+              className="flex items-center gap-2 px-5 py-2.5 text-xs font-extrabold text-white bg-action hover:bg-action-hover rounded-xl shadow-sm transition"
             >
               <Microscope className="w-4 h-4" />
               Analizar Biomarcadores con IA →
@@ -237,19 +237,19 @@ export default function LabScannerModal({
 
       {step === 'scanning' && (
         <div className="py-12 px-4 flex flex-col items-center justify-center gap-5">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center">
-            <Microscope className="w-8 h-8 text-emerald-600 animate-bounce" />
+          <div className="w-16 h-16 rounded-2xl bg-accent-soft border border-accent-line flex items-center justify-center">
+            <Microscope className="w-8 h-8 text-accent animate-bounce" />
           </div>
           <div className="text-center space-y-1">
-            <h3 className="font-extrabold text-gray-900 text-base">
+            <h3 className="font-extrabold text-content text-base">
               Procesando Bioquímica Clínica con IA...
             </h3>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted">
               Extrayendo analitos, calculando índice HOMA-IR y evaluando riesgo cardiometabólico
             </p>
           </div>
 
-          <div className="w-full max-w-md bg-slate-50 border border-gray-200 rounded-2xl p-4 space-y-2.5 text-xs">
+          <div className="w-full max-w-md bg-subtle border border-line rounded-2xl p-4 space-y-2.5 text-xs">
             {[
               '1. Reconociendo analitos de química sanguínea y perfil hormonal...',
               '2. Calculando Índice HOMA-IR e Índice Aterogénico (TG/HDL)...',
@@ -258,10 +258,10 @@ export default function LabScannerModal({
               <div key={idx} className="flex items-center gap-2.5">
                 <CheckCircle2
                   className={`w-4 h-4 shrink-0 ${
-                    scanStage >= idx ? 'text-emerald-600' : 'text-gray-300'
+                    scanStage >= idx ? 'text-accent' : 'text-muted'
                   }`}
                 />
-                <span className={scanStage >= idx ? 'font-bold text-gray-900' : 'text-gray-400'}>
+                <span className={scanStage >= idx ? 'font-bold text-content' : 'text-muted'}>
                   {txt}
                 </span>
               </div>
@@ -274,12 +274,12 @@ export default function LabScannerModal({
         <div className="space-y-5">
           {/* Tarjetas de Índices Clínicos Calculados (HOMA-IR, TG/HDL, Protocolo Sugerido) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="p-4 rounded-2xl border border-gray-200 bg-white shadow-2xs">
-              <span className="text-[11px] font-bold text-gray-500 uppercase block">
+            <div className="p-4 rounded-2xl border border-line bg-surface shadow-2xs">
+              <span className="text-[11px] font-bold text-muted uppercase block">
                 Índice HOMA-IR (Insulina × Glucosa / 405)
               </span>
               <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-2xl font-extrabold text-gray-900">
+                <span className="text-2xl font-extrabold text-content">
                   {interpretation.homaIr ?? 'N/A'}
                 </span>
                 {interpretation.homaStatus && (
@@ -290,12 +290,12 @@ export default function LabScannerModal({
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl border border-gray-200 bg-white shadow-2xs">
-              <span className="text-[11px] font-bold text-gray-500 uppercase block">
+            <div className="p-4 rounded-2xl border border-line bg-surface shadow-2xs">
+              <span className="text-[11px] font-bold text-muted uppercase block">
                 Índice Aterogénico (Triglicéridos / HDL)
               </span>
               <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-2xl font-extrabold text-gray-900">
+                <span className="text-2xl font-extrabold text-content">
                   {interpretation.tgHdlRatio ?? 'N/A'}
                 </span>
                 {interpretation.tgHdlStatus && (
@@ -313,29 +313,29 @@ export default function LabScannerModal({
               <p className="text-sm font-extrabold mt-1">
                 {PROTOCOL_INFO[interpretation.recommendedProtocol].name}
               </p>
-              <span className="text-[11px] text-slate-300 block mt-0.5">
+              <span className="text-[11px] text-muted block mt-0.5">
                 Basado en hallazgos bioquímicos detectados
               </span>
             </div>
           </div>
 
           {/* Semáforo de Analitos + Edición rápida */}
-          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs">
-            <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-              <h4 className="text-xs font-extrabold text-gray-900 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-emerald-600" />
+          <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-2xs">
+            <div className="px-4 py-3 bg-subtle border-b border-line flex items-center justify-between">
+              <h4 className="text-xs font-extrabold text-content flex items-center gap-2">
+                <Activity className="w-4 h-4 text-accent" />
                 Biomarcadores Extraídos (Puedes ajustar cualquier valor manualmente)
               </h4>
               <button
                 type="button"
                 onClick={() => setStep('input')}
-                className="text-xs font-bold text-emerald-600 hover:underline"
+                className="text-xs font-bold text-accent hover:underline"
               >
                 ← Escanear otro estudio
               </button>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-4 bg-gray-50/40">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-4 bg-subtle/40">
               {[
                 { key: 'fasting_glucose' as const,   label: 'Glucosa Ayuno (mg/dL)' },
                 { key: 'fasting_insulin' as const,   label: 'Insulina Basal (µU/mL)' },
@@ -353,15 +353,15 @@ export default function LabScannerModal({
                 const evalItem = interpretation.evaluations.find(e => e.key === field.key)
                 const badgeColor =
                   evalItem?.status === 'critical'
-                    ? 'border-red-300 bg-red-50/60'
+                    ? 'border-danger-line bg-danger-soft/60'
                     : evalItem?.status === 'warning'
-                    ? 'border-amber-300 bg-amber-50/60'
-                    : 'border-gray-200 bg-white'
+                    ? 'border-warning-line bg-warning-soft/60'
+                    : 'border-line bg-surface'
 
                 return (
                   <div key={field.key} className={`p-2.5 rounded-xl border ${badgeColor}`}>
                     <div className="flex items-center justify-between mb-1">
-                      <label className="text-[11px] font-bold text-gray-700 truncate">
+                      <label className="text-[11px] font-bold text-muted truncate">
                         {field.label}
                       </label>
                       {evalItem && (
@@ -382,10 +382,10 @@ export default function LabScannerModal({
                       value={bio[field.key] ?? ''}
                       onChange={e => updateBioValue(field.key, e.target.value)}
                       placeholder="—"
-                      className="w-full px-2.5 py-1 text-xs font-extrabold text-gray-900 bg-white border border-gray-200 rounded-lg"
+                      className="w-full px-2.5 py-1 text-xs font-extrabold text-content bg-surface border border-line rounded-lg"
                     />
                     {evalItem && (
-                      <p className="text-[10px] text-gray-500 mt-1 truncate" title={evalItem.clinicalNote}>
+                      <p className="text-[10px] text-muted mt-1 truncate" title={evalItem.clinicalNote}>
                         {evalItem.clinicalNote}
                       </p>
                     )}
@@ -397,53 +397,53 @@ export default function LabScannerModal({
 
           {/* Diagnóstico Bioquímico IA y Recomendaciones Dietoterapéuticas */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-2">
-              <h4 className="text-xs font-extrabold text-amber-950 flex items-center gap-1.5">
-                <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <div className="p-4 rounded-2xl bg-warning-soft/70 border border-warning-line space-y-2">
+              <h4 className="text-xs font-extrabold text-warning flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4 text-warning" />
                 Hallazgos Bioquímicos y Ajustes para el Plan IA
               </h4>
               {interpretation.detectedConditions.length > 0 ? (
                 <div className="flex flex-wrap gap-1.5">
                   {interpretation.detectedConditions.map((c, i) => (
-                    <span key={i} className="px-2 py-0.5 rounded-md bg-white border border-amber-300 text-amber-900 text-[11px] font-bold">
+                    <span key={i} className="px-2 py-0.5 rounded-md bg-surface border border-warning-line text-warning text-[11px] font-bold">
                       • {c}
                     </span>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-emerald-700 font-semibold">✓ Todos los analitos en rango fisiológico óptimo.</p>
+                <p className="text-xs text-accent font-semibold">✓ Todos los analitos en rango fisiológico óptimo.</p>
               )}
 
-              <ul className="space-y-1 text-xs text-amber-900 pt-1">
+              <ul className="space-y-1 text-xs text-warning pt-1">
                 {interpretation.nutritionalAdjustments.map((adj, i) => (
                   <li key={i} className="leading-relaxed">→ {adj}</li>
                 ))}
               </ul>
             </div>
 
-            <div className="p-4 rounded-2xl bg-violet-50/70 border border-violet-200 space-y-2.5 flex flex-col justify-between">
+            <div className="p-4 rounded-2xl bg-purple-soft/70 border border-purple-line space-y-2.5 flex flex-col justify-between">
               <div className="space-y-2">
-                <h4 className="text-xs font-extrabold text-violet-950 flex items-center gap-1.5">
-                  <Pill className="w-4 h-4 text-violet-600" />
+                <h4 className="text-xs font-extrabold text-purple flex items-center gap-1.5">
+                  <Pill className="w-4 h-4 text-purple" />
                   Suplementación de Precisión Sugerida por IA
                 </h4>
                 {interpretation.suggestedSupplements.length > 0 ? (
-                  <ul className="space-y-1 text-xs text-violet-900">
+                  <ul className="space-y-1 text-xs text-purple">
                     {interpretation.suggestedSupplements.map((sup, i) => (
                       <li key={i} className="font-medium">✓ {sup}</li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-xs text-violet-800">Mantenimiento general: Omega-3 EPA/DHA y Magnesio.</p>
+                  <p className="text-xs text-purple">Mantenimiento general: Omega-3 EPA/DHA y Magnesio.</p>
                 )}
               </div>
 
-              <label className="flex items-center gap-2 pt-2 border-t border-violet-200/70 text-xs font-bold text-violet-950 cursor-pointer">
+              <label className="flex items-center gap-2 pt-2 border-t border-purple-line/70 text-xs font-bold text-purple cursor-pointer">
                 <input
                   type="checkbox"
                   checked={syncConditions}
                   onChange={e => setSyncConditions(e.target.checked)}
-                  className="rounded text-emerald-600"
+                  className="rounded text-accent"
                 />
                 Actualizar diagnósticos y suplementos en el expediente del paciente
               </label>
@@ -451,11 +451,11 @@ export default function LabScannerModal({
           </div>
 
           {/* Botones de Acción Final */}
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-gray-100">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-line">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl"
+              className="px-4 py-2 text-xs font-semibold text-muted bg-subtle hover:bg-subtle rounded-xl"
             >
               Cancelar
             </button>
@@ -465,7 +465,7 @@ export default function LabScannerModal({
                 type="button"
                 disabled={saving}
                 onClick={() => handleConfirmSave(false)}
-                className="px-4 py-2.5 text-xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 rounded-xl transition"
+                className="px-4 py-2.5 text-xs font-bold text-accent bg-accent-soft hover:bg-accent-soft rounded-xl transition"
               >
                 {saving ? 'Guardando...' : 'Guardar en Expediente 360°'}
               </button>
@@ -475,7 +475,7 @@ export default function LabScannerModal({
                   type="button"
                   disabled={saving}
                   onClick={() => handleConfirmSave(true)}
-                  className="flex items-center gap-1.5 px-5 py-2.5 text-xs font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition"
+                  className="flex items-center gap-1.5 px-5 py-2.5 text-xs font-extrabold text-white bg-action hover:bg-action-hover rounded-xl shadow-sm transition"
                 >
                   <Sparkles className="w-4 h-4" />
                   Guardar y Generar Plan IA con estos Estudios

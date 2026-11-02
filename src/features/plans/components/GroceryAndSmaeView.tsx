@@ -121,15 +121,15 @@ export default function GroceryAndSmaeView({
   return (
     <div className="space-y-4">
       {/* Selector superior de herramienta */}
-      <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-100 p-1.5 rounded-2xl">
+      <div className="flex flex-wrap items-center justify-between gap-2 bg-subtle p-1.5 rounded-2xl">
         <div className="flex items-center gap-1 flex-1 sm:flex-initial">
           <button
             type="button"
             onClick={() => setSubTab('grocery')}
             className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all ${
               subTab === 'grocery'
-                ? 'bg-white text-emerald-700 shadow-xs'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-surface text-accent shadow-xs'
+                : 'text-muted hover:text-content'
             }`}
           >
             <ShoppingCart className="w-4 h-4" />
@@ -141,8 +141,8 @@ export default function GroceryAndSmaeView({
             onClick={() => setSubTab('smae')}
             className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all ${
               subTab === 'smae'
-                ? 'bg-white text-emerald-700 shadow-xs'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-surface text-accent shadow-xs'
+                : 'text-muted hover:text-content'
             }`}
           >
             <Scale className="w-4 h-4" />
@@ -151,8 +151,8 @@ export default function GroceryAndSmaeView({
         </div>
 
         {patient.allergies && (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-100/80 text-emerald-900 text-[11px] font-bold">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-accent-soft/80 text-accent text-[11px] font-bold">
+            <ShieldCheck className="w-3.5 h-3.5 text-accent" />
             Filtrado sin: {patient.allergies}
           </span>
         )}
@@ -161,17 +161,17 @@ export default function GroceryAndSmaeView({
       {subTab === 'grocery' ? (
         <div className="space-y-4">
           {/* Barra de control de días y acciones */}
-          <div className="p-4 rounded-2xl bg-white border border-gray-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="p-4 rounded-2xl bg-surface border border-line shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-gray-600">Calcular abasto para:</span>
-              <div className="inline-flex bg-gray-100 p-1 rounded-xl text-xs font-bold">
+              <span className="text-xs font-bold text-muted">Calcular abasto para:</span>
+              <div className="inline-flex bg-subtle p-1 rounded-xl text-xs font-bold">
                 {([7, 14, 30] as const).map(d => (
                   <button
                     key={d}
                     type="button"
                     onClick={() => setDays(d)}
                     className={`px-3 py-1 rounded-lg transition-colors ${
-                      days === d ? 'bg-emerald-600 text-white shadow-2xs' : 'text-gray-600 hover:text-gray-900'
+                      days === d ? 'bg-action text-white shadow-2xs' : 'text-muted hover:text-content'
                     }`}
                   >
                     {d === 7 ? '7 Días (Semanal)' : d === 14 ? '14 Días (Quincenal)' : '30 Días (Mensual)'}
@@ -184,16 +184,16 @@ export default function GroceryAndSmaeView({
               <button
                 type="button"
                 onClick={handleCopyGrocery}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent-soft hover:bg-accent-soft text-accent border border-accent-line text-xs font-bold transition"
               >
-                {copiedList ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedList ? <Check className="w-3.5 h-3.5 text-accent" /> : <Copy className="w-3.5 h-3.5" />}
                 {copiedList ? '¡Copiada!' : 'Copiar Lista WhatsApp'}
               </button>
 
               <button
                 type="button"
                 onClick={handlePrintGrocery}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 text-xs font-semibold transition"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-subtle text-muted border border-line text-xs font-semibold transition"
               >
                 <Printer className="w-3.5 h-3.5" /> Imprimir Súper
               </button>
@@ -226,9 +226,9 @@ export default function GroceryAndSmaeView({
               const info = AISLE_INFO[aisle]
 
               return (
-                <div key={aisle} className="bg-white rounded-2xl border border-gray-200 p-4 shadow-2xs space-y-3">
-                  <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-                    <h4 className="font-extrabold text-gray-900 text-xs">{info.title}</h4>
+                <div key={aisle} className="bg-surface rounded-2xl border border-line p-4 shadow-2xs space-y-3">
+                  <div className="flex items-center justify-between border-b border-line pb-2">
+                    <h4 className="font-extrabold text-content text-xs">{info.title}</h4>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${info.badgeColor}`}>
                       {items.length} ítems
                     </span>
@@ -243,25 +243,25 @@ export default function GroceryAndSmaeView({
                           onClick={() => toggleGroceryItem(item.id)}
                           className={`p-2.5 rounded-xl border text-xs cursor-pointer transition-all flex items-start gap-2.5 ${
                             done
-                              ? 'bg-emerald-50/60 border-emerald-200 text-gray-400'
-                              : 'bg-gray-50/60 hover:bg-white border-gray-200/80 text-gray-800'
+                              ? 'bg-accent-soft/60 border-accent-line text-muted'
+                              : 'bg-subtle/60 hover:bg-surface border-line/80 text-content'
                           }`}
                         >
                           {done ? (
-                            <CheckSquare className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                            <CheckSquare className="w-4 h-4 text-accent shrink-0 mt-0.5" />
                           ) : (
-                            <Square className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
+                            <Square className="w-4 h-4 text-muted shrink-0 mt-0.5" />
                           )}
                           <div className="flex-1 min-w-0">
                             <div className="flex flex-wrap items-center justify-between gap-1">
-                              <span className={`font-bold ${done ? 'line-through text-gray-400' : 'text-gray-900'}`}>
+                              <span className={`font-bold ${done ? 'line-through text-muted' : 'text-content'}`}>
                                 {item.name}
                               </span>
-                              <span className="px-2 py-0.5 rounded-md bg-emerald-100/90 text-emerald-900 font-extrabold text-[11px] shrink-0">
+                              <span className="px-2 py-0.5 rounded-md bg-accent-soft/90 text-accent font-extrabold text-[11px] shrink-0">
                                 {item.quantity}
                               </span>
                             </div>
-                            <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
+                            <p className="text-[11px] text-muted mt-0.5 leading-snug">
                               {item.clinicalNote}
                             </p>
                           </div>
@@ -277,14 +277,14 @@ export default function GroceryAndSmaeView({
       ) : (
         <div className="space-y-5">
           {/* Tabla de Distribución Diaria de Equivalentes SMAE */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-2xs space-y-3">
+          <div className="bg-surface rounded-2xl border border-line p-4 sm:p-5 shadow-2xs space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <h3 className="font-extrabold text-gray-900 text-sm flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-emerald-600" />
+                <h3 className="font-extrabold text-content text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-accent" />
                   Distribución Diaria de Equivalentes Clínicos SMAE
                 </h3>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted">
                   Cuantificación exacta para cubrir <strong>{macros.calories} kcal/día</strong> ({macros.protein_g}g Proteína • {macros.carbs_g}g Carbohidratos • {macros.fat_g}g Grasas)
                 </p>
               </div>
@@ -304,18 +304,18 @@ export default function GroceryAndSmaeView({
                     }}
                     className={`p-3 rounded-xl border text-left transition-all ${
                       isSelected
-                        ? 'ring-2 ring-emerald-600 bg-emerald-50/70 border-emerald-400 shadow-xs'
-                        : 'bg-gray-50/70 hover:bg-white border-gray-200'
+                        ? 'ring-2 ring-emerald-600 bg-accent-soft/70 border-emerald-400 shadow-xs'
+                        : 'bg-subtle/70 hover:bg-surface border-line'
                     }`}
                   >
-                    <span className="text-[10px] font-bold text-gray-500 block truncate">
+                    <span className="text-[10px] font-bold text-muted block truncate">
                       {group.shortName}
                     </span>
                     <div className="flex items-baseline gap-1 mt-1">
-                      <span className="text-xl font-extrabold text-gray-900">{eqCount}</span>
-                      <span className="text-[10px] font-bold text-emerald-700">Eq/día</span>
+                      <span className="text-xl font-extrabold text-content">{eqCount}</span>
+                      <span className="text-[10px] font-bold text-accent">Eq/día</span>
                     </div>
-                    <span className="text-[10px] text-gray-400 block mt-0.5">
+                    <span className="text-[10px] text-muted block mt-0.5">
                       ~{eqCount * group.kcalPerEq} kcal
                     </span>
                   </button>
@@ -325,20 +325,20 @@ export default function GroceryAndSmaeView({
           </div>
 
           {/* Conversor Interactivo de Platillos y Gramajes SMAE */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-2xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
+          <div className="bg-surface rounded-2xl border border-line p-4 sm:p-5 shadow-2xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line pb-3">
               <div>
-                <h4 className="font-extrabold text-gray-900 text-sm flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4 text-emerald-600" />
+                <h4 className="font-extrabold text-content text-sm flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4 text-accent" />
                   Conversor Interactivo de Porciones: {activeSmaeGroup.name}
                 </h4>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-muted mt-0.5">
                   Selecciona cuántos equivalentes vas a consumir en tu comida para ver el peso exacto de cada opción intercambiable:
                 </p>
               </div>
 
               <div className="flex items-center gap-1.5 bg-slate-900 text-white p-1.5 rounded-xl shrink-0">
-                <span className="text-[11px] font-semibold px-2 text-slate-300">Porción en comida:</span>
+                <span className="text-[11px] font-semibold px-2 text-muted">Porción en comida:</span>
                 {[1, 2, 3, 4, 5, 6].map(num => (
                   <button
                     key={num}
@@ -347,7 +347,7 @@ export default function GroceryAndSmaeView({
                     className={`w-7 h-7 rounded-lg text-xs font-extrabold transition ${
                       eqMultiplier === num
                         ? 'bg-emerald-500 text-slate-950'
-                        : 'text-slate-300 hover:bg-slate-800'
+                        : 'text-muted hover:bg-slate-800'
                     }`}
                   >
                     {num}
@@ -358,7 +358,7 @@ export default function GroceryAndSmaeView({
             </div>
 
             {/* Resumen nutricional de los N equivalentes seleccionados */}
-            <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950">
+            <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 rounded-xl bg-accent-soft border border-accent-line text-xs text-content">
               <span className="font-bold">
                 Aporte nutricional de <strong>{eqMultiplier} Equivalente(s)</strong> de {activeSmaeGroup.shortName}:
               </span>
@@ -382,7 +382,7 @@ export default function GroceryAndSmaeView({
                     <span className="font-bold text-xs leading-snug">{food.name}</span>
                     <div className="flex items-center justify-between pt-2 border-t border-black/10">
                       <span className="text-[10px] opacity-75">1 Eq = {food.portion}</span>
-                      <span className="px-2 py-0.5 rounded-lg bg-white text-gray-900 font-extrabold text-xs shadow-2xs">
+                      <span className="px-2 py-0.5 rounded-lg bg-surface text-content font-extrabold text-xs shadow-2xs">
                         {totalGrams} {food.unit}
                       </span>
                     </div>

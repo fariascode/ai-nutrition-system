@@ -93,18 +93,18 @@ export function calculateBMI(weightKg: number, heightCm: number) {
   const idealMaxKg = Number((24.9 * heightM * heightM).toFixed(1))
 
   if (value < 18.5) {
-    return { value, category: 'Bajo Peso', color: 'text-amber-600 bg-amber-50 border-amber-200', barColor: 'bg-amber-500', riskLevel: 'moderate' as const, idealMinKg, idealMaxKg }
+    return { value, category: 'Bajo Peso', color: 'text-warning bg-warning-soft border-warning-line', barColor: 'bg-amber-500', riskLevel: 'moderate' as const, idealMinKg, idealMaxKg }
   }
   if (value < 25) {
-    return { value, category: 'Peso Normal', color: 'text-emerald-700 bg-emerald-50 border-emerald-200', barColor: 'bg-emerald-500', riskLevel: 'low' as const, idealMinKg, idealMaxKg }
+    return { value, category: 'Peso Normal', color: 'text-accent bg-accent-soft border-accent-line', barColor: 'bg-emerald-500', riskLevel: 'low' as const, idealMinKg, idealMaxKg }
   }
   if (value < 30) {
-    return { value, category: 'Sobrepeso', color: 'text-amber-700 bg-amber-50 border-amber-200', barColor: 'bg-amber-500', riskLevel: 'moderate' as const, idealMinKg, idealMaxKg }
+    return { value, category: 'Sobrepeso', color: 'text-warning bg-warning-soft border-warning-line', barColor: 'bg-amber-500', riskLevel: 'moderate' as const, idealMinKg, idealMaxKg }
   }
   if (value < 35) {
-    return { value, category: 'Obesidad Grado I', color: 'text-orange-700 bg-orange-50 border-orange-200', barColor: 'bg-orange-500', riskLevel: 'high' as const, idealMinKg, idealMaxKg }
+    return { value, category: 'Obesidad Grado I', color: 'text-warning bg-warning-soft border-warning-line', barColor: 'bg-orange-500', riskLevel: 'high' as const, idealMinKg, idealMaxKg }
   }
-  return { value, category: 'Obesidad Grado II+', color: 'text-red-700 bg-red-50 border-red-200', barColor: 'bg-red-600', riskLevel: 'high' as const, idealMinKg, idealMaxKg }
+  return { value, category: 'Obesidad Grado II+', color: 'text-danger bg-danger-soft border-danger-line', barColor: 'bg-red-600', riskLevel: 'high' as const, idealMinKg, idealMaxKg }
 }
 
 /**

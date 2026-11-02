@@ -39,7 +39,7 @@ export default function AppLayout() {
       <Navbar onToggleNavigation={toggleNavigation} navigationOpen={isMobile ? mobileOpen : desktopOpen} navigationId={isMobile ? 'mobile-navigation' : 'desktop-navigation'} />
       <div className="flex items-start">
         {desktopOpen && <Sidebar />}
-        <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 pb-8">
+        <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 pb-8 scroll-mt-20">
           <div className="animate-wellness-in"><Outlet /></div>
         </main>
       </div>

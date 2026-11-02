@@ -17,9 +17,9 @@ const statusLabel: Record<PlanStatus, string> = {
 }
 
 const statusColor: Record<PlanStatus, string> = {
-  draft:     'bg-amber-50 text-amber-800 border-amber-200',
-  published: 'bg-[#F2FAE4] text-[#1D2924] border-[#C8ED8F]',
-  archived:  'bg-[#F7F8F4] text-[#76847B] border-[#E7ECE6]',
+  draft:     'bg-warning-soft text-warning border-warning-line',
+  published: 'bg-lime-tint text-content border-[#C8ED8F]',
+  archived:  'bg-canvas text-muted border-line',
 }
 
 export default function PlansPage() {
@@ -65,14 +65,14 @@ export default function PlansPage() {
       {/* Cabecera */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#F2FAE4] border border-[#C8ED8F] text-[#1D2924] text-[11px] font-extrabold mb-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-[#245C47]" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-lime-tint border border-[#C8ED8F] text-content text-[11px] font-extrabold mb-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-accent" />
             Motor Dietoterapéutico IA (&gt;95% Eficacia)
           </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1D2924] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-content tracking-tight">
             Planes Nutricionales con IA
           </h1>
-          <p className="text-xs sm:text-sm text-[#76847B] mt-0.5">
+          <p className="text-xs sm:text-sm text-muted mt-0.5">
             Prescripciones personalizadas con cálculo de equivalentes SMAE, lista de supermercado y app móvil para el paciente
           </p>
         </div>
@@ -89,7 +89,7 @@ export default function PlansPage() {
       {/* Filtros y Búsqueda */}
       <div className="bento-card p-3.5 sm:p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-[#76847B] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={search}
@@ -99,7 +99,7 @@ export default function PlansPage() {
           />
         </div>
 
-        <div className="flex items-center bg-[#F7F8F4] border border-[#E7ECE6] p-1 rounded-xl text-xs font-semibold overflow-x-auto">
+        <div className="flex items-center bg-canvas border border-line p-1 rounded-xl text-xs font-semibold overflow-x-auto">
           {[
             { id: 'all',       label: `Todos (${plans.length})` },
             { id: 'published', label: `Publicados (${plans.filter(p => p.status === 'published').length})` },
@@ -113,7 +113,7 @@ export default function PlansPage() {
               className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
                 statusFilter === tab.id
                   ? 'bg-[#245C47] text-white font-bold shadow-2xs'
-                  : 'text-[#76847B] hover:text-[#1D2924]'
+                  : 'text-muted hover:text-content'
               }`}
             >
               {tab.label}
@@ -130,11 +130,11 @@ export default function PlansPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="bento-card flex flex-col items-center justify-center h-64 text-center p-6">
-          <div className="w-12 h-12 bg-[#EBF3EE] rounded-2xl flex items-center justify-center mb-3">
-            <FileText className="w-6 h-6 text-[#245C47]" />
+          <div className="w-12 h-12 bg-accent-soft rounded-2xl flex items-center justify-center mb-3">
+            <FileText className="w-6 h-6 text-accent" />
           </div>
-          <p className="font-extrabold text-[#1D2924]">No se encontraron planes nutricionales</p>
-          <p className="text-xs text-[#76847B] mt-1">
+          <p className="font-extrabold text-content">No se encontraron planes nutricionales</p>
+          <p className="text-xs text-muted mt-1">
             Genera un nuevo plan personalizado con el motor clínico de IA
           </p>
           <button
@@ -162,10 +162,10 @@ export default function PlansPage() {
                         {plan.patients.full_name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()}
                       </div>
                       <div>
-                        <h3 className="font-extrabold text-[#1D2924] text-base leading-tight">
+                        <h3 className="font-extrabold text-content text-base leading-tight">
                           {plan.patients.full_name}
                         </h3>
-                        <p className="text-xs text-[#76847B] font-medium mt-0.5">
+                        <p className="text-xs text-muted font-medium mt-0.5">
                           Creado el {new Date(plan.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </p>
                       </div>
@@ -173,8 +173,8 @@ export default function PlansPage() {
 
                     <div className="flex items-center gap-1.5">
                       {plan.clinical_efficacy_score && (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#F2FAE4] text-[#1D2924] border border-[#C8ED8F]">
-                          <ShieldCheck className="w-3 h-3 text-[#245C47]" /> {plan.clinical_efficacy_score}% IA
+                        <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-lime-tint text-content border border-[#C8ED8F]">
+                          <ShieldCheck className="w-3 h-3 text-accent" /> {plan.clinical_efficacy_score}% IA
                         </span>
                       )}
                       <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${statusColor[plan.status]}`}>
@@ -186,46 +186,46 @@ export default function PlansPage() {
                   {/* Badges de protocolo y macros */}
                   <div className="flex flex-wrap items-center gap-2 text-xs">
                     {proto && (
-                      <span className="px-2.5 py-1 rounded-xl bg-[#EBF3EE] text-[#245C47] font-bold text-[11px]">
+                      <span className="px-2.5 py-1 rounded-xl bg-accent-soft text-accent font-bold text-[11px]">
                         {proto.name}
                       </span>
                     )}
                     {(plan.calories_target || plan.macros?.calories) && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#F7F8F4] border border-[#E7ECE6] text-[#1D2924] font-extrabold text-[11px]">
-                        <Flame className="w-3.5 h-3.5 text-[#245C47]" />
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-canvas border border-line text-content font-extrabold text-[11px]">
+                        <Flame className="w-3.5 h-3.5 text-accent" />
                         {plan.macros?.calories ?? plan.calories_target} kcal
                       </span>
                     )}
                     {plan.macros && (
-                      <span className="text-[11px] text-[#76847B] font-semibold">
-                        P: <strong className="text-[#1D2924]">{plan.macros.protein_g}g</strong> • C: <strong className="text-[#1D2924]">{plan.macros.carbs_g}g</strong> • G: <strong className="text-[#1D2924]">{plan.macros.fat_g}g</strong>
+                      <span className="text-[11px] text-muted font-semibold">
+                        P: <strong className="text-content">{plan.macros.protein_g}g</strong> • C: <strong className="text-content">{plan.macros.carbs_g}g</strong> • G: <strong className="text-content">{plan.macros.fat_g}g</strong>
                       </span>
                     )}
                   </div>
 
                   {plan.doctor_notes && (
-                    <p className="text-xs text-[#1D2924] bg-[#F2FAE4]/80 border border-[#C8ED8F] px-3.5 py-2.5 rounded-2xl line-clamp-2">
-                      <strong className="text-[#245C47]">Nota médica:</strong> {plan.doctor_notes}
+                    <p className="text-xs text-content bg-lime-tint/80 border border-[#C8ED8F] px-3.5 py-2.5 rounded-2xl line-clamp-2">
+                      <strong className="text-accent">Nota médica:</strong> {plan.doctor_notes}
                     </p>
                   )}
 
-                  <p className="text-xs text-[#76847B] line-clamp-2 leading-relaxed bg-[#F7F8F4] border border-[#E7ECE6] p-3 rounded-2xl">
+                  <p className="text-xs text-muted line-clamp-2 leading-relaxed bg-canvas border border-line p-3 rounded-2xl">
                     {(plan.edited_content ?? plan.ai_generated_content).slice(0, 190)}...
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-[#E7ECE6] text-xs">
+                <div className="flex items-center justify-between pt-3 border-t border-line text-xs">
                   <button
                     type="button"
                     onClick={e => {
                       e.stopPropagation()
                       navigate(`/portal/${plan.id}`)
                     }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#EBF3EE] hover:bg-[#C8ED8F]/50 text-[#245C47] font-extrabold transition cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent-soft hover:bg-lime-solid/50 text-accent font-extrabold transition cursor-pointer"
                   >
                     <Smartphone className="w-3.5 h-3.5" /> App Paciente (PWA)
                   </button>
-                  <span className="font-extrabold text-[#245C47] hover:underline">
+                  <span className="font-extrabold text-accent hover:underline">
                     Abrir Prescripción / Súper →
                   </span>
                 </div>

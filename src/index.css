@@ -1,6 +1,35 @@
 @import "tailwindcss";
 
+@theme inline {
+  --color-canvas: var(--bg-main);
+  --color-surface: var(--bg-surface);
+  --color-subtle: var(--bg-subtle);
+  --color-content: var(--text-primary);
+  --color-muted: var(--text-secondary);
+  --color-accent: var(--text-accent);
+  --color-accent-soft: var(--color-forest-soft);
+  --color-lime-tint: var(--color-lime-soft);
+  --color-action: var(--color-forest);
+  --color-action-hover: var(--color-forest-hover);
+  --color-lime-solid: #C8ED8F;
+  --color-line: var(--border-wellness);
+  --color-accent-line: var(--border-accent);
+  --color-danger: var(--status-danger-text);
+  --color-danger-soft: var(--status-danger-bg);
+  --color-danger-line: var(--status-danger-border);
+  --color-warning: var(--status-warning-text);
+  --color-warning-soft: var(--status-warning-bg);
+  --color-warning-line: var(--status-warning-border);
+  --color-info: var(--status-info-text);
+  --color-info-soft: var(--status-info-bg);
+  --color-info-line: var(--status-info-border);
+  --color-purple: var(--status-purple-text);
+  --color-purple-soft: var(--status-purple-bg);
+  --color-purple-line: var(--status-purple-border);
+}
+
 :root {
+  color-scheme: light;
   /* Paleta Oficial Modern Wellness UI (Modo Claro) */
   --bg-main: #F7F8F4;
   --bg-surface: #FFFFFF;
@@ -15,7 +44,18 @@
   --text-accent: #245C47;
   --status-danger-text: #B42333;
   --status-danger-bg: #FFF0F1;
-  --text-secondary: #76847B;
+  --status-danger-border: #F2B6C0;
+  --status-warning-text: #80500C;
+  --status-warning-bg: #FFF5DD;
+  --status-warning-border: #DFC17E;
+  --status-info-text: #225BA3;
+  --status-info-bg: #EAF2FF;
+  --status-info-border: #B6CEED;
+  --status-purple-text: #6B3AA3;
+  --status-purple-bg: #F4EBFF;
+  --status-purple-border: #D6BDED;
+  --border-accent: #A4C7B2;
+  --text-secondary: #5F7166;
   --border-wellness: #E7ECE6;
 
   /* Sombras orgánicas sutiles */
@@ -41,7 +81,18 @@ html.dark {
   --text-accent: #C8ED8F;
   --status-danger-text: #FFB6BE;
   --status-danger-bg: #391E26;
-  --text-secondary: #94A89D;
+  --status-danger-border: #74414B;
+  --status-warning-text: #F4D080;
+  --status-warning-bg: #332B1A;
+  --status-warning-border: #6B5931;
+  --status-info-text: #ADCFFF;
+  --status-info-bg: #1A2B41;
+  --status-info-border: #3A577C;
+  --status-purple-text: #D9BCFF;
+  --status-purple-bg: #2E233E;
+  --status-purple-border: #604974;
+  --border-accent: #385B49;
+  --text-secondary: #A4B7AB;
   --border-wellness: #25352E;
 
   --shadow-bento: 0 8px 28px -6px rgba(0, 0, 0, 0.42), 0 2px 8px -2px rgba(0, 0, 0, 0.28);
@@ -69,9 +120,14 @@ html.dark {
 
   /* Estados focus accesibles (WCAG AA) */
   :focus-visible {
-    outline: 2px solid var(--color-forest);
+    outline: 2px solid var(--text-accent);
     outline-offset: 2px;
   }
+
+  input, textarea, select { color: var(--text-primary); accent-color: var(--color-forest); }
+  input::placeholder, textarea::placeholder { color: var(--text-secondary); opacity: 1; }
+  option { background: var(--bg-surface); color: var(--text-primary); }
+  button:not(:disabled), summary { cursor: pointer; }
 }
 
 /* ==========================================
@@ -139,6 +195,10 @@ html.dark .liquid-glass-nav {
 }
 
 /* Botones del Sistema de Diseño */
+.bg-lime-solid.text-content, .bg-lime-solid .text-content,
+.bg-lime-solid.text-accent, .bg-lime-solid .text-accent,
+.bg-emerald-400.text-content { color: #14201B; }
+.hover\:bg-lime-solid:hover { color: #14201B; }
 .navigation-drawer {
   position: fixed;
   inset: 0 auto 0 0;
@@ -232,7 +292,7 @@ html.dark .input-wellness {
 }
 
 html.dark .input-wellness::placeholder {
-  color: #6B7F74;
+  color: #91A899;
 }
 
 .input-wellness:focus {
@@ -246,117 +306,6 @@ html.dark .input-wellness:focus {
   background-color: #16201C;
   border-color: #C8ED8F;
   box-shadow: 0 0 0 3px rgba(200, 237, 143, 0.15);
-}
-
-/* ==========================================================
-   ADAPTACIÓN SEMÁNTICA GLOBAL PARA MODO OSCURO (PÁGINAS Y MODALES)
-   ========================================================== */
-html.dark .bg-\[\#F7F8F4\],
-html.dark .bg-\[\#F7F8F4\]\/60,
-html.dark .bg-\[\#F7F8F4\]\/70,
-html.dark .bg-\[\#F7F8F4\]\/90,
-html.dark .bg-gray-50,
-html.dark .bg-gray-50\/40,
-html.dark .bg-gray-50\/50,
-html.dark .bg-gray-50\/60,
-html.dark .bg-gray-50\/70,
-html.dark .bg-gray-50\/80,
-html.dark .bg-slate-50,
-html.dark .bg-slate-50\/60,
-html.dark .bg-slate-100 {
-  background-color: #111916 !important;
-}
-
-html.dark .bg-white {
-  background-color: #16201C !important;
-}
-
-html.dark .bg-gray-100 {
-  background-color: #1D2A24 !important;
-}
-
-html.dark .bg-\[\#EBF3EE\],
-html.dark .bg-emerald-50,
-html.dark .bg-emerald-50\/50,
-html.dark .bg-emerald-50\/70,
-html.dark .bg-emerald-50\/90 {
-  background-color: rgba(45, 114, 88, 0.22) !important;
-}
-
-/* Adaptación de banners con gradiente claro dentro de modales en modo oscuro */
-html.dark .from-emerald-50 {
-  --tw-gradient-from: rgba(36, 92, 71, 0.32) !important;
-  --tw-gradient-via: rgba(29, 41, 36, 0.45) !important;
-  --tw-gradient-to: rgba(36, 92, 71, 0.25) !important;
-}
-
-html.dark .bg-\[\#F2FAE4\],
-html.dark .bg-\[\#F2FAE4\]\/60,
-html.dark .bg-\[\#F2FAE4\]\/80 {
-  background-color: rgba(200, 237, 143, 0.14) !important;
-}
-
-html.dark .text-\[\#1D2924\],
-html.dark .text-gray-900,
-html.dark .text-gray-800,
-html.dark .text-slate-900,
-html.dark .text-emerald-950:not(.bg-emerald-400),
-html.dark .text-emerald-900 {
-  color: #EFF4F0 !important;
-}
-
-html.dark .fill-gray-800 {
-  fill: #EFF4F0 !important;
-}
-
-/* Mantener texto oscuro cuando el fondo es explícitamente verde lima #C8ED8F o emerald-400 */
-html.dark .bg-\[\#C8ED8F\].text-\[\#1D2924\],
-html.dark .bg-emerald-400.text-emerald-950,
-html.dark .btn-lime {
-  color: #14201B !important;
-}
-
-html.dark .text-\[\#76847B\],
-html.dark .text-gray-700,
-html.dark .text-gray-600,
-html.dark .text-gray-500,
-html.dark .text-slate-700,
-html.dark .text-slate-600 {
-  color: #99ADA2 !important;
-}
-
-html.dark .text-\[\#245C47\],
-html.dark .text-emerald-700,
-html.dark .text-emerald-800,
-html.dark .text-emerald-600 {
-  color: #C8ED8F !important;
-}
-
-html.dark .border-\[\#E7ECE6\],
-html.dark .border-\[\#E7ECE6\]\/80,
-html.dark .border-gray-100,
-html.dark .border-gray-200,
-html.dark .border-gray-300,
-html.dark .border-slate-100,
-html.dark .border-slate-200,
-html.dark .border-emerald-100,
-html.dark .border-emerald-200,
-html.dark .border-emerald-300 {
-  border-color: #25352E !important;
-}
-
-html.dark .divide-\[\#E7ECE6\] > :not([hidden]) ~ :not([hidden]),
-html.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
-  border-color: #25352E !important;
-}
-
-/* Inputs, selects y textareas dentro de modales en modo oscuro */
-html.dark input:not([type="checkbox"]):not([type="radio"]),
-html.dark select,
-html.dark textarea {
-  background-color: #111916;
-  color: #EFF4F0;
-  border-color: #283A32;
 }
 
 /* Microinteracciones y Animaciones (transform: none al terminar para no afectar position: fixed) */

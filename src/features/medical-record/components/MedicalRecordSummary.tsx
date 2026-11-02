@@ -8,7 +8,7 @@ export default function MedicalRecordSummary({ record }: { record: MedicalRecord
     ? 'Interrogado: el paciente lo niega.' : 'Sin información confirmada; pendiente de interrogar.'
   const severity: Record<AllergySeverity, string> = { unknown: 'gravedad por confirmar', mild: 'leve', moderate: 'moderada', severe: 'GRAVE' }
   return (
-    <details open className="p-4 rounded-2xl border border-[#E7ECE6] bg-[#F7F8F4] space-y-2 text-xs">
+    <details open className="p-4 rounded-2xl border border-line bg-canvas space-y-2 text-xs">
       <summary className="font-extrabold cursor-pointer">Resumen del expediente médico</summary>
       {!record.updated_at && <p>Información precargada de la ficha; expediente aún sin guardar.</p>}
       <p><strong>Alergias registradas:</strong> {record.allergies.length ? record.allergies.map(item =>

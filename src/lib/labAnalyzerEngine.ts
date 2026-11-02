@@ -200,14 +200,14 @@ export function interpretBiomarkers(
   let homaStatus: { label: string; color: string } | null = null
   if (homaIr !== null) {
     if (homaIr < 2.0) {
-      homaStatus = { label: 'Sensibilidad Insulínica Óptima (<2.0)', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' }
+      homaStatus = { label: 'Sensibilidad Insulínica Óptima (<2.0)', color: 'text-accent bg-accent-soft border-accent-line' }
     } else if (homaIr < 2.9) {
-      homaStatus = { label: 'Resistencia a la Insulina Temprana', color: 'text-amber-800 bg-amber-50 border-amber-200' }
+      homaStatus = { label: 'Resistencia a la Insulina Temprana', color: 'text-warning bg-warning-soft border-warning-line' }
       detectedConditions.push(`Resistencia a la insulina incipiente (HOMA-IR ${homaIr})`)
       nutritionalAdjustments.push('Restringir azúcares libres y aplicar secuencia de ingesta (fibra vegetal antes del almidón).')
       suggestedSupplements.push('Mio-Inositol 2,000 mg + Bisglicinato de Magnesio 300 mg')
     } else {
-      homaStatus = { label: 'Resistencia a la Insulina Significativa (≥2.9)', color: 'text-red-800 bg-red-50 border-red-200' }
+      homaStatus = { label: 'Resistencia a la Insulina Significativa (≥2.9)', color: 'text-danger bg-danger-soft border-danger-line' }
       detectedConditions.push(`Resistencia a la insulina clínica (HOMA-IR ${homaIr})`)
       nutritionalAdjustments.push('Protocolo de bajo índice glucémico estricto (carbohidratos ≤35% VCT) con almidón resistente.')
       suggestedSupplements.push('Mio-Inositol 2g + Berberina 500mg o Ácido Alfa Lipoico (según criterio médico)')
@@ -223,11 +223,11 @@ export function interpretBiomarkers(
   let tgHdlStatus: { label: string; color: string } | null = null
   if (tgHdlRatio !== null) {
     if (tgHdlRatio < 2.0) {
-      tgHdlStatus = { label: 'Bajo Riesgo Aterogénico (<2.0)', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' }
+      tgHdlStatus = { label: 'Bajo Riesgo Aterogénico (<2.0)', color: 'text-accent bg-accent-soft border-accent-line' }
     } else if (tgHdlRatio <= 3.5) {
-      tgHdlStatus = { label: 'Riesgo Moderado (2.0 – 3.5)', color: 'text-amber-800 bg-amber-50 border-amber-200' }
+      tgHdlStatus = { label: 'Riesgo Moderado (2.0 – 3.5)', color: 'text-warning bg-warning-soft border-warning-line' }
     } else {
-      tgHdlStatus = { label: 'Patrón LDL Pequeño y Denso (>3.5)', color: 'text-red-800 bg-red-50 border-red-200' }
+      tgHdlStatus = { label: 'Patrón LDL Pequeño y Denso (>3.5)', color: 'text-danger bg-danger-soft border-danger-line' }
       detectedConditions.push(`Índice TG/HDL aterogénico elevado (${tgHdlRatio})`)
       nutritionalAdjustments.push('Incrementar EPA/DHA (pescado azul) y eliminar harinas refinadas y fructosa líquida.')
     }

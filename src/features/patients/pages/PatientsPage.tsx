@@ -129,14 +129,14 @@ export default function PatientsPage() {
       {/* Cabecera */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#EBF3EE] text-[#245C47] text-[11px] font-bold mb-1.5">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-accent-soft text-accent text-[11px] font-bold mb-1.5">
             <Users className="w-3.5 h-3.5" />
             Expedientes Longitudinales 360°
           </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1D2924] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-content tracking-tight">
             Pacientes y Biometría Clínica
           </h1>
-          <p className="text-xs sm:text-sm text-[#76847B] mt-0.5">
+          <p className="text-xs sm:text-sm text-muted mt-0.5">
             Seguimiento antropométrico en tiempo real, cálculo metabólico Mifflin-St Jeor y análisis de laboratorio con IA
           </p>
         </div>
@@ -153,7 +153,7 @@ export default function PatientsPage() {
       {/* Barra de búsqueda y filtros rápidos en Bento Card */}
       <div className="bento-card p-3.5 sm:p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-[#76847B] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={search}
@@ -164,7 +164,7 @@ export default function PatientsPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center bg-[#F7F8F4] border border-[#E7ECE6] p-1 rounded-xl text-xs font-semibold">
+          <div className="flex items-center bg-canvas border border-line p-1 rounded-xl text-xs font-semibold">
             {[
               { id: 'all',       label: `Todos (${patients.length})` },
               { id: 'alerts',    label: 'Con Alertas Clínicas' },
@@ -177,7 +177,7 @@ export default function PatientsPage() {
                 className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                   filterAlert === f.id
                     ? 'bg-[#245C47] text-white font-bold shadow-2xs'
-                    : 'text-[#76847B] hover:text-[#1D2924]'
+                    : 'text-muted hover:text-content'
                 }`}
               >
                 {f.label}
@@ -185,12 +185,12 @@ export default function PatientsPage() {
             ))}
           </div>
 
-          <div className="flex items-center border border-[#E7ECE6] rounded-xl p-1 bg-[#F7F8F4]">
+          <div className="flex items-center border border-line rounded-xl p-1 bg-canvas">
             <button
               type="button"
               onClick={() => setViewMode('cards')}
               className={`p-1.5 rounded-lg transition cursor-pointer ${
-                viewMode === 'cards' ? 'bg-white text-[#245C47] shadow-2xs' : 'text-[#76847B] hover:text-[#1D2924]'
+                viewMode === 'cards' ? 'bg-surface text-accent shadow-2xs' : 'text-muted hover:text-content'
               }`}
               title="Vista Tarjetas Bento 360°"
             >
@@ -200,7 +200,7 @@ export default function PatientsPage() {
               type="button"
               onClick={() => setViewMode('table')}
               className={`p-1.5 rounded-lg transition cursor-pointer ${
-                viewMode === 'table' ? 'bg-white text-[#245C47] shadow-2xs' : 'text-[#76847B] hover:text-[#1D2924]'
+                viewMode === 'table' ? 'bg-surface text-accent shadow-2xs' : 'text-muted hover:text-content'
               }`}
               title="Vista Tabla"
             >
@@ -218,11 +218,11 @@ export default function PatientsPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="bento-card flex flex-col items-center justify-center h-64 text-center p-6">
-          <div className="w-12 h-12 bg-[#EBF3EE] rounded-2xl flex items-center justify-center mb-3">
-            <Users className="w-6 h-6 text-[#245C47]" />
+          <div className="w-12 h-12 bg-accent-soft rounded-2xl flex items-center justify-center mb-3">
+            <Users className="w-6 h-6 text-accent" />
           </div>
-          <p className="font-extrabold text-[#1D2924]">No se encontraron pacientes</p>
-          <p className="text-xs text-[#76847B] mt-1">
+          <p className="font-extrabold text-content">No se encontraron pacientes</p>
+          <p className="text-xs text-muted mt-1">
             Intenta con otro término o registra un nuevo expediente clínico
           </p>
         </div>
@@ -251,10 +251,10 @@ export default function PatientsPage() {
                         {p.full_name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()}
                       </div>
                       <div>
-                        <h3 className="font-extrabold text-[#1D2924] group-hover:text-[#245C47] transition-colors text-base leading-tight">
+                        <h3 className="font-extrabold text-content group-hover:text-accent transition-colors text-base leading-tight">
                           {p.full_name}
                         </h3>
-                        <p className="text-xs text-[#76847B] font-medium mt-0.5">
+                        <p className="text-xs text-muted font-medium mt-0.5">
                           {age} años • {genderLabel[p.gender]}
                         </p>
                       </div>
@@ -266,30 +266,30 @@ export default function PatientsPage() {
                   </div>
 
                   {/* Objetivo */}
-                  <div className="text-xs bg-[#F7F8F4] p-3 rounded-2xl border border-[#E7ECE6] text-[#1D2924] font-semibold line-clamp-1">
+                  <div className="text-xs bg-canvas p-3 rounded-2xl border border-line text-content font-semibold line-clamp-1">
                     🎯 {p.goal}
                   </div>
 
                   {/* Métricas rápidas Bento */}
-                  <div className="grid grid-cols-3 gap-2 text-center bg-[#F7F8F4]/70 p-3 rounded-2xl border border-[#E7ECE6]">
+                  <div className="grid grid-cols-3 gap-2 text-center bg-canvas/70 p-3 rounded-2xl border border-line">
                     <div>
-                      <span className="text-[10px] font-semibold text-[#76847B] block">Peso / Talla</span>
-                      <span className="text-sm font-extrabold text-[#1D2924]">{p.weight_kg} kg</span>
-                      <span className="text-[10px] text-[#76847B] block">{p.height_cm} cm</span>
+                      <span className="text-[10px] font-semibold text-muted block">Peso / Talla</span>
+                      <span className="text-sm font-extrabold text-content">{p.weight_kg} kg</span>
+                      <span className="text-[10px] text-muted block">{p.height_cm} cm</span>
                     </div>
-                    <div className="border-x border-[#E7ECE6]">
-                      <span className="text-[10px] font-semibold text-[#76847B] block">GET Diario</span>
-                      <span className="text-sm font-extrabold text-[#245C47] flex items-center justify-center gap-0.5">
-                        <Flame className="w-3.5 h-3.5 text-[#245C47]" /> {tdee}
+                    <div className="border-x border-line">
+                      <span className="text-[10px] font-semibold text-muted block">GET Diario</span>
+                      <span className="text-sm font-extrabold text-accent flex items-center justify-center gap-0.5">
+                        <Flame className="w-3.5 h-3.5 text-accent" /> {tdee}
                       </span>
-                      <span className="text-[10px] text-[#76847B] block">kcal/día</span>
+                      <span className="text-[10px] text-muted block">kcal/día</span>
                     </div>
                     <div>
-                      <span className="text-[10px] font-semibold text-[#76847B] block">Comp. Grasa</span>
-                      <span className="text-sm font-extrabold text-[#1D2924]">
+                      <span className="text-[10px] font-semibold text-muted block">Comp. Grasa</span>
+                      <span className="text-sm font-extrabold text-content">
                         {p.body_fat_pct ? `${p.body_fat_pct}%` : bmi.category}
                       </span>
-                      <span className="text-[10px] text-[#76847B] block">
+                      <span className="text-[10px] text-muted block">
                         {p.muscle_mass_kg ? `${p.muscle_mass_kg}kg músc.` : 'OMS'}
                       </span>
                     </div>
@@ -298,17 +298,17 @@ export default function PatientsPage() {
                   {/* Etiquetas de alertas / alergias */}
                   <div className="flex flex-wrap gap-1.5">
                     {p.allergies && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-red-50 text-red-700 border border-red-200">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-danger-soft text-danger border border-danger-line">
                         <AlertTriangle className="w-3 h-3" /> Alergia: {p.allergies}
                       </span>
                     )}
                     {p.conditions && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 line-clamp-1">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-warning-soft text-warning border border-warning-line line-clamp-1">
                         <Activity className="w-3 h-3 shrink-0" /> {p.conditions}
                       </span>
                     )}
                     {!p.allergies && !p.conditions && alerts.length === 0 && (
-                      <span className="text-[11px] text-[#245C47] bg-[#F2FAE4] border border-[#C8ED8F] px-2.5 py-0.5 rounded-lg font-bold">
+                      <span className="text-[11px] text-accent bg-lime-tint border border-[#C8ED8F] px-2.5 py-0.5 rounded-lg font-bold">
                         ✓ Biometría estable sin alertas
                       </span>
                     )}
@@ -316,13 +316,13 @@ export default function PatientsPage() {
                 </div>
 
                 {/* Pie de tarjeta con acciones */}
-                <div className="px-5 py-3.5 bg-[#F7F8F4]/90 border-t border-[#E7ECE6] flex items-center justify-between gap-2">
+                <div className="px-5 py-3.5 bg-canvas/90 border-t border-line flex items-center justify-between gap-2">
                   <button
                     type="button"
                     onClick={() => setDossierPatient(p)}
-                    className="flex items-center gap-1.5 text-xs font-extrabold text-[#1D2924] hover:text-[#245C47] transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 text-xs font-extrabold text-content hover:text-accent transition-colors cursor-pointer"
                   >
-                    <Eye className="w-3.5 h-3.5 text-[#245C47]" />
+                    <Eye className="w-3.5 h-3.5 text-accent" />
                     Expediente 360°
                   </button>
 
@@ -330,10 +330,10 @@ export default function PatientsPage() {
                     <button
                       type="button"
                       onClick={() => setLabPatient(p)}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white hover:bg-[#EBF3EE] border border-[#E7ECE6] text-[#1D2924] text-xs font-bold transition-colors cursor-pointer"
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-surface hover:bg-accent-soft border border-line text-content text-xs font-bold transition-colors cursor-pointer"
                       title="Analizar Laboratorio con IA"
                     >
-                      <Microscope className="w-3.5 h-3.5 text-[#245C47]" /> Lab IA
+                      <Microscope className="w-3.5 h-3.5 text-accent" /> Lab IA
                     </button>
                     <button
                       type="button"
@@ -346,7 +346,7 @@ export default function PatientsPage() {
                     <button
                       type="button"
                       onClick={() => openEdit(p)}
-                      className="p-1.5 text-[#76847B] hover:text-[#245C47] hover:bg-white rounded-xl transition-colors cursor-pointer"
+                      className="p-1.5 text-muted hover:text-accent hover:bg-surface rounded-xl transition-colors cursor-pointer"
                       title="Editar"
                     >
                       <Pencil className="w-3.5 h-3.5" />
@@ -355,7 +355,7 @@ export default function PatientsPage() {
                       type="button"
                       onClick={() => handleDelete(p.id)}
                       disabled={deleting === p.id}
-                      className="p-1.5 text-[#76847B] hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
+                      className="p-1.5 text-muted hover:text-danger hover:bg-danger-soft rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
                       title="Eliminar"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -370,7 +370,7 @@ export default function PatientsPage() {
         <div className="bento-card overflow-x-auto">
           <table className="w-full text-xs sm:text-sm">
             <thead>
-              <tr className="border-b border-[#E7ECE6] bg-[#F7F8F4] text-[#76847B]">
+              <tr className="border-b border-line bg-canvas text-muted">
                 <th className="text-left px-5 py-3.5 font-bold">Paciente</th>
                 <th className="text-left px-5 py-3.5 font-bold">Antropometría</th>
                 <th className="text-left px-5 py-3.5 font-bold">IMC / Estado</th>
@@ -379,47 +379,47 @@ export default function PatientsPage() {
                 <th className="px-5 py-3.5 text-right font-bold">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E7ECE6]">
+            <tbody className="divide-y divide-line">
               {filtered.map(p => {
                 const age  = calculateAge(p.birth_date)
                 const bmi  = calculateBMI(p.weight_kg, p.height_cm)
                 const bmr  = calculateBMR(p.weight_kg, p.height_cm, age, p.gender)
                 const tdee = calculateTDEE(bmr, p.activity_level ?? 'moderate')
                 return (
-                  <tr key={p.id} className="hover:bg-[#F7F8F4]/70 transition-colors">
+                  <tr key={p.id} className="hover:bg-canvas/70 transition-colors">
                     <td className="px-5 py-3.5">
                       <button
                         type="button"
                         onClick={() => setDossierPatient(p)}
-                        className="font-extrabold text-[#1D2924] hover:text-[#245C47] text-left block cursor-pointer"
+                        className="font-extrabold text-content hover:text-accent text-left block cursor-pointer"
                       >
                         {p.full_name}
                       </button>
-                      <span className="text-xs text-[#76847B]">{age} años • {genderLabel[p.gender]}</span>
+                      <span className="text-xs text-muted">{age} años • {genderLabel[p.gender]}</span>
                     </td>
-                    <td className="px-5 py-3.5 text-[#1D2924] font-semibold">
+                    <td className="px-5 py-3.5 text-content font-semibold">
                       {p.weight_kg} kg / {p.height_cm} cm
-                      {p.body_fat_pct && <span className="block text-xs text-[#76847B]">{p.body_fat_pct}% grasa</span>}
+                      {p.body_fat_pct && <span className="block text-xs text-muted">{p.body_fat_pct}% grasa</span>}
                     </td>
                     <td className="px-5 py-3.5">
                       <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${bmi.color}`}>
                         {bmi.value} • {bmi.category}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 font-bold text-[#245C47]">
+                    <td className="px-5 py-3.5 font-bold text-accent">
                       {tdee} kcal/día
-                      <span className="block text-[11px] text-[#76847B] font-normal">TMB: {bmr} kcal</span>
+                      <span className="block text-[11px] text-muted font-normal">TMB: {bmr} kcal</span>
                     </td>
                     <td className="px-5 py-3.5 max-w-[220px]">
-                      <p className="truncate font-semibold text-[#1D2924]">{p.goal}</p>
-                      {p.allergies && <span className="text-[11px] text-red-700 font-bold">⚠️ {p.allergies}</span>}
+                      <p className="truncate font-semibold text-content">{p.goal}</p>
+                      {p.allergies && <span className="text-[11px] text-danger font-bold">⚠️ {p.allergies}</span>}
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           type="button"
                           onClick={() => setDossierPatient(p)}
-                          className="px-3 py-1.5 text-xs font-bold text-[#245C47] bg-[#EBF3EE] hover:bg-[#C8ED8F]/50 rounded-xl cursor-pointer"
+                          className="px-3 py-1.5 text-xs font-bold text-accent bg-accent-soft hover:bg-lime-solid/50 rounded-xl cursor-pointer"
                         >
                           Ficha 360°
                         </button>
@@ -433,7 +433,7 @@ export default function PatientsPage() {
                         <button
                           type="button"
                           onClick={() => openEdit(p)}
-                          className="p-1.5 text-[#76847B] hover:text-[#245C47] hover:bg-[#F7F8F4] rounded-xl cursor-pointer"
+                          className="p-1.5 text-muted hover:text-accent hover:bg-canvas rounded-xl cursor-pointer"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
@@ -441,7 +441,7 @@ export default function PatientsPage() {
                           type="button"
                           onClick={() => handleDelete(p.id)}
                           disabled={deleting === p.id}
-                          className="p-1.5 text-[#76847B] hover:text-red-600 hover:bg-red-50 rounded-xl cursor-pointer"
+                          className="p-1.5 text-muted hover:text-danger hover:bg-danger-soft rounded-xl cursor-pointer"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

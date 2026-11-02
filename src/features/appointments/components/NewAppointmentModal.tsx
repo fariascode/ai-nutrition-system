@@ -18,8 +18,8 @@ interface Props {
   onSave: (data: AppointmentInsert) => Promise<void>
 }
 
-const inputClass = 'w-full px-3.5 py-2 border border-gray-300 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white'
-const labelClass = 'block text-xs font-bold text-gray-700 mb-1'
+const inputClass = 'w-full px-3.5 py-2 border border-line rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-surface'
+const labelClass = 'block text-xs font-bold text-muted mb-1'
 
 export default function NewAppointmentModal({
   open,
@@ -124,7 +124,7 @@ export default function NewAppointmentModal({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label className={labelClass}>
-              <Calendar className="w-3.5 h-3.5 inline mr-1 text-emerald-600" />
+              <Calendar className="w-3.5 h-3.5 inline mr-1 text-accent" />
               Fecha de la Cita *
             </label>
             <input
@@ -138,7 +138,7 @@ export default function NewAppointmentModal({
 
           <div>
             <label className={labelClass}>
-              <Clock className="w-3.5 h-3.5 inline mr-1 text-emerald-600" />
+              <Clock className="w-3.5 h-3.5 inline mr-1 text-accent" />
               Horario *
             </label>
             <input
@@ -188,8 +188,8 @@ export default function NewAppointmentModal({
                 onClick={() => setModality('in_person')}
                 className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition ${
                   modality === 'in_person'
-                    ? 'bg-emerald-50 border-emerald-500 text-emerald-800'
-                    : 'bg-white border-gray-200 text-gray-600'
+                    ? 'bg-accent-soft border-emerald-500 text-accent'
+                    : 'bg-surface border-line text-muted'
                 }`}
               >
                 <Building2 className="w-3.5 h-3.5" /> Consultorio
@@ -199,8 +199,8 @@ export default function NewAppointmentModal({
                 onClick={() => setModality('video_call')}
                 className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition ${
                   modality === 'video_call'
-                    ? 'bg-emerald-50 border-emerald-500 text-emerald-800'
-                    : 'bg-white border-gray-200 text-gray-600'
+                    ? 'bg-accent-soft border-emerald-500 text-accent'
+                    : 'bg-surface border-line text-muted'
                 }`}
               >
                 <Video className="w-3.5 h-3.5" /> Videollamada
@@ -233,18 +233,18 @@ export default function NewAppointmentModal({
           />
         </div>
 
-        <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+        <div className="flex justify-end gap-2 pt-2 border-t border-line">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl"
+            className="px-4 py-2 text-xs font-semibold text-muted bg-subtle hover:bg-subtle rounded-xl"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="px-5 py-2 text-xs font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs"
+            className="px-5 py-2 text-xs font-extrabold text-white bg-action hover:bg-action-hover rounded-xl shadow-xs"
           >
             {saving ? 'Agendando...' : 'Agendar Consulta'}
           </button>

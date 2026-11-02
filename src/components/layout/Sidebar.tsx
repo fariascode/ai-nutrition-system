@@ -18,25 +18,25 @@ export default function Sidebar({ mobile = false, onNavigate }: { mobile?: boole
   return (
     <aside id={mobile ? undefined : 'desktop-navigation'} className={cn('bg-[var(--bg-surface)] text-[var(--text-primary)] flex-col shrink-0 select-none', mobile ? 'flex w-full min-h-full' : 'hidden md:flex w-68 sticky top-16 h-[calc(100dvh-4rem)] overflow-y-auto border-r border-[var(--border-wellness)]')}>
       {/* Cabecera de Marca */}
-      <div className="flex items-center justify-between px-6 py-6 border-b border-[#E7ECE6]/80">
+      <div className="flex items-center justify-between px-6 py-6 border-b border-line/80">
         <div className="flex items-center gap-3.5">
           <div className="relative flex items-center justify-center w-10 h-10 bg-[#245C47] rounded-2xl shadow-[0_6px_16px_rgba(36,92,71,0.22)]">
             <Utensils className="w-4 h-4 text-white" />
             <span
-              className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#C8ED8F] border-2 border-white"
+              className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-lime-solid border-2 border-white"
               title="Motor IA Activo"
             />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-[#1D2924] text-base tracking-tight leading-none">
+              <span className="font-extrabold text-content text-base tracking-tight leading-none">
                 NutriAI
               </span>
-              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-[#C8ED8F] text-[#1D2924] uppercase tracking-wider">
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-lime-solid text-content uppercase tracking-wider">
                 PRO
               </span>
             </div>
-            <span className="text-[11px] font-semibold text-[#76847B] block mt-1">
+            <span className="text-[11px] font-semibold text-muted block mt-1">
               Wellness &amp; Clinical AI
             </span>
           </div>
@@ -45,7 +45,7 @@ export default function Sidebar({ mobile = false, onNavigate }: { mobile?: boole
 
       {/* Navegación Principal */}
       <div className="px-4 pt-5 pb-2">
-        <span className="px-3 text-[10px] font-bold uppercase tracking-widest text-[#76847B]">
+        <span className="px-3 text-[10px] font-bold uppercase tracking-widest text-muted">
           Plataforma Clínica
         </span>
       </div>
@@ -61,7 +61,7 @@ export default function Sidebar({ mobile = false, onNavigate }: { mobile?: boole
                 'group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200',
                 isActive
                   ? 'bg-[#245C47] text-white shadow-[0_6px_18px_rgba(36,92,71,0.20)]'
-                  : 'text-[#76847B] hover:bg-[#F7F8F4] hover:text-[#1D2924]'
+                  : 'text-muted hover:bg-canvas hover:text-content'
               )
             }
           >
@@ -71,13 +71,13 @@ export default function Sidebar({ mobile = false, onNavigate }: { mobile?: boole
                   <Icon
                     className={cn(
                       'w-4 h-4 shrink-0 transition-colors',
-                      isActive ? 'text-[#C8ED8F]' : 'text-[#76847B] group-hover:text-[#245C47]'
+                      isActive ? 'text-[#C8ED8F]' : 'text-muted group-hover:text-accent'
                     )}
                   />
                   <span>{label}</span>
                 </div>
                 {isActive && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#C8ED8F]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-lime-solid" />
                 )}
               </>
             )}
@@ -88,7 +88,7 @@ export default function Sidebar({ mobile = false, onNavigate }: { mobile?: boole
       {/* Tarjeta de Identidad IA en el Sidebar */}
       <div className="mx-4 mb-4 p-4 rounded-[20px] bg-[#1D2924] text-white space-y-2 relative overflow-hidden border border-[#245C47]">
         <div className="flex items-center justify-between">
-          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#C8ED8F]/20 border border-[#C8ED8F]/35 text-[#C8ED8F] text-[10px] font-extrabold">
+          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-lime-solid/20 border border-[#C8ED8F]/35 text-[#C8ED8F] text-[10px] font-extrabold">
             <Sparkles className="w-3 h-3" />
             Motor IA v2.5
           </div>

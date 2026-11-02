@@ -22,17 +22,17 @@ export const AISLE_INFO: Record<GroceryAisle, { title: string; icon: string; bad
   proteins: {
     title: '🥩 Carnes, Aves, Pescados y Huevo',
     icon: '🥩',
-    badgeColor: 'bg-rose-50 text-rose-800 border-rose-200',
+    badgeColor: 'bg-danger-soft text-danger border-danger-line',
   },
   produce: {
     title: '🥦 Frutas, Verduras y Hojas Verdes',
     icon: '🥦',
-    badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    badgeColor: 'bg-accent-soft text-accent border-accent-line',
   },
   grains: {
     title: '🌾 Cereales Integrales, Tubérculos y Legumbres',
     icon: '🌾',
-    badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
+    badgeColor: 'bg-warning-soft text-warning border-warning-line',
   },
   fats: {
     title: '🥑 Grasas Saludables, Semillas y Aceites',
@@ -47,7 +47,7 @@ export const AISLE_INFO: Record<GroceryAisle, { title: string; icon: string; bad
   pantry: {
     title: '🌿 Condimentos Funcionales e Infusiones',
     icon: '🌿',
-    badgeColor: 'bg-violet-50 text-violet-800 border-violet-200',
+    badgeColor: 'bg-purple-soft text-purple border-purple-line',
   },
 }
 
@@ -320,7 +320,7 @@ export const SMAE_GROUPS: SmaeGroupDefinition[] = [
     proteinG: 7,
     carbsG: 0,
     fatG: 1.5,
-    color: 'bg-rose-50 border-rose-200 text-rose-900',
+    color: 'bg-danger-soft border-danger-line text-danger',
     foods: [
       { name: 'Pechuga de pollo o pavo sin piel (cocida)', portion: '30 g', gramsOrMl: 30, unit: 'g' },
       { name: 'Filete de pescado blanco (robalo, tilapia, bacalao)', portion: '40 g', gramsOrMl: 40, unit: 'g' },
@@ -340,7 +340,7 @@ export const SMAE_GROUPS: SmaeGroupDefinition[] = [
     proteinG: 2,
     carbsG: 15,
     fatG: 0,
-    color: 'bg-amber-50 border-amber-200 text-amber-900',
+    color: 'bg-warning-soft border-warning-line text-warning',
     foods: [
       { name: 'Avena en hojuelas integrales (en crudo)', portion: '1/3 taza (20 g)', gramsOrMl: 20, unit: 'g' },
       { name: 'Quinoa cocida o Arroz integral cocido', portion: '1/3 taza (45 g)', gramsOrMl: 45, unit: 'g' },
@@ -359,7 +359,7 @@ export const SMAE_GROUPS: SmaeGroupDefinition[] = [
     proteinG: 8,
     carbsG: 20,
     fatG: 1,
-    color: 'bg-orange-50 border-orange-200 text-orange-900',
+    color: 'bg-warning-soft border-warning-line text-warning',
     foods: [
       { name: 'Lentejas cocidas en caldo sin grasa', portion: '1/2 taza (90 g)', gramsOrMl: 90, unit: 'g' },
       { name: 'Frijol negro o peruano en bola cocido', portion: '1/2 taza (90 g)', gramsOrMl: 90, unit: 'g' },
@@ -375,7 +375,7 @@ export const SMAE_GROUPS: SmaeGroupDefinition[] = [
     proteinG: 2,
     carbsG: 4,
     fatG: 0,
-    color: 'bg-emerald-50 border-emerald-200 text-emerald-900',
+    color: 'bg-accent-soft border-accent-line text-accent',
     foods: [
       { name: 'Espinaca, acelga, arúgula o lechuga cruda', portion: '2 tazas (120 g)', gramsOrMl: 120, unit: 'g' },
       { name: 'Brócoli o Coliflor al vapor', portion: '1 taza (100 g)', gramsOrMl: 100, unit: 'g' },

@@ -17,8 +17,8 @@ interface Props {
   onOpenNewPlan?: (patientId: string) => void
 }
 
-const textareaClass = 'w-full px-3.5 py-2 border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white leading-relaxed'
-const labelClass = 'block text-xs font-extrabold text-gray-800 mb-1'
+const textareaClass = 'w-full px-3.5 py-2 border border-line rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-surface leading-relaxed'
+const labelClass = 'block text-xs font-extrabold text-content mb-1'
 
 export default function SoapConsultationModal({
   open,
@@ -173,7 +173,7 @@ export default function SoapConsultationModal({
               Medición Antropométrica en Consulta (Se sincroniza en vivo con el Expediente 360°)
             </span>
             {bmi && (
-              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-white/10 text-emerald-300">
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-surface/10 text-emerald-300">
                 IMC en Consulta: {bmi.value} ({bmi.category})
               </span>
             )}
@@ -181,7 +181,7 @@ export default function SoapConsultationModal({
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
             <div>
-              <label className="block text-[11px] text-slate-400 mb-1">Peso Hoy (kg) *</label>
+              <label className="block text-[11px] text-muted mb-1">Peso Hoy (kg) *</label>
               <input
                 type="number" step="0.1" required value={weight}
                 onChange={e => setWeight(e.target.value)}
@@ -189,7 +189,7 @@ export default function SoapConsultationModal({
               />
             </div>
             <div>
-              <label className="block text-[11px] text-slate-400 mb-1">% Grasa Corporal</label>
+              <label className="block text-[11px] text-muted mb-1">% Grasa Corporal</label>
               <input
                 type="number" step="0.1" value={bodyFat}
                 onChange={e => setBodyFat(e.target.value)}
@@ -198,7 +198,7 @@ export default function SoapConsultationModal({
               />
             </div>
             <div>
-              <label className="block text-[11px] text-slate-400 mb-1">Masa Muscular (kg)</label>
+              <label className="block text-[11px] text-muted mb-1">Masa Muscular (kg)</label>
               <input
                 type="number" step="0.1" value={muscle}
                 onChange={e => setMuscle(e.target.value)}
@@ -207,7 +207,7 @@ export default function SoapConsultationModal({
               />
             </div>
             <div>
-              <label className="block text-[11px] text-slate-400 mb-1">Cintura (cm)</label>
+              <label className="block text-[11px] text-muted mb-1">Cintura (cm)</label>
               <input
                 type="number" step="0.1" value={waist}
                 onChange={e => setWaist(e.target.value)}
@@ -219,9 +219,9 @@ export default function SoapConsultationModal({
         </div>
 
         {/* Botón de Asistente IA para autocompletar el formato SOAP */}
-        <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-2xl bg-emerald-50 border border-emerald-200">
-          <div className="flex items-center gap-2 text-xs text-emerald-950">
-            <Stethoscope className="w-4 h-4 text-emerald-600 shrink-0" />
+        <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-2xl bg-accent-soft border border-accent-line">
+          <div className="flex items-center gap-2 text-xs text-content">
+            <Stethoscope className="w-4 h-4 text-accent shrink-0" />
             <span>
               <strong>Asistente Clínico IA:</strong> Redacta automáticamente la nota evolutiva SOAP cruzando el peso de hoy con su historial.
             </span>
@@ -231,14 +231,14 @@ export default function SoapConsultationModal({
             <button
               type="button"
               onClick={handlePrintSoap}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white border border-gray-200 text-gray-700 text-xs font-semibold hover:bg-gray-50"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-surface border border-line text-muted text-xs font-semibold hover:bg-subtle"
             >
               <Printer className="w-3.5 h-3.5" /> Imprimir SOAP
             </button>
             <button
               type="button"
               onClick={handleAutoDraftWithAi}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-2xs transition"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-action hover:bg-action-hover text-white text-xs font-extrabold shadow-2xs transition"
             >
               <Sparkles className="w-3.5 h-3.5" /> Redactar Nota SOAP con IA
             </button>
@@ -249,7 +249,7 @@ export default function SoapConsultationModal({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           <div>
             <label className={labelClass}>
-              <span className="inline-block w-5 h-5 rounded-md bg-blue-100 text-blue-800 text-center mr-1.5">S</span>
+              <span className="inline-block w-5 h-5 rounded-md bg-info-soft text-info text-center mr-1.5">S</span>
               Subjetivo (Síntomas, Apetito, Adherencia y Sueño)
             </label>
             <textarea
@@ -264,7 +264,7 @@ export default function SoapConsultationModal({
 
           <div>
             <label className={labelClass}>
-              <span className="inline-block w-5 h-5 rounded-md bg-emerald-100 text-emerald-800 text-center mr-1.5">O</span>
+              <span className="inline-block w-5 h-5 rounded-md bg-accent-soft text-accent text-center mr-1.5">O</span>
               Objetivo (Exploración Antropométrica y Bioquímica)
             </label>
             <textarea
@@ -279,7 +279,7 @@ export default function SoapConsultationModal({
 
           <div>
             <label className={labelClass}>
-              <span className="inline-block w-5 h-5 rounded-md bg-amber-100 text-amber-800 text-center mr-1.5">A</span>
+              <span className="inline-block w-5 h-5 rounded-md bg-warning-soft text-warning text-center mr-1.5">A</span>
               Análisis (Diagnóstico Evolutivo y Metabólico)
             </label>
             <textarea
@@ -294,7 +294,7 @@ export default function SoapConsultationModal({
 
           <div>
             <label className={labelClass}>
-              <span className="inline-block w-5 h-5 rounded-md bg-violet-100 text-violet-800 text-center mr-1.5">P</span>
+              <span className="inline-block w-5 h-5 rounded-md bg-purple-soft text-purple text-center mr-1.5">P</span>
               Plan (Ajuste Dietoterapéutico, Metas y Próxima Cita)
             </label>
             <textarea
@@ -308,11 +308,11 @@ export default function SoapConsultationModal({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-gray-100">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-line">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl"
+            className="px-4 py-2 text-xs font-semibold text-muted bg-subtle hover:bg-subtle rounded-xl"
           >
             Cerrar
           </button>
@@ -321,7 +321,7 @@ export default function SoapConsultationModal({
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 rounded-xl transition"
+              className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-accent bg-accent-soft hover:bg-accent-soft rounded-xl transition"
             >
               <CheckCircle2 className="w-4 h-4" />
               {saving ? 'Guardando...' : 'Guardar Consulta SOAP'}
@@ -332,7 +332,7 @@ export default function SoapConsultationModal({
                 type="button"
                 disabled={saving}
                 onClick={e => handleSave(e, true)}
-                className="flex items-center gap-1.5 px-5 py-2.5 text-xs font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition"
+                className="flex items-center gap-1.5 px-5 py-2.5 text-xs font-extrabold text-white bg-action hover:bg-action-hover rounded-xl shadow-sm transition"
               >
                 <Sparkles className="w-4 h-4" />
                 Concluir Consulta y Generar Plan IA

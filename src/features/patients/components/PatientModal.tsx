@@ -24,8 +24,8 @@ const empty = {
   fasting_glucose: '', hba1c: '', systolic_bp: '', diastolic_bp: '', triglycerides: '',
 }
 
-const inputClass = 'w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white'
-const labelClass = 'block text-xs font-semibold text-gray-700 mb-1'
+const inputClass = 'w-full px-3 py-2 border border-line rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-surface'
+const labelClass = 'block text-xs font-semibold text-muted mb-1'
 
 export default function PatientModal({ open, patient, doctorId, onClose, onSave }: Props) {
   const [form, setForm] = useState(empty)
@@ -127,7 +127,7 @@ export default function PatientModal({ open, patient, doctorId, onClose, onSave 
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Pestañas */}
-        <div className="flex border-b border-gray-200 gap-1">
+        <div className="flex border-b border-line gap-1">
           {[
             { id: 'general' as Tab,    label: '1. Datos y Antropometría', icon: User },
             { id: 'biometrics' as Tab, label: '2. Composición y Actividad', icon: Activity },
@@ -139,8 +139,8 @@ export default function PatientModal({ open, patient, doctorId, onClose, onSave 
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold border-b-2 transition-colors ${
                 tab === t.id
-                  ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50 rounded-t-lg'
-                  : 'border-transparent text-gray-500 hover:text-gray-800'
+                  ? 'border-emerald-600 text-accent bg-accent-soft/50 rounded-t-lg'
+                  : 'border-transparent text-muted hover:text-content'
               }`}
             >
               <t.icon className="w-3.5 h-3.5" />
@@ -153,7 +153,7 @@ export default function PatientModal({ open, patient, doctorId, onClose, onSave 
         {liveBmi && liveTdee && (
           <div className="p-3 rounded-xl bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2 text-xs">
             <div className="flex items-center gap-2">
-              <span className="text-slate-400">Cálculo en vivo:</span>
+              <span className="text-muted">Cálculo en vivo:</span>
               <span className="font-bold text-emerald-400">IMC {liveBmi.value} ({liveBmi.category})</span>
             </div>
             <div className="flex items-center gap-4">
@@ -326,11 +326,11 @@ export default function PatientModal({ open, patient, doctorId, onClose, onSave 
               />
             </div>
 
-            <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200">
-              <p className="text-xs font-bold text-gray-700 mb-2.5">Biomarcadores de Laboratorio Recientes (Opcional)</p>
+            <div className="p-3.5 rounded-xl bg-subtle border border-line">
+              <p className="text-xs font-bold text-muted mb-2.5">Biomarcadores de Laboratorio Recientes (Opcional)</p>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
                 <div>
-                  <label className="block text-[11px] text-gray-500 mb-1">Glucosa (mg/dL)</label>
+                  <label className="block text-[11px] text-muted mb-1">Glucosa (mg/dL)</label>
                   <input
                     type="number" step="1" className={inputClass}
                     value={form.fasting_glucose} onChange={e => set('fasting_glucose', e.target.value)}
@@ -338,7 +338,7 @@ export default function PatientModal({ open, patient, doctorId, onClose, onSave 
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] text-gray-500 mb-1">HbA1c (%)</label>
+                  <label className="block text-[11px] text-muted mb-1">HbA1c (%)</label>
                   <input
                     type="number" step="0.1" className={inputClass}
                     value={form.hba1c} onChange={e => set('hba1c', e.target.value)}
@@ -346,7 +346,7 @@ export default function PatientModal({ open, patient, doctorId, onClose, onSave 
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] text-gray-500 mb-1">PA Sistólica</label>
+                  <label className="block text-[11px] text-muted mb-1">PA Sistólica</label>
                   <input
                     type="number" step="1" className={inputClass}
                     value={form.systolic_bp} onChange={e => set('systolic_bp', e.target.value)}
@@ -354,7 +354,7 @@ export default function PatientModal({ open, patient, doctorId, onClose, onSave 
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] text-gray-500 mb-1">PA Diastólica</label>
+                  <label className="block text-[11px] text-muted mb-1">PA Diastólica</label>
                   <input
                     type="number" step="1" className={inputClass}
                     value={form.diastolic_bp} onChange={e => set('diastolic_bp', e.target.value)}
@@ -362,7 +362,7 @@ export default function PatientModal({ open, patient, doctorId, onClose, onSave 
                   />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-[11px] text-gray-500 mb-1">Triglicéridos</label>
+                  <label className="block text-[11px] text-muted mb-1">Triglicéridos</label>
                   <input
                     type="number" step="1" className={inputClass}
                     value={form.triglycerides} onChange={e => set('triglycerides', e.target.value)}
@@ -375,18 +375,18 @@ export default function PatientModal({ open, patient, doctorId, onClose, onSave 
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl px-4 py-3">
+          <div className="bg-danger-soft border border-danger-line text-danger text-xs rounded-xl px-4 py-3">
             {error}
           </div>
         )}
 
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+        <div className="flex items-center justify-between pt-3 border-t border-line">
           <div className="flex gap-1.5">
             {tab !== 'general' && (
               <button
                 type="button"
                 onClick={() => setTab(tab === 'clinical' ? 'biometrics' : 'general')}
-                className="px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-xl"
+                className="px-3 py-2 text-xs font-medium text-muted hover:bg-subtle rounded-xl"
               >
                 ← Anterior
               </button>
@@ -395,7 +395,7 @@ export default function PatientModal({ open, patient, doctorId, onClose, onSave 
               <button
                 type="button"
                 onClick={() => setTab(tab === 'general' ? 'biometrics' : 'clinical')}
-                className="px-3 py-2 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl"
+                className="px-3 py-2 text-xs font-medium text-accent bg-accent-soft hover:bg-accent-soft rounded-xl"
               >
                 Siguiente sección →
               </button>
@@ -405,13 +405,13 @@ export default function PatientModal({ open, patient, doctorId, onClose, onSave 
           <div className="flex gap-2">
             <button
               type="button" onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+              className="px-4 py-2 text-xs font-medium text-muted bg-subtle hover:bg-subtle rounded-xl transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit" disabled={saving}
-              className="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 rounded-xl shadow-xs transition-colors"
+              className="px-5 py-2 text-xs font-bold text-white bg-action hover:bg-action-hover disabled:opacity-60 rounded-xl shadow-xs transition-colors"
             >
               {saving ? 'Guardando...' : patient ? 'Guardar Cambios' : 'Registrar Paciente'}
             </button>

@@ -131,11 +131,11 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Tarjeta Bento Hero (7 columnas) */}
         <div className="lg:col-span-7 rounded-[24px] bg-[#245C47] text-white p-6 sm:p-8 shadow-[0_18px_40px_-12px_rgba(36,92,71,0.32)] flex flex-col justify-between relative overflow-hidden">
-          <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-[#C8ED8F]/15 blur-2xl pointer-events-none" />
+          <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-lime-solid/15 blur-2xl pointer-events-none" />
 
           <div className="relative z-10 space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-[#C8ED8F] text-xs font-bold">
-              <span className="w-2 h-2 rounded-full bg-[#C8ED8F] animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface/10 border border-white/15 text-[#C8ED8F] text-xs font-bold">
+              <span className="w-2 h-2 rounded-full bg-lime-solid animate-pulse" />
               Centro de Mando Clínico • {user?.email}
             </div>
             <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-extrabold tracking-tight leading-tight">
@@ -152,13 +152,13 @@ export default function DashboardPage() {
               onClick={() => { setNewPlanPatientId(undefined); setNewPlanOpen(true) }}
               className="btn-lime px-5 py-2.5 text-xs sm:text-sm flex items-center gap-2 cursor-pointer"
             >
-              <Sparkles className="w-4 h-4 text-[#245C47]" />
+              <Sparkles className="w-4 h-4 text-accent" />
               Generar Plan Clínico IA
             </button>
             <button
               type="button"
               onClick={() => navigate('/patients')}
-              className="px-4 py-2.5 rounded-[14px] bg-white/12 hover:bg-white/20 text-white text-xs sm:text-sm font-bold border border-white/15 transition flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2.5 rounded-[14px] bg-surface/12 hover:bg-surface/20 text-white text-xs sm:text-sm font-bold border border-white/15 transition flex items-center gap-2 cursor-pointer"
             >
               <Plus className="w-4 h-4 text-[#C8ED8F]" />
               Expedientes 360°
@@ -166,7 +166,7 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={() => navigate('/appointments')}
-              className="px-4 py-2.5 rounded-[14px] bg-white/8 hover:bg-white/15 text-[#DCE7E1] text-xs sm:text-sm font-semibold border border-white/10 transition cursor-pointer"
+              className="px-4 py-2.5 rounded-[14px] bg-surface/8 hover:bg-surface/15 text-[#DCE7E1] text-xs sm:text-sm font-semibold border border-white/10 transition cursor-pointer"
             >
               Agenda y Notas SOAP
             </button>
@@ -177,22 +177,22 @@ export default function DashboardPage() {
         <div className="lg:col-span-5 bento-card p-6 flex flex-col justify-between space-y-4">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#76847B] block">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted block">
                 Monitor de Prescripción Activa
               </span>
-              <h2 className="text-base font-extrabold text-[#1D2924] mt-0.5 truncate">
+              <h2 className="text-base font-extrabold text-content mt-0.5 truncate">
                 {featuredPlan ? featuredPlan.patients.full_name : 'Balance Nutricional de Referencia'}
               </h2>
             </div>
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#F2FAE4] border border-[#C8ED8F] text-[#1D2924] text-xs font-extrabold shrink-0">
-              <Flame className="w-3.5 h-3.5 text-[#245C47]" />
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-lime-tint border border-[#C8ED8F] text-content text-xs font-extrabold shrink-0">
+              <Flame className="w-3.5 h-3.5 text-accent" />
               {activeMacros.calories} kcal/día
             </span>
           </div>
 
           {/* Barra compuesta de distribución de macronutrientes */}
           <div className="space-y-2">
-            <div className="w-full h-3 rounded-full bg-[#F1F4EE] overflow-hidden flex gap-0.5 p-0.5">
+            <div className="w-full h-3 rounded-full bg-subtle overflow-hidden flex gap-0.5 p-0.5">
               <div
                 style={{ width: `${proteinPct}%` }}
                 className="h-full bg-[#245C47] rounded-l-full transition-all duration-500"
@@ -200,7 +200,7 @@ export default function DashboardPage() {
               />
               <div
                 style={{ width: `${carbsPct}%` }}
-                className="h-full bg-[#C8ED8F] transition-all duration-500"
+                className="h-full bg-lime-solid transition-all duration-500"
                 title={`Carbohidratos: ${activeMacros.carbs_g}g`}
               />
               <div
@@ -211,39 +211,39 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid grid-cols-3 gap-2 pt-1">
-              <div className="p-2.5 rounded-2xl bg-[#F7F8F4] border border-[#E7ECE6]">
+              <div className="p-2.5 rounded-2xl bg-canvas border border-line">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-[#245C47]" />
-                  <span className="text-[11px] font-semibold text-[#76847B]">Proteína</span>
+                  <span className="text-[11px] font-semibold text-muted">Proteína</span>
                 </div>
-                <p className="text-base font-extrabold text-[#1D2924] mt-0.5">{activeMacros.protein_g}g</p>
-                <span className="text-[10px] font-bold text-[#245C47]">{proteinPct}% del total</span>
+                <p className="text-base font-extrabold text-content mt-0.5">{activeMacros.protein_g}g</p>
+                <span className="text-[10px] font-bold text-accent">{proteinPct}% del total</span>
               </div>
 
-              <div className="p-2.5 rounded-2xl bg-[#F7F8F4] border border-[#E7ECE6]">
+              <div className="p-2.5 rounded-2xl bg-canvas border border-line">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-[#9CD649]" />
-                  <span className="text-[11px] font-semibold text-[#76847B]">Carbos</span>
+                  <span className="text-[11px] font-semibold text-muted">Carbos</span>
                 </div>
-                <p className="text-base font-extrabold text-[#1D2924] mt-0.5">{activeMacros.carbs_g}g</p>
-                <span className="text-[10px] font-bold text-[#245C47]">{carbsPct}% • {activeMacros.fiber_g}g fibra</span>
+                <p className="text-base font-extrabold text-content mt-0.5">{activeMacros.carbs_g}g</p>
+                <span className="text-[10px] font-bold text-accent">{carbsPct}% • {activeMacros.fiber_g}g fibra</span>
               </div>
 
-              <div className="p-2.5 rounded-2xl bg-[#F7F8F4] border border-[#E7ECE6]">
+              <div className="p-2.5 rounded-2xl bg-canvas border border-line">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-[#76847B]" />
-                  <span className="text-[11px] font-semibold text-[#76847B]">Grasas</span>
+                  <span className="text-[11px] font-semibold text-muted">Grasas</span>
                 </div>
-                <p className="text-base font-extrabold text-[#1D2924] mt-0.5">{activeMacros.fat_g}g</p>
-                <span className="text-[10px] font-bold text-[#76847B]">{fatPct}% saludables</span>
+                <p className="text-base font-extrabold text-content mt-0.5">{activeMacros.fat_g}g</p>
+                <span className="text-[10px] font-bold text-muted">{fatPct}% saludables</span>
               </div>
             </div>
           </div>
 
           {/* Meta de Hidratación y acceso al Portal Móvil */}
-          <div className="flex items-center justify-between pt-2 border-t border-[#E7ECE6] text-xs">
-            <div className="flex items-center gap-2 text-[#1D2924] font-semibold">
-              <div className="w-7 h-7 rounded-xl bg-[#EBF3EE] text-[#245C47] flex items-center justify-center">
+          <div className="flex items-center justify-between pt-2 border-t border-line text-xs">
+            <div className="flex items-center gap-2 text-content font-semibold">
+              <div className="w-7 h-7 rounded-xl bg-accent-soft text-accent flex items-center justify-center">
                 <Droplets className="w-3.5 h-3.5" />
               </div>
               <span>Hidratación pautada: <strong>{activeMacros.water_liters} L / día</strong></span>
@@ -252,7 +252,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => navigate(`/portal/${featuredPlan.id}`)}
-                className="inline-flex items-center gap-1 text-xs font-extrabold text-[#245C47] hover:underline cursor-pointer"
+                className="inline-flex items-center gap-1 text-xs font-extrabold text-accent hover:underline cursor-pointer"
               >
                 <Smartphone className="w-3.5 h-3.5" /> App Paciente →
               </button>
@@ -275,16 +275,16 @@ export default function DashboardPage() {
             className="bento-card-interactive p-5 cursor-pointer flex flex-col justify-between"
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#EBF3EE] text-[#245C47] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-2xl bg-accent-soft text-accent flex items-center justify-center">
                 <Users className="w-5 h-5" />
               </div>
-              <span className="text-[11px] font-bold text-[#245C47] bg-[#EBF3EE] px-2.5 py-0.5 rounded-full">
+              <span className="text-[11px] font-bold text-accent bg-accent-soft px-2.5 py-0.5 rounded-full">
                 Activos 360°
               </span>
             </div>
             <div>
-              <p className="text-3xl font-extrabold text-[#1D2924] tracking-tight">{patients.length}</p>
-              <p className="text-xs text-[#76847B] mt-0.5 font-semibold">Expedientes clínicos</p>
+              <p className="text-3xl font-extrabold text-content tracking-tight">{patients.length}</p>
+              <p className="text-xs text-muted mt-0.5 font-semibold">Expedientes clínicos</p>
             </div>
           </div>
 
@@ -293,16 +293,16 @@ export default function DashboardPage() {
             className="bento-card-interactive p-5 cursor-pointer flex flex-col justify-between"
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#F2FAE4] text-[#245C47] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-2xl bg-lime-tint text-accent flex items-center justify-center">
                 <CheckCircle className="w-5 h-5" />
               </div>
-              <span className="text-[11px] font-extrabold text-[#1D2924] bg-[#C8ED8F] px-2.5 py-0.5 rounded-full">
+              <span className="text-[11px] font-extrabold text-content bg-lime-solid px-2.5 py-0.5 rounded-full">
                 Vigentes
               </span>
             </div>
             <div>
-              <p className="text-3xl font-extrabold text-[#1D2924] tracking-tight">{publishedCount}</p>
-              <p className="text-xs text-[#76847B] mt-0.5 font-semibold">Planes nutricionales activos</p>
+              <p className="text-3xl font-extrabold text-content tracking-tight">{publishedCount}</p>
+              <p className="text-xs text-muted mt-0.5 font-semibold">Planes nutricionales activos</p>
             </div>
           </div>
 
@@ -311,31 +311,31 @@ export default function DashboardPage() {
             className="bento-card-interactive p-5 cursor-pointer flex flex-col justify-between"
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-2xl bg-warning-soft text-warning flex items-center justify-center">
                 <Clock className="w-5 h-5" />
               </div>
-              <span className="text-[11px] font-bold text-amber-800 bg-amber-100/80 px-2.5 py-0.5 rounded-full">
+              <span className="text-[11px] font-bold text-warning bg-warning-soft/80 px-2.5 py-0.5 rounded-full">
                 En revisión
               </span>
             </div>
             <div>
-              <p className="text-3xl font-extrabold text-[#1D2924] tracking-tight">{draftCount}</p>
-              <p className="text-xs text-[#76847B] mt-0.5 font-semibold">Borradores médicos</p>
+              <p className="text-3xl font-extrabold text-content tracking-tight">{draftCount}</p>
+              <p className="text-xs text-muted mt-0.5 font-semibold">Borradores médicos</p>
             </div>
           </div>
 
-          <div className="bento-card p-5 flex flex-col justify-between bg-gradient-to-br from-white to-[#F7F8F4]">
+          <div className="bento-card p-5 flex flex-col justify-between bg-gradient-to-br from-surface to-canvas">
             <div className="flex items-center justify-between mb-3">
               <div className="w-10 h-10 rounded-2xl bg-[#245C47] text-[#C8ED8F] flex items-center justify-center">
                 <ShieldCheck className="w-5 h-5" />
               </div>
-              <span className="text-[11px] font-extrabold text-[#245C47] bg-[#F2FAE4] border border-[#C8ED8F] px-2.5 py-0.5 rounded-full">
+              <span className="text-[11px] font-extrabold text-accent bg-lime-tint border border-[#C8ED8F] px-2.5 py-0.5 rounded-full">
                 Mifflin-St Jeor
               </span>
             </div>
             <div>
-              <p className="text-3xl font-extrabold text-[#245C47] tracking-tight">{avgEfficacy}%</p>
-              <p className="text-xs text-[#76847B] mt-0.5 font-semibold">Precisión clínica media IA</p>
+              <p className="text-3xl font-extrabold text-accent tracking-tight">{avgEfficacy}%</p>
+              <p className="text-xs text-muted mt-0.5 font-semibold">Precisión clínica media IA</p>
             </div>
           </div>
         </div>
@@ -348,26 +348,26 @@ export default function DashboardPage() {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-[#EBF3EE] text-[#245C47] flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-accent-soft text-accent flex items-center justify-center">
                   <HeartPulse className="w-4 h-4" />
                 </div>
-                <h2 className="font-extrabold text-[#1D2924] text-base sm:text-lg tracking-tight">
+                <h2 className="font-extrabold text-content text-base sm:text-lg tracking-tight">
                   Radar Biométrico de Pacientes
                 </h2>
                 {patientsWithAlerts.length > 0 && (
-                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900">
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-warning-soft text-warning">
                     {patientsWithAlerts.length} con alertas IA
                   </span>
                 )}
               </div>
-              <p className="text-xs text-[#76847B] mt-1">
+              <p className="text-xs text-muted mt-1">
                 Selecciona cualquier paciente para abrir su Expediente 360°, curva de peso o escáner de laboratorio
               </p>
             </div>
             <button
               type="button"
               onClick={() => navigate('/patients')}
-              className="text-xs font-extrabold text-[#245C47] hover:underline flex items-center gap-1 cursor-pointer"
+              className="text-xs font-extrabold text-accent hover:underline flex items-center gap-1 cursor-pointer"
             >
               Ver todos ({patients.length}) <ArrowRight className="w-3.5 h-3.5" />
             </button>
@@ -386,7 +386,7 @@ export default function DashboardPage() {
                 <div
                   key={p.id}
                   onClick={() => setSelectedPatient(p)}
-                  className="p-4 rounded-[18px] border border-[#E7ECE6] hover:border-[#245C47]/40 bg-[#F7F8F4]/70 hover:bg-white transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3.5"
+                  className="p-4 rounded-[18px] border border-line hover:border-[#245C47]/40 bg-canvas/70 hover:bg-surface transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3.5"
                 >
                   <div className="flex items-start gap-3.5">
                     <div className="w-11 h-11 rounded-2xl bg-[#245C47] text-[#C8ED8F] font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
@@ -394,19 +394,19 @@ export default function DashboardPage() {
                     </div>
                     <div className="space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-extrabold text-[#1D2924] text-sm">{p.full_name}</h3>
+                        <h3 className="font-extrabold text-content text-sm">{p.full_name}</h3>
                         <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${bmi.color}`}>
                           IMC {bmi.value} ({bmi.category})
                         </span>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-3 text-[11px] text-[#76847B] font-semibold">
+                      <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted font-semibold">
                         <span>⚖️ {p.weight_kg} kg ({p.height_cm} cm)</span>
-                        <span className="text-[#245C47]">🔥 GET: {tdee} kcal</span>
+                        <span className="text-accent">🔥 GET: {tdee} kcal</span>
                         <span>💧 {waterGoal} L/día</span>
                       </div>
 
-                      <p className="text-xs text-[#1D2924]/80 font-medium line-clamp-1">
+                      <p className="text-xs text-content/80 font-medium line-clamp-1">
                         🎯 {p.goal}
                       </p>
 
@@ -417,8 +417,8 @@ export default function DashboardPage() {
                               key={idx}
                               className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-lg ${
                                 a.type === 'danger'
-                                  ? 'bg-red-50 text-red-700 border border-red-200'
-                                  : 'bg-amber-50 text-amber-800 border border-amber-200'
+                                  ? 'bg-danger-soft text-danger border border-danger-line'
+                                  : 'bg-warning-soft text-warning border border-warning-line'
                               }`}
                             >
                               <AlertTriangle className="w-3 h-3" />
@@ -437,10 +437,10 @@ export default function DashboardPage() {
                         e.stopPropagation()
                         setLabPatient(p)
                       }}
-                      className="px-3 py-1.5 rounded-xl bg-[#F7F8F4] hover:bg-[#EBF3EE] border border-[#E7ECE6] text-[#1D2924] text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                      className="px-3 py-1.5 rounded-xl bg-canvas hover:bg-accent-soft border border-line text-content text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
                       title="Escanear Laboratorio con IA"
                     >
-                      <Microscope className="w-3.5 h-3.5 text-[#245C47]" /> Lab IA
+                      <Microscope className="w-3.5 h-3.5 text-accent" /> Lab IA
                     </button>
                     <button
                       type="button"
@@ -464,14 +464,14 @@ export default function DashboardPage() {
         <div className="lg:col-span-4 bento-card p-5 sm:p-6 flex flex-col justify-between space-y-5">
           <div className="space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-2xl bg-[#F2FAE4] border border-[#C8ED8F] text-[#245C47] flex items-center justify-center">
+              <div className="w-9 h-9 rounded-2xl bg-lime-tint border border-[#C8ED8F] text-accent flex items-center justify-center">
                 <Calculator className="w-4 h-4" />
               </div>
               <div>
-                <h2 className="font-extrabold text-[#1D2924] text-base tracking-tight">
+                <h2 className="font-extrabold text-content text-base tracking-tight">
                   Calculadora Clínica IA
                 </h2>
-                <p className="text-[11px] text-[#76847B] font-medium">
+                <p className="text-[11px] text-muted font-medium">
                   Estimación inmediata Mifflin-St Jeor
                 </p>
               </div>
@@ -479,49 +479,49 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="font-bold text-[#76847B] block mb-1">Peso (kg)</label>
+                <label className="font-bold text-muted block mb-1">Peso (kg)</label>
                 <input
                   type="number"
                   value={calcWeight}
                   onChange={e => setCalcWeight(e.target.value)}
-                  className="input-wellness w-full px-3 py-2 font-extrabold text-[#1D2924]"
+                  className="input-wellness w-full px-3 py-2 font-extrabold text-content"
                 />
               </div>
               <div>
-                <label className="font-bold text-[#76847B] block mb-1">Talla (cm)</label>
+                <label className="font-bold text-muted block mb-1">Talla (cm)</label>
                 <input
                   type="number"
                   value={calcHeight}
                   onChange={e => setCalcHeight(e.target.value)}
-                  className="input-wellness w-full px-3 py-2 font-extrabold text-[#1D2924]"
+                  className="input-wellness w-full px-3 py-2 font-extrabold text-content"
                 />
               </div>
               <div>
-                <label className="font-bold text-[#76847B] block mb-1">Edad (años)</label>
+                <label className="font-bold text-muted block mb-1">Edad (años)</label>
                 <input
                   type="number"
                   value={calcAge}
                   onChange={e => setCalcAge(e.target.value)}
-                  className="input-wellness w-full px-3 py-2 font-extrabold text-[#1D2924]"
+                  className="input-wellness w-full px-3 py-2 font-extrabold text-content"
                 />
               </div>
               <div>
-                <label className="font-bold text-[#76847B] block mb-1">Sexo biológico</label>
+                <label className="font-bold text-muted block mb-1">Sexo biológico</label>
                 <select
                   value={calcGender}
                   onChange={e => setCalcGender(e.target.value as 'female' | 'male')}
-                  className="input-wellness w-full px-2.5 py-2 font-bold text-[#1D2924]"
+                  className="input-wellness w-full px-2.5 py-2 font-bold text-content"
                 >
                   <option value="female">Femenino</option>
                   <option value="male">Masculino</option>
                 </select>
               </div>
               <div className="col-span-2">
-                <label className="font-bold text-[#76847B] block mb-1">Factor de Actividad Física</label>
+                <label className="font-bold text-muted block mb-1">Factor de Actividad Física</label>
                 <select
                   value={calcActivity}
                   onChange={e => setCalcActivity(e.target.value as ActivityLevel)}
-                  className="input-wellness w-full px-3 py-2 font-bold text-[#1D2924]"
+                  className="input-wellness w-full px-3 py-2 font-bold text-content"
                 >
                   <option value="sedentary">Sedentario (×1.2)</option>
                   <option value="light">Ligero 1-3 días (×1.375)</option>
@@ -565,14 +565,14 @@ export default function DashboardPage() {
       <div className="bento-card p-5 sm:p-6 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#F2FAE4] border border-[#C8ED8F] text-[#245C47] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-lime-tint border border-[#C8ED8F] text-accent flex items-center justify-center">
               <Utensils className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="font-extrabold text-[#1D2924] text-base tracking-tight">
+              <h2 className="font-extrabold text-content text-base tracking-tight">
                 Prescripciones Nutricionales y Planes con IA
               </h2>
-              <p className="text-xs text-[#76847B]">
+              <p className="text-xs text-muted">
                 Menús validados por equivalentes SMAE, lista de súper inteligente y portal móvil del paciente
               </p>
             </div>
@@ -580,7 +580,7 @@ export default function DashboardPage() {
           <button
             type="button"
             onClick={() => navigate('/plans')}
-            className="text-xs font-extrabold text-[#245C47] hover:underline flex items-center gap-1 cursor-pointer"
+            className="text-xs font-extrabold text-accent hover:underline flex items-center gap-1 cursor-pointer"
           >
             Explorar planes ({plans.length}) <ArrowRight className="w-3.5 h-3.5" />
           </button>
@@ -591,24 +591,24 @@ export default function DashboardPage() {
             <div
               key={plan.id}
               onClick={() => setSelectedPlan(plan)}
-              className="p-4 sm:p-5 rounded-[20px] border border-[#E7ECE6] hover:border-[#245C47]/40 transition-all cursor-pointer flex flex-col justify-between gap-3 bg-[#F7F8F4]/60 hover:bg-white"
+              className="p-4 sm:p-5 rounded-[20px] border border-line hover:border-[#245C47]/40 transition-all cursor-pointer flex flex-col justify-between gap-3 bg-canvas/60 hover:bg-surface"
             >
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-extrabold text-[#1D2924] text-sm sm:text-base">
+                  <span className="font-extrabold text-content text-sm sm:text-base">
                     {plan.patients.full_name}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#F2FAE4] text-[#1D2924] border border-[#C8ED8F]">
-                    <Sparkles className="w-3 h-3 text-[#245C47]" />
+                  <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-lime-tint text-content border border-[#C8ED8F]">
+                    <Sparkles className="w-3 h-3 text-accent" />
                     {plan.clinical_efficacy_score ?? 97}% IA
                   </span>
                 </div>
-                <p className="text-xs font-semibold text-[#245C47]">
+                <p className="text-xs font-semibold text-accent">
                   {plan.protocol ? PROTOCOL_INFO[plan.protocol].name : 'Plan Nutricional Personalizado'}
                 </p>
                 {plan.macros && (
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-[#76847B] font-semibold pt-1">
-                    <span className="px-2 py-0.5 rounded-lg bg-white border border-[#E7ECE6] text-[#1D2924] font-bold">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted font-semibold pt-1">
+                    <span className="px-2 py-0.5 rounded-lg bg-surface border border-line text-content font-bold">
                       🔥 {plan.macros.calories} kcal
                     </span>
                     <span>P: {plan.macros.protein_g}g</span>
@@ -618,12 +618,12 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-[#E7ECE6] text-xs">
-                <span className="text-[#76847B] font-medium flex items-center gap-1">
-                  <Activity className="w-3.5 h-3.5 text-[#245C47]" />
+              <div className="flex items-center justify-between pt-2 border-t border-line text-xs">
+                <span className="text-muted font-medium flex items-center gap-1">
+                  <Activity className="w-3.5 h-3.5 text-accent" />
                   Incluye Lista de Súper y Equivalentes SMAE
                 </span>
-                <span className="font-extrabold text-[#245C47] shrink-0">Abrir →</span>
+                <span className="font-extrabold text-accent shrink-0">Abrir →</span>
               </div>
             </div>
           ))}

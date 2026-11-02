@@ -34,8 +34,8 @@ interface Props {
 type View = 'list' | 'form'
 
 const inputClass = 'input-wellness w-full px-3 py-2 text-xs sm:text-sm font-medium disabled:opacity-70'
-const labelClass = 'block text-[11px] font-bold text-[#76847B] mb-1'
-const sectionTitle = 'text-sm font-extrabold text-[#1D2924] flex items-center gap-2'
+const labelClass = 'block text-[11px] font-bold text-muted mb-1'
+const sectionTitle = 'text-sm font-extrabold text-content flex items-center gap-2'
 
 const EXAM_FIELDS: { key: keyof PhysicalExam; label: string; placeholder: string }[] = [
   { key: 'general',         label: 'Aspecto general',          placeholder: 'Estado de alerta, hidratación, constitución, marcha...' },
@@ -347,9 +347,9 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
       size="4xl"
       onClose={close}
     >
-      {notice && <p role="status" className="text-sm text-[#245C47]">{notice}</p>}
+      {notice && <p role="status" className="text-sm text-accent">{notice}</p>}
       {loading && <p role="status">Cargando paciente y expediente...</p>}
-      {error && !draft && <p role="alert" className="text-red-800 text-sm">{error}</p>}
+      {error && !draft && <p role="alert" className="text-danger text-sm">{error}</p>}
       {!loading && medicalRecord && <MedicalRecordSummary record={medicalRecord} />}
       {!loading && patient && view === 'list' && (
         <div className="space-y-4">
@@ -361,36 +361,36 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
 
           {consultations.length === 0 ? (
             <div className="text-center py-10 space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-[#EBF3EE] text-[#245C47] flex items-center justify-center mx-auto">
+              <div className="w-12 h-12 rounded-2xl bg-accent-soft text-accent flex items-center justify-center mx-auto">
                 <Stethoscope className="w-6 h-6" />
               </div>
-              <p className="font-extrabold text-[#1D2924]">Sin consultas registradas</p>
-              <p className="text-xs text-[#76847B]">Registra la primera consulta médica de este paciente.</p>
+              <p className="font-extrabold text-content">Sin consultas registradas</p>
+              <p className="text-xs text-muted">Registra la primera consulta médica de este paciente.</p>
             </div>
           ) : (
             <div className="space-y-2.5">
               {consultations.map(c => {
                 const cFlags = evaluateVitals(c.vitals, c.glucose_context)
                 return (
-                  <div key={c.id} className="p-4 rounded-2xl border border-[#E7ECE6] bg-[#F7F8F4]/70 space-y-2">
+                  <div key={c.id} className="p-4 rounded-2xl border border-line bg-canvas/70 space-y-2">
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs font-extrabold text-[#1D2924]">{c.date}</span>
+                          <span className="text-xs font-extrabold text-content">{c.date}</span>
                           <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${
                             c.status === 'closed'
-                              ? 'bg-[#F2FAE4] border-[#C8ED8F] text-[#1D2924]'
-                              : 'bg-amber-50 border-amber-200 text-amber-800'
+                              ? 'bg-lime-tint border-[#C8ED8F] text-content'
+                              : 'bg-warning-soft border-warning-line text-warning'
                           }`}>
                             {c.status === 'voided' ? 'Anulada' : c.status === 'closed' ? <><Lock className="w-3 h-3" /> Cerrada</> : <><Pencil className="w-3 h-3" /> Borrador</>}
                           </span>
                           {cFlags.length > 0 && (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-warning-soft border border-warning-line text-warning">
                               <AlertTriangle className="w-3 h-3" /> {cFlags.length} signo(s) fuera de rango
                             </span>
                           )}
                         </div>
-                        <p className="text-sm font-extrabold text-[#1D2924] mt-1">{c.chief_complaint}</p>
+                        <p className="text-sm font-extrabold text-content mt-1">{c.chief_complaint}</p>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <button
@@ -405,19 +405,19 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
                           onClick={() => handleDelete(c.id)}
                           aria-label="Anular consulta"
                           disabled={saving || c.status === 'voided'}
-                          className="p-1.5 text-[#76847B] hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
+                          className="p-1.5 text-muted hover:text-danger hover:bg-danger-soft rounded-lg cursor-pointer"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
                     {c.assessment && (
-                      <p className="text-xs text-[#76847B] line-clamp-2">
-                        <strong className="text-[#1D2924]">Evaluación:</strong> {c.assessment}
+                      <p className="text-xs text-muted line-clamp-2">
+                        <strong className="text-content">Evaluación:</strong> {c.assessment}
                       </p>
                     )}
                     {c.follow_up_date && (
-                      <p className="text-[11px] font-bold text-[#245C47]">Seguimiento: {c.follow_up_date}</p>
+                      <p className="text-[11px] font-bold text-accent">Seguimiento: {c.follow_up_date}</p>
                     )}
                   </div>
                 )
@@ -437,22 +437,22 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
               type="button"
               disabled={saving}
               onClick={() => { if (dirty && !confirm('¿Descartar los cambios sin guardar?')) return; setDirty(false); setView('list'); setDraft(null) }}
-              className="flex items-center gap-1 text-xs font-bold text-[#245C47] hover:underline cursor-pointer"
+              className="flex items-center gap-1 text-xs font-bold text-accent hover:underline cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" /> Volver al historial
             </button>
           )}
 
           {locked && (
-            <div role="status" className="p-3 rounded-2xl bg-[#F2FAE4] border border-[#C8ED8F] text-xs text-[#1D2924] flex items-center justify-between gap-2">
+            <div role="status" className="p-3 rounded-2xl bg-lime-tint border border-[#C8ED8F] text-xs text-content flex items-center justify-between gap-2">
               <span className="flex items-center gap-2 font-semibold">
-                <Lock className="w-4 h-4 text-[#245C47]" /> {draft.status === 'voided' ? 'Consulta anulada: historial conservado.' : 'Consulta cerrada: solo lectura.'}
+                <Lock className="w-4 h-4 text-accent" /> {draft.status === 'voided' ? 'Consulta anulada: historial conservado.' : 'Consulta cerrada: solo lectura.'}
               </span>
               {draft.status === 'closed' && <button
                 type="button"
                 disabled={saving}
                 onClick={reopen}
-                className="flex items-center gap-1 font-bold text-[#245C47] hover:underline cursor-pointer"
+                className="flex items-center gap-1 font-bold text-accent hover:underline cursor-pointer"
               >
                 <Unlock className="w-3.5 h-3.5" /> Reabrir como borrador
               </button>}
@@ -517,17 +517,17 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
                   onChange={e => patchDraft({ glucose_context: e.target.value as GlucoseContext })} className={inputClass}>
                   {Object.entries(GLUCOSE_CONTEXT_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                 </select>
-                <p className="text-[11px] text-[#76847B] mt-1">La glucosa se conserva en esta consulta. Solo se actualiza el campo de ayuno si seleccionas ayuno confirmado.</p>
+                <p className="text-[11px] text-muted mt-1">La glucosa se conserva en esta consulta. Solo se actualiza el campo de ayuno si seleccionas ayuno confirmado.</p>
               </div>
               {(map || bmi) && (
                 <div className="flex flex-wrap gap-2 text-[11px] font-bold">
-                  {map && <span className="px-2.5 py-1 rounded-full bg-[#EBF3EE] text-[#245C47]">PAM: {map} mmHg</span>}
-                  {bmi && <span className="px-2.5 py-1 rounded-full bg-[#EBF3EE] text-[#245C47]">IMC: {bmi.value} ({bmi.category})</span>}
+                  {map && <span className="px-2.5 py-1 rounded-full bg-accent-soft text-accent">PAM: {map} mmHg</span>}
+                  {bmi && <span className="px-2.5 py-1 rounded-full bg-accent-soft text-accent">IMC: {bmi.value} ({bmi.category})</span>}
                 </div>
               )}
 
               {flags.length > 0 && (
-                <div role="alert" className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
+                <div role="alert" className="p-3 rounded-2xl bg-warning-soft border border-warning-line text-xs text-warning space-y-1">
                   <p className="font-extrabold flex items-center gap-1.5">
                     <AlertTriangle className="w-4 h-4" /> Signos fuera de rango de referencia
                   </p>
@@ -545,7 +545,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
 
             {/* Exploración física */}
             <div className="space-y-2.5">
-              <h4 className={sectionTitle}><Stethoscope className="w-4 h-4 text-[#245C47]" /> Exploración física</h4>
+              <h4 className={sectionTitle}><Stethoscope className="w-4 h-4 text-accent" /> Exploración física</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {EXAM_FIELDS.map(f => (
                   <div key={f.key} className={f.key === 'other' ? 'md:col-span-2' : ''}>
@@ -562,7 +562,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
 
             {/* Evaluación y plan */}
             <div className="space-y-3">
-              <h4 className={sectionTitle}><ClipboardCheck className="w-4 h-4 text-[#245C47]" /> Evaluación y plan</h4>
+              <h4 className={sectionTitle}><ClipboardCheck className="w-4 h-4 text-accent" /> Evaluación y plan</h4>
               <div>
                 <label className={labelClass} htmlFor="c-assess">Evaluación / impresión diagnóstica {`(requerido para cerrar)`}</label>
                 <textarea
@@ -606,12 +606,12 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
                 <label className={labelClass} htmlFor="c-fu-time">Hora del seguimiento</label>
                 <input id="c-fu-time" type="time" value={draft.follow_up_time} onChange={e => patchDraft({ follow_up_time: e.target.value })} className={inputClass} />
               </div>}
-              <p className="text-[#76847B]">Sin esta opción, la fecha queda como indicación y no reserva un horario. Para cancelar una cita ya creada, usa la agenda.</p>
+              <p className="text-muted">Sin esta opción, la fecha queda como indicación y no reserva un horario. Para cancelar una cita ya creada, usa la agenda.</p>
             </div>
           </fieldset>
 
           {!locked && (
-            <label className="flex items-start gap-2 text-xs text-[#1D2924] cursor-pointer">
+            <label className="flex items-start gap-2 text-xs text-content cursor-pointer">
               <input type="checkbox" disabled={!isDemo || saving} checked={syncMetrics} onChange={e => setSyncMetrics(e.target.checked)} className="mt-0.5" />
               <span>
                 {isDemo ? 'Al cerrar, sincronizar mediciones con la ficha local (glucosa solo con ayuno confirmado).' : 'La sincronización de mediciones con el servidor queda pendiente.'}
@@ -620,7 +620,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
           )}
 
           {error && (
-            <div role="alert" className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs font-semibold">
+            <div role="alert" className="p-3 rounded-xl bg-danger-soft border border-danger-line text-danger text-xs font-semibold">
               {error}
             </div>
           )}
@@ -647,7 +647,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
             ))}
           </details>}
 
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#E7ECE6]">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-line">
             <button type="button" onClick={() => handlePrint(draft)} className="btn-secondary flex items-center gap-1.5 px-3 py-2 text-xs cursor-pointer">
               <Printer className="w-3.5 h-3.5" /> Imprimir
             </button>

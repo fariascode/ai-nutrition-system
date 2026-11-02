@@ -28,7 +28,7 @@ interface Props {
 type Tab = 'history' | 'surgical' | 'allergies' | 'medications' | 'habits'
 
 const inputClass = 'input-wellness w-full px-3 py-2 text-xs sm:text-sm font-medium'
-const labelClass = 'block text-[11px] font-bold text-[#76847B] mb-1'
+const labelClass = 'block text-[11px] font-bold text-muted mb-1'
 
 interface FieldDef {
   key: string
@@ -59,7 +59,7 @@ function ListEditor<T extends { id: string }>({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <h4 className="text-sm font-extrabold text-[#1D2924] flex items-center gap-2">
+        <h4 className="text-sm font-extrabold text-content flex items-center gap-2">
           {icon}
           {title} ({items.length})
         </h4>
@@ -73,7 +73,7 @@ function ListEditor<T extends { id: string }>({
       </div>
 
       {items.length === 0 ? (
-        <p className="text-xs text-[#76847B] bg-[#F7F8F4] border border-dashed border-[#E7ECE6] rounded-2xl p-4 text-center">
+        <p className="text-xs text-muted bg-canvas border border-dashed border-line rounded-2xl p-4 text-center">
           {emptyText}
         </p>
       ) : (
@@ -81,7 +81,7 @@ function ListEditor<T extends { id: string }>({
           {items.map(item => (
             <div
               key={item.id}
-              className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 p-3 rounded-2xl border border-[#E7ECE6] bg-[#F7F8F4]/70"
+              className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 p-3 rounded-2xl border border-line bg-canvas/70"
             >
               {fields.map(f => {
                 const value = String((item as Record<string, unknown>)[f.key] ?? '')
@@ -114,7 +114,7 @@ function ListEditor<T extends { id: string }>({
                 <button
                   type="button"
                   onClick={() => onChange(items.filter(it => it.id !== item.id))}
-                  className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-[#76847B] hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                  className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-muted hover:text-danger hover:bg-danger-soft rounded-lg transition cursor-pointer"
                   aria-label="Eliminar registro"
                 >
                   <Trash2 className="w-3.5 h-3.5" /> Quitar
@@ -153,7 +153,7 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
   if (!patient || !record) {
     return open && patient ? (
       <Modal open title="Expediente Médico Integral" onClose={onClose}>
-        <div role={error ? 'alert' : 'status'} className="py-10 text-center text-sm text-[#76847B]">{error ?? 'Cargando expediente...'}</div>
+        <div role={error ? 'alert' : 'status'} className="py-10 text-center text-sm text-muted">{error ?? 'Cargando expediente...'}</div>
       </Modal>
     ) : null
   }
@@ -240,11 +240,11 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
       onClose={() => { if (!saving && (!dirty || confirm('¿Descartar los cambios sin guardar del expediente?'))) onClose() }}
     >
       <form onSubmit={handleSave} className="space-y-4">
-        {error && <p role="alert" className="p-3 rounded-xl bg-red-50 text-red-800 text-xs">{error}</p>}
+        {error && <p role="alert" className="p-3 rounded-xl bg-danger-soft text-danger text-xs">{error}</p>}
         <fieldset disabled={saving} className="space-y-4 min-w-0">
         {severeAllergies.length > 0 && (
-          <div role="alert" className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-900 text-xs flex items-start gap-2.5">
-            <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+          <div role="alert" className="p-3 rounded-2xl bg-danger-soft border border-danger-line text-danger text-xs flex items-start gap-2.5">
+            <AlertTriangle className="w-4 h-4 text-danger shrink-0 mt-0.5" />
             <span>
               <strong>Alergia grave registrada:</strong> {severeAllergies.map(a => a.substance).join(', ')}
             </span>
@@ -252,7 +252,7 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
         )}
 
         {/* Pestañas */}
-        <div className="flex flex-wrap gap-1.5 p-1.5 rounded-2xl bg-[#F7F8F4] border border-[#E7ECE6]" role="tablist">
+        <div className="flex flex-wrap gap-1.5 p-1.5 rounded-2xl bg-canvas border border-line" role="tablist">
           {tabs.map(t => (
             <button
               key={t.id}
@@ -261,13 +261,13 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
               aria-selected={tab === t.id}
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                tab === t.id ? 'bg-[#245C47] text-white shadow-2xs' : 'text-[#76847B] hover:text-[#1D2924]'
+                tab === t.id ? 'bg-[#245C47] text-white shadow-2xs' : 'text-muted hover:text-content'
               }`}
             >
               {t.icon}
               {t.label}
               {t.count !== undefined && t.count > 0 && (
-                <span className={`px-1.5 rounded-full text-[10px] ${tab === t.id ? 'bg-white/20' : 'bg-[#EBF3EE] text-[#245C47]'}`}>
+                <span className={`px-1.5 rounded-full text-[10px] ${tab === t.id ? 'bg-surface/20' : 'bg-accent-soft text-accent'}`}>
                   {t.count}
                 </span>
               )}
@@ -275,7 +275,7 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
           ))}
         </div>
 
-        {tabSections[tab].map(section => <div key={section} className="p-3 rounded-xl border border-[#E7ECE6] text-xs">
+        {tabSections[tab].map(section => <div key={section} className="p-3 rounded-xl border border-line text-xs">
           <label htmlFor={`review-${section}`} className={labelClass}>{sectionLabels[section]}: estado de la información</label>
           <select id={`review-${section}`} className={inputClass}
             value={getHistoryReview(rec, section)} disabled={rec[section].length > 0}
@@ -290,7 +290,7 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
           <div className="space-y-6">
             <ListEditor<PersonalHistoryItem>
               title="Antecedentes personales patológicos"
-              icon={<ClipboardList className="w-4 h-4 text-[#245C47]" />}
+              icon={<ClipboardList className="w-4 h-4 text-accent" />}
               items={rec.personal}
               fields={[
                 { key: 'condition', label: 'Padecimiento', placeholder: 'Ej. Hipertensión arterial', span: 'sm:col-span-5' },
@@ -307,7 +307,7 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
             />
             <ListEditor<FamilyHistoryItem>
               title="Antecedentes heredofamiliares"
-              icon={<Users className="w-4 h-4 text-[#245C47]" />}
+              icon={<Users className="w-4 h-4 text-accent" />}
               items={rec.family}
               fields={[
                 { key: 'relative', label: 'Familiar', placeholder: 'Ej. Madre, abuelo paterno', span: 'sm:col-span-4' },
@@ -326,7 +326,7 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
           <div className="space-y-6">
             <ListEditor<SurgeryItem>
               title="Cirugías"
-              icon={<Scissors className="w-4 h-4 text-[#245C47]" />}
+              icon={<Scissors className="w-4 h-4 text-accent" />}
               items={rec.surgeries}
               fields={[
                 { key: 'procedure', label: 'Procedimiento', placeholder: 'Ej. Colecistectomía', span: 'sm:col-span-5' },
@@ -340,7 +340,7 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
             />
             <ListEditor<HospitalizationItem>
               title="Hospitalizaciones"
-              icon={<Building2 className="w-4 h-4 text-[#245C47]" />}
+              icon={<Building2 className="w-4 h-4 text-accent" />}
               items={rec.hospitalizations}
               fields={[
                 { key: 'reason', label: 'Motivo', placeholder: 'Ej. Neumonía', span: 'sm:col-span-5' },
@@ -358,7 +358,7 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
         {tab === 'allergies' && (
           <ListEditor<AllergyItem>
             title="Alergias e intolerancias"
-            icon={<AlertTriangle className="w-4 h-4 text-red-600" />}
+            icon={<AlertTriangle className="w-4 h-4 text-danger" />}
             items={rec.allergies}
             fields={[
               { key: 'substance', label: 'Sustancia / alimento / fármaco', placeholder: 'Ej. Penicilina, mariscos', span: 'sm:col-span-5' },
@@ -377,7 +377,7 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
         {tab === 'medications' && (
           <ListEditor<MedicationItem>
             title="Medicamentos y suplementos actuales"
-            icon={<Pill className="w-4 h-4 text-[#245C47]" />}
+            icon={<Pill className="w-4 h-4 text-accent" />}
             items={rec.medications}
             fields={[
               { key: 'name', label: 'Medicamento', placeholder: 'Ej. Metformina XR 500 mg', span: 'sm:col-span-4' },
@@ -396,8 +396,8 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
 
         {tab === 'habits' && (
           <div className="space-y-4">
-            <h4 className="text-sm font-extrabold text-[#1D2924] flex items-center gap-2">
-              <Activity className="w-4 h-4 text-[#245C47]" /> Hábitos y estilo de vida
+            <h4 className="text-sm font-extrabold text-content flex items-center gap-2">
+              <Activity className="w-4 h-4 text-accent" /> Hábitos y estilo de vida
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
@@ -476,13 +476,13 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
           </div>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#E7ECE6]">
-          <p className="text-[11px] text-[#76847B] max-w-md">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-line">
+          <p className="text-[11px] text-muted max-w-md">
             {isDemo ? 'Al guardar se actualizan también los datos de la ficha local del paciente.' : 'El expediente se conserva en este navegador. La sincronización con el servidor queda pendiente.'}
           </p>
           <div className="flex items-center gap-2">
             {saved && (
-              <span role="status" className="flex items-center gap-1 text-xs font-bold text-[#245C47]">
+              <span role="status" className="flex items-center gap-1 text-xs font-bold text-accent">
                 <CheckCircle2 className="w-4 h-4" /> Guardado
               </span>
             )}
