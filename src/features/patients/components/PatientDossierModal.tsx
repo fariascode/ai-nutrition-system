@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import {
   Activity, Flame, Droplets, Scale, AlertTriangle, CheckCircle2,
   Sparkles, Plus, TrendingDown, TrendingUp, HeartPulse, Pill,
-  Phone, Mail, Calendar, Pencil, Ruler, Microscope, ClipboardList,
+  Phone, Mail, Calendar, Pencil, Ruler, Microscope, ClipboardList, Stethoscope,
 } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
 import {
@@ -20,6 +20,7 @@ interface Props {
   onAddCheckin: (patientId: string, record: WeightRecord) => Promise<void>
   onOpenLabScanner?: (patient: Patient) => void
   onOpenMedicalRecord?: (patient: Patient) => void
+  onOpenConsultation?: (patient: Patient) => void
 }
 
 export default function PatientDossierModal({
@@ -31,6 +32,7 @@ export default function PatientDossierModal({
   onAddCheckin,
   onOpenLabScanner,
   onOpenMedicalRecord,
+  onOpenConsultation,
 }: Props) {
   const [showCheckin, setShowCheckin] = useState(false)
   const [weight, setWeight]       = useState('')
@@ -134,6 +136,15 @@ export default function PatientDossierModal({
           </div>
 
           <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {onOpenConsultation && (
+              <button
+                type="button"
+                onClick={() => onOpenConsultation(patient)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold border border-white/20 transition"
+              >
+                <Stethoscope className="w-3.5 h-3.5 text-emerald-300" /> Consulta Médica
+              </button>
+            )}
             {onOpenMedicalRecord && (
               <button
                 type="button"

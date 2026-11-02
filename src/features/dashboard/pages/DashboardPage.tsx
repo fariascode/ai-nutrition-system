@@ -16,6 +16,7 @@ import PatientDossierModal from '@/features/patients/components/PatientDossierMo
 import PatientModal from '@/features/patients/components/PatientModal'
 import LabScannerModal from '@/features/patients/components/LabScannerModal'
 import MedicalRecordModal from '@/features/medical-record/components/MedicalRecordModal'
+import ConsultationModal from '@/features/consultations/components/ConsultationModal'
 import NewPlanModal from '@/features/plans/components/NewPlanModal'
 import PlanDetailModal from '@/features/plans/components/PlanDetailModal'
 import type { Patient, PatientUpdate, WeightRecord, ActivityLevel, LabBiomarkers } from '@/types/patient'
@@ -33,6 +34,7 @@ export default function DashboardPage() {
   const [editingPatient, setEditingPatient]     = useState<Patient | null>(null)
   const [labPatient, setLabPatient]             = useState<Patient | null>(null)
   const [recordPatient, setRecordPatient]       = useState<Patient | null>(null)
+  const [consultPatientId, setConsultPatientId] = useState<string | null>(null)
   const [newPlanPatientId, setNewPlanPatientId] = useState<string | undefined>(undefined)
   const [newPlanOpen, setNewPlanOpen]           = useState(false)
   const [selectedPlan, setSelectedPlan]         = useState<PlanWithPatient | null>(null)
@@ -642,6 +644,14 @@ export default function DashboardPage() {
         onAddCheckin={handleAddCheckin}
         onOpenLabScanner={p => { setSelectedPatient(null); setLabPatient(p) }}
         onOpenMedicalRecord={p => { setSelectedPatient(null); setRecordPatient(p) }}
+        onOpenConsultation={p => { setSelectedPatient(null); setConsultPatientId(p.id) }}
+      />
+
+      <ConsultationModal
+        open={!!consultPatientId}
+        patientId={consultPatientId}
+        onClose={() => setConsultPatientId(null)}
+        onSaved={loadAll}
       />
 
       <MedicalRecordModal

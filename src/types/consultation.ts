@@ -1,0 +1,46 @@
+export type ConsultationStatus = 'draft' | 'closed'
+
+export interface VitalSigns {
+  systolic_bp?: number     // mmHg
+  diastolic_bp?: number    // mmHg
+  heart_rate?: number      // lpm
+  resp_rate?: number       // rpm
+  temperature_c?: number   // °C
+  spo2?: number            // %
+  weight_kg?: number
+  height_cm?: number
+  glucose?: number         // mg/dL (capilar)
+}
+
+export interface PhysicalExam {
+  general: string
+  head_neck: string
+  cardiopulmonary: string
+  abdomen: string
+  extremities: string
+  skin: string
+  other: string
+}
+
+export interface Consultation {
+  id: string
+  patient_id: string
+  appointment_id?: string | null
+  date: string                // YYYY-MM-DD
+  status: ConsultationStatus
+  chief_complaint: string     // motivo de consulta
+  present_illness: string     // padecimiento actual
+  vitals: VitalSigns
+  exam: PhysicalExam
+  assessment: string          // evaluación / impresión diagnóstica
+  plan: string                // plan y tratamiento
+  follow_up_date?: string | null
+  follow_up_notes?: string
+  created_at: string
+  updated_at: string
+}
+
+export const EMPTY_EXAM: PhysicalExam = {
+  general: '', head_neck: '', cardiopulmonary: '', abdomen: '', extremities: '', skin: '', other: '',
+}
+

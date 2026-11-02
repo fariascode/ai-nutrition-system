@@ -12,6 +12,7 @@ import PatientModal from '../components/PatientModal'
 import PatientDossierModal from '../components/PatientDossierModal'
 import LabScannerModal from '../components/LabScannerModal'
 import MedicalRecordModal from '@/features/medical-record/components/MedicalRecordModal'
+import ConsultationModal from '@/features/consultations/components/ConsultationModal'
 import NewPlanModal from '@/features/plans/components/NewPlanModal'
 import {
   calculateAge, calculateBMI, calculateBMR, calculateTDEE, evaluatePatientAlerts,
@@ -34,6 +35,7 @@ export default function PatientsPage() {
   const [dossierPatient, setDossierPatient] = useState<Patient | null>(null)
   const [labPatient, setLabPatient]         = useState<Patient | null>(null)
   const [recordPatient, setRecordPatient]   = useState<Patient | null>(null)
+  const [consultPatientId, setConsultPatientId] = useState<string | null>(null)
   const [planPatientId, setPlanPatientId]   = useState<string | undefined>(undefined)
   const [newPlanOpen, setNewPlanOpen]       = useState(false)
   const [deleting, setDeleting]             = useState<string | null>(null)
@@ -463,6 +465,15 @@ export default function PatientsPage() {
         onAddCheckin={handleAddCheckin}
         onOpenLabScanner={p => { setDossierPatient(null); setLabPatient(p) }}
         onOpenMedicalRecord={p => { setDossierPatient(null); setRecordPatient(p) }}
+        onOpenConsultation={p => { setDossierPatient(null); setConsultPatientId(p.id) }}
+      />
+
+      {/* Modal Consulta Médica */}
+      <ConsultationModal
+        open={!!consultPatientId}
+        patientId={consultPatientId}
+        onClose={() => setConsultPatientId(null)}
+        onSaved={load}
       />
 
       {/* Modal Expediente Médico Integral */}

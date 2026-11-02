@@ -17,6 +17,7 @@ import {
 } from '../services/appointments.service'
 import NewAppointmentModal from '../components/NewAppointmentModal'
 import SoapConsultationModal from '../components/SoapConsultationModal'
+import ConsultationModal from '@/features/consultations/components/ConsultationModal'
 import NewPlanModal from '@/features/plans/components/NewPlanModal'
 import type { Appointment, AppointmentInsert, SoapNote } from '@/types/appointment'
 
@@ -31,6 +32,7 @@ export default function AppointmentsPage() {
 
   const [newModalOpen, setNewModalOpen]         = useState(false)
   const [activeSoapApt, setActiveSoapApt]       = useState<Appointment | null>(null)
+  const [consultApt, setConsultApt]             = useState<Appointment | null>(null)
   const [copiedAptId, setCopiedAptId]           = useState<string | null>(null)
 
   // Integración directa con el Generador de Planes IA al concluir consulta SOAP
@@ -333,6 +335,16 @@ export default function AppointmentsPage() {
 
                     <button
                       type="button"
+                      onClick={() => setConsultApt(apt)}
+                      className="btn-secondary flex items-center gap-1.5 px-3 py-2 text-xs cursor-pointer"
+                      title="Registrar consulta médica completa ligada a esta cita"
+                    >
+                      <Stethoscope className="w-3.5 h-3.5 text-[#245C47]" />
+                      Consulta médica
+                    </button>
+
+                    <button
+                      type="button"
                       onClick={() => setActiveSoapApt(apt)}
                       className="btn-forest flex items-center gap-1.5 px-4 py-2 text-xs cursor-pointer"
                     >
@@ -433,6 +445,15 @@ export default function AppointmentsPage() {
           setPlanPatientId(patientId)
           setNewPlanModalOpen(true)
         }}
+      />
+
+      {/* Consulta médica completa ligada a la cita */}
+      <ConsultationModal
+        open={Boolean(consultApt)}
+        patientId={consultApt?.patient_id ?? null}
+        appointment={consultApt}
+        onClose={() => setConsultApt(null)}
+        onSaved={loadAppointments}
       />
 
       {/* Modal de Generación de Plan Nutricional IA encadenado tras cerrar la Nota SOAP */}
