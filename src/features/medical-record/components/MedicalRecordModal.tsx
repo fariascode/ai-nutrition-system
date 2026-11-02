@@ -4,6 +4,8 @@ import {
   AlertTriangle, Pill, Activity, CheckCircle2,
 } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
+import { withLocalRollback, storageError } from '@/lib/localStorage'
+import { isDemo } from '@/lib/mockData'
 import {
   getMedicalRecord, saveMedicalRecord, newId,
 } from '../services/medicalRecord.service'
@@ -130,31 +132,40 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
   const [tab, setTab]       = useState<Tab>('history')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved]   = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [dirty, setDirty] = useState(false)
 
   useEffect(() => {
+    let cancelled = false
     if (open && patient) {
       setTab('history')
       setSaved(false)
-      getMedicalRecord(patient).then(setRecord)
+      setError(null)
+      setDirty(false)
+      setRecord(null)
+      getMedicalRecord(patient).then(value => { if (!cancelled) setRecord(value) })
+        .catch(err => { if (!cancelled) setError(storageError(err)) })
     }
+    return () => { cancelled = true }
   }, [open, patient])
 
   if (!patient || !record) {
     return open && patient ? (
       <Modal open title="Expediente Médico Integral" onClose={onClose}>
-        <div className="py-10 text-center text-sm text-[#76847B]">Cargando expediente...</div>
+        <div role={error ? 'alert' : 'status'} className="py-10 text-center text-sm text-[#76847B]">{error ?? 'Cargando expediente...'}</div>
       </Modal>
     ) : null
   }
 
   const rec = record
-  const set = (patch: Partial<MedicalRecord>) => { setRecord({ ...rec, ...patch }); setSaved(false) }
+  const set = (patch: Partial<MedicalRecord>) => { setRecord({ ...rec, ...patch }); setSaved(false); setDirty(true) }
   const setHabit = (patch: Partial<MedicalRecord['habits']>) => set({ habits: { ...rec.habits, ...patch } })
 
   async function handleSave(e: FormEvent) {
     e.preventDefault()
-    if (!patient) return
+    if (!patient || saving) return
     setSaving(true)
+    setError(null)
     try {
       // No guardar filas vacías
       const clean: MedicalRecord = {
@@ -166,10 +177,9 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
         allergies:        rec.allergies.filter(i => i.substance.trim()),
         medications:      rec.medications.filter(i => i.name.trim()),
       }
-      const persisted = await saveMedicalRecord(clean)
-      setRecord(persisted)
-
-      if (onSyncPatient) {
+      const persisted = await withLocalRollback(async () => {
+        const persisted = await saveMedicalRecord(clean)
+      if (onSyncPatient && isDemo) {
         const join = (list: string[]) => (list.length ? list.join(', ') : null)
         await onSyncPatient(patient.id, {
           allergies:   join(persisted.allergies.map(a => a.substance)),
@@ -179,7 +189,13 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
           water_liters: persisted.habits.water_liters ?? null,
         })
       }
+        return persisted
+      })
+      setRecord(persisted)
       setSaved(true)
+      setDirty(false)
+    } catch (err) {
+      setError(storageError(err))
     } finally {
       setSaving(false)
     }
@@ -203,9 +219,11 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
         ? `Última actualización: ${new Date(rec.updated_at).toLocaleString('es-MX')}`
         : 'Expediente sin guardar — precargado con los datos de la ficha del paciente'}
       size="4xl"
-      onClose={onClose}
+      onClose={() => { if (!saving && (!dirty || confirm('¿Descartar los cambios sin guardar del expediente?'))) onClose() }}
     >
       <form onSubmit={handleSave} className="space-y-4">
+        {error && <p role="alert" className="p-3 rounded-xl bg-red-50 text-red-800 text-xs">{error}</p>}
+        <fieldset disabled={saving} className="space-y-4 min-w-0">
         {severeAllergies.length > 0 && (
           <div role="alert" className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-900 text-xs flex items-start gap-2.5">
             <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
@@ -429,7 +447,7 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
 
         <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#E7ECE6]">
           <p className="text-[11px] text-[#76847B] max-w-md">
-            Al guardar, alergias, medicamentos vigentes y padecimientos activos se sincronizan con la ficha del paciente.
+            {isDemo ? 'Al guardar se actualizan también los datos de la ficha local del paciente.' : 'El expediente se conserva en este navegador. La sincronización con el servidor queda pendiente.'}
           </p>
           <div className="flex items-center gap-2">
             {saved && (
@@ -437,7 +455,7 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
                 <CheckCircle2 className="w-4 h-4" /> Guardado
               </span>
             )}
-            <button type="button" onClick={onClose} className="btn-secondary px-4 py-2 text-xs cursor-pointer">
+            <button type="button" onClick={() => { if (!dirty || confirm('¿Descartar los cambios sin guardar del expediente?')) onClose() }} className="btn-secondary px-4 py-2 text-xs cursor-pointer">
               Cerrar
             </button>
             <button
@@ -450,6 +468,7 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
             </button>
           </div>
         </div>
+        </fieldset>
       </form>
     </Modal>
   )

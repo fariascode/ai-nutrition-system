@@ -1,14 +1,10 @@
-import type { Consultation, VitalSigns, GlucoseContext } from '@/types/consultation'
+import type { Consultation, VitalSigns, GlucoseContext, ClinicalActor, ConsultationRevision } from '@/types/consultation'
+import { readLocalJson } from '@/lib/localStorage'
 
 const STORAGE_KEY = 'nutriai_consultations_v1'
 
 function readAll(): Consultation[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
+  return readLocalJson<Consultation[]>(STORAGE_KEY, [])
 }
 
 function writeAll(list: Consultation[]) {
@@ -22,18 +18,36 @@ export async function getConsultationsByPatient(patientId: string): Promise<Cons
 }
 
 export async function getConsultationByAppointment(appointmentId: string): Promise<Consultation | null> {
-  return readAll().find(c => c.appointment_id === appointmentId) ?? null
+  return readAll().find(c => c.appointment_id === appointmentId && c.status !== 'voided') ?? null
 }
 
 export async function saveConsultation(
-  input: Omit<Consultation, 'id' | 'created_at' | 'updated_at'> & { id?: string },
+  input: Omit<Consultation, 'id' | 'created_at' | 'updated_at' | 'revisions'> & { id?: string },
+  actor: ClinicalActor = { id: 'local', label: 'Usuario local' },
+  reason?: string,
 ): Promise<Consultation> {
+  if (!input.chief_complaint.trim()) throw new Error('El motivo de consulta es obligatorio.')
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date) || Number.isNaN(new Date(input.date).getTime())) throw new Error('Selecciona una fecha válida para la consulta.')
+  if (input.status === 'closed' && (!input.assessment.trim() || !input.plan.trim())) throw new Error('Para cerrar captura evaluación y plan.')
+  if (Object.values(input.vitals).some(value => !Number.isFinite(value) || value <= 0) || (input.vitals.spo2 ?? 0) > 100) {
+    throw new Error('Revisa los signos vitales: deben ser números positivos y la saturación no puede superar 100%.')
+  }
   const list = readAll()
   const now = new Date().toISOString()
   const idx = input.id ? list.findIndex(c => c.id === input.id) : -1
 
   if (idx >= 0) {
-    const updated: Consultation = { ...list[idx], ...input, id: list[idx].id, updated_at: now }
+    const previous = list[idx]
+    if (previous.patient_id !== input.patient_id) throw new Error('La consulta pertenece a otro paciente.')
+    if (previous.status === 'voided') throw new Error('Una consulta anulada conserva su historial y no puede modificarse.')
+    const reopening = previous.status === 'closed' && input.status === 'draft'
+    if (previous.status === 'closed' && !reopening && input.status !== 'voided') throw new Error('Reabre la consulta antes de modificarla.')
+    if ((reopening || input.status === 'voided') && !reason?.trim()) throw new Error('Escribe el motivo de la reapertura o anulación.')
+    const { revisions, ...snapshot } = previous
+    const action: ConsultationRevision['action'] = input.status === 'voided' ? 'voided' : reopening ? 'reopened' : input.status === 'closed' ? 'closed' : 'updated'
+    const updated: Consultation = { ...previous, ...input, id: previous.id, updated_at: now,
+      revisions: [...(revisions ?? []), { at: now, actor, action, reason: reason?.trim(), previous: snapshot }],
+    }
     list[idx] = updated
     writeAll(list)
     return updated
@@ -44,14 +58,17 @@ export async function saveConsultation(
     id: `con-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
     created_at: now,
     updated_at: now,
+    revisions: [{ at: now, actor, action: input.status === 'closed' ? 'closed' : 'created' }],
   }
   list.push(created)
   writeAll(list)
   return created
 }
 
-export async function deleteConsultation(id: string): Promise<void> {
-  writeAll(readAll().filter(c => c.id !== id))
+export async function deleteConsultation(id: string, reason: string, actor?: ClinicalActor): Promise<void> {
+  const existing = readAll().find(c => c.id === id)
+  if (!existing) throw new Error('Consulta no encontrada.')
+  await saveConsultation({ ...existing, status: 'voided' }, actor, reason)
 }
 
 /** Presión arterial media (PAM) = (sistólica + 2 × diastólica) / 3 */

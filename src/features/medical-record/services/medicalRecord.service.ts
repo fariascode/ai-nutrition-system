@@ -1,15 +1,11 @@
 import type { Patient, PatientUpdate } from '@/types/patient'
 import type { MedicalRecord } from '@/types/medicalRecord'
+import { readLocalJson } from '@/lib/localStorage'
 
 const STORAGE_KEY = 'nutriai_medical_records_v1'
 
 function readAll(): Record<string, MedicalRecord> {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : {}
-  } catch {
-    return {}
-  }
+  return readLocalJson<Record<string, MedicalRecord>>(STORAGE_KEY, {})
 }
 
 export function newId(prefix: string): string {

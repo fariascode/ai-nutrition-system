@@ -4,11 +4,14 @@ import {
   AlertTriangle, ChevronLeft, CheckCircle2, Printer, Pencil,
 } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
-import { syncConsultationAppointments } from '@/features/appointments/services/appointments.service'
+import { saveConsultationWorkflow } from '../services/consultationWorkflow'
+import { storageError } from '@/lib/localStorage'
+import { useAuth } from '@/features/auth/context/AuthContext'
+import { isDemo } from '@/lib/mockData'
 import MedicalRecordSummary from '@/features/medical-record/components/MedicalRecordSummary'
 import { getMedicalRecord } from '@/features/medical-record/services/medicalRecord.service'
 import type { MedicalRecord } from '@/types/medicalRecord'
-import { getPatientById, addWeightCheckin, updatePatient } from '@/features/patients/services/patients.service'
+import { getPatientById } from '@/features/patients/services/patients.service'
 import {
   getConsultationsByPatient, saveConsultation, deleteConsultation,
   meanArterialPressure, evaluateVitals,
@@ -128,6 +131,10 @@ const escapeHtml = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
 export default function ConsultationModal({ open, patientId, appointment, onClose, onSaved }: Props) {
+  const { user } = useAuth()
+  const actor = { id: user?.id ?? 'local', label: user?.email ?? 'Usuario local' }
+  const [dirty, setDirty] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
   const [patient, setPatient]             = useState<Patient | null>(null)
   const [medicalRecord, setMedicalRecord] = useState<MedicalRecord | null>(null)
   const [loading, setLoading] = useState(false)
@@ -145,7 +152,9 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
   useEffect(() => {
     if (!open || !patientId) return
     setError(null)
-    setSyncMetrics(true)
+    setSyncMetrics(isDemo)
+    setDirty(false)
+    setNotice(null)
     setLoading(true)
     setPatient(null)
     setMedicalRecord(null)
@@ -161,7 +170,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
       setConsultations(list)
       // Si se abre desde una cita, ir directo al formulario (retomando la consulta de esa cita si ya existe)
       if (appointment) {
-        const existing = list.find(c => c.appointment_id === appointment.id)
+        const existing = list.find(c => c.appointment_id === appointment.id && c.status !== 'voided')
         setDraft(existing ? draftFromConsultation(existing) : blankDraft(pat, appointment))
         setView('form')
       } else {
@@ -176,7 +185,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
 
   if (!open || !patientId) return null
 
-  const locked = draft?.status === 'closed'
+  const locked = draft?.status !== 'draft'
   const vitalsNum = draft ? parseVitals(draft.vitals) : {}
   const flags = evaluateVitals(vitalsNum, draft?.glucose_context)
   const map = meanArterialPressure(vitalsNum)
@@ -185,19 +194,20 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
     : null
 
   function patchDraft(patch: Partial<Draft>) {
-    if (draft) setDraft({ ...draft, ...patch })
+    if (draft) { setDraft({ ...draft, ...patch }); setDirty(true) }
   }
   const setVital = (k: keyof VitalSigns, v: string) => patchDraft({ vitals: { ...draft!.vitals, [k]: v } })
   const setExam = (k: keyof PhysicalExam, v: string) => patchDraft({ exam: { ...draft!.exam, [k]: v } })
 
   function startNew() {
+    setDirty(false)
     setDraft(blankDraft(patient))
     setError(null)
     setView('form')
   }
 
   async function persist(status: Consultation['status']) {
-    if (!draft || !patient) return
+    if (!draft || !patient || saving || locked) return
     if (!draft.chief_complaint.trim()) {
       setError('El motivo de consulta es obligatorio.')
       return
@@ -214,7 +224,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
     setError(null)
     try {
       const vitals = parseVitals(draft.vitals)
-      const saved = await saveConsultation({
+      const saved = await saveConsultationWorkflow({
         id: draft.id,
         patient_id: patient.id,
         appointment_id: appointment?.id ?? consultations.find(c => c.id === draft.id)?.appointment_id ?? null,
@@ -230,32 +240,10 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
         follow_up_date: draft.follow_up_date || null,
         follow_up_notes: draft.follow_up_notes.trim(),
         follow_up_schedule: draft.schedule_follow_up ? { time: draft.follow_up_time, duration_min: 30, modality: 'in_person' } : undefined,
-      })
-      setDraft({ ...draft, id: saved.id, status: saved.status })
-      await syncConsultationAppointments(saved, patient)
-
-      // Al cerrar, llevar mediciones a la ficha del paciente para que el resto del sistema las use
-      if (status === 'closed' && syncMetrics) {
-        if (vitals.weight_kg) {
-          await addWeightCheckin(patient.id, {
-            date: draft.date,
-            weight_kg: vitals.weight_kg,
-            notes: `Consulta médica: ${draft.chief_complaint.trim()}`,
-          })
-        }
-        if (vitals.systolic_bp || vitals.diastolic_bp || vitals.glucose) {
-          await updatePatient(patient.id, {
-            biomarkers: {
-              ...patient.biomarkers,
-              ...(vitals.systolic_bp ? { systolic_bp: vitals.systolic_bp } : {}),
-              ...(vitals.diastolic_bp ? { diastolic_bp: vitals.diastolic_bp } : {}),
-              ...(vitals.glucose && draft.glucose_context === 'fasting' ? { fasting_glucose: vitals.glucose } : {}),
-            },
-          })
-        }
-        setPatient(await getPatientById(patient.id))
-      }
-
+      }, patient, syncMetrics, actor)
+      setDraft(draftFromConsultation(saved))
+      setDirty(false)
+      setNotice(status === 'closed' ? 'Consulta cerrada y agenda actualizada.' : 'Borrador guardado.')
       await reload(patient.id)
       onSaved?.()
       if (appointment) {
@@ -264,17 +252,48 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
         setView('list')
         setDraft(null)
       }
+    } catch (err) {
+      setError(storageError(err))
     } finally {
       setSaving(false)
     }
   }
 
   async function handleDelete(id: string) {
-    if (!patient) return
-    if (!confirm('¿Eliminar esta consulta del expediente? Esta acción no se puede deshacer.')) return
-    await deleteConsultation(id)
-    await reload(patient.id)
-    onSaved?.()
+    if (!patient || saving) return
+    const reason = prompt('Motivo de anulación. La consulta y sus versiones se conservarán:')
+    if (!reason?.trim()) return
+    setSaving(true)
+    try {
+      await deleteConsultation(id, reason, actor)
+      await reload(patient.id)
+      onSaved?.()
+      setNotice('Consulta anulada; su historial se conserva. Revisa en la agenda las citas que debas cancelar.')
+    } catch (err) { setError(storageError(err)) }
+    finally { setSaving(false) }
+  }
+
+  async function reopen() {
+    if (!draft?.id || saving) return
+    const existing = consultations.find(item => item.id === draft.id)
+    if (!existing || existing.status !== 'closed') return
+    const reason = prompt('¿Por qué necesitas reabrir esta consulta?')
+    if (!reason?.trim()) return
+    setSaving(true)
+    try {
+      const saved = await saveConsultation({ ...existing, status: 'draft' }, actor, reason)
+      setDraft(draftFromConsultation(saved))
+      await reload(patientId!)
+      setDirty(false)
+      setNotice('Reapertura registrada. La versión anterior se conserva.')
+    } catch (err) { setError(storageError(err)) }
+    finally { setSaving(false) }
+  }
+
+  function close() {
+    if (saving) return
+    if (dirty && !confirm('Hay cambios sin guardar. ¿Quieres descartarlos y cerrar?')) return
+    onClose()
   }
 
   function handlePrint(d: Draft) {
@@ -326,8 +345,9 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
         ? 'Motivo, padecimiento actual, signos vitales, exploración, evaluación y seguimiento'
         : `${consultations.length} consulta(s) registrada(s) en el expediente`}
       size="4xl"
-      onClose={onClose}
+      onClose={close}
     >
+      {notice && <p role="status" className="text-sm text-[#245C47]">{notice}</p>}
       {loading && <p role="status">Cargando paciente y expediente...</p>}
       {error && !draft && <p role="alert" className="text-red-800 text-sm">{error}</p>}
       {!loading && medicalRecord && <MedicalRecordSummary record={medicalRecord} />}
@@ -362,7 +382,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
                               ? 'bg-[#F2FAE4] border-[#C8ED8F] text-[#1D2924]'
                               : 'bg-amber-50 border-amber-200 text-amber-800'
                           }`}>
-                            {c.status === 'closed' ? <><Lock className="w-3 h-3" /> Cerrada</> : <><Pencil className="w-3 h-3" /> Borrador</>}
+                            {c.status === 'voided' ? 'Anulada' : c.status === 'closed' ? <><Lock className="w-3 h-3" /> Cerrada</> : <><Pencil className="w-3 h-3" /> Borrador</>}
                           </span>
                           {cFlags.length > 0 && (
                             <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800">
@@ -375,15 +395,16 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
                       <div className="flex items-center gap-1.5">
                         <button
                           type="button"
-                          onClick={() => { setDraft(draftFromConsultation(c)); setError(null); setView('form') }}
+                          onClick={() => { setDirty(false); setDraft(draftFromConsultation(c)); setError(null); setView('form') }}
                           className="btn-secondary px-3 py-1.5 text-xs cursor-pointer"
                         >
-                          {c.status === 'closed' ? 'Ver' : 'Continuar'}
+                          {c.status === 'draft' ? 'Continuar' : 'Ver'}
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDelete(c.id)}
-                          aria-label="Eliminar consulta"
+                          aria-label="Anular consulta"
+                          disabled={saving || c.status === 'voided'}
                           className="p-1.5 text-[#76847B] hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -414,7 +435,8 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
           {!appointment && (
             <button
               type="button"
-              onClick={() => { setView('list'); setDraft(null) }}
+              disabled={saving}
+              onClick={() => { if (dirty && !confirm('¿Descartar los cambios sin guardar?')) return; setDirty(false); setView('list'); setDraft(null) }}
               className="flex items-center gap-1 text-xs font-bold text-[#245C47] hover:underline cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" /> Volver al historial
@@ -424,19 +446,20 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
           {locked && (
             <div role="status" className="p-3 rounded-2xl bg-[#F2FAE4] border border-[#C8ED8F] text-xs text-[#1D2924] flex items-center justify-between gap-2">
               <span className="flex items-center gap-2 font-semibold">
-                <Lock className="w-4 h-4 text-[#245C47]" /> Consulta cerrada: solo lectura.
+                <Lock className="w-4 h-4 text-[#245C47]" /> {draft.status === 'voided' ? 'Consulta anulada: historial conservado.' : 'Consulta cerrada: solo lectura.'}
               </span>
-              <button
+              {draft.status === 'closed' && <button
                 type="button"
-                onClick={() => patchDraft({ status: 'draft' })}
+                disabled={saving}
+                onClick={reopen}
                 className="flex items-center gap-1 font-bold text-[#245C47] hover:underline cursor-pointer"
               >
                 <Unlock className="w-3.5 h-3.5" /> Reabrir como borrador
-              </button>
+              </button>}
             </div>
           )}
 
-          <fieldset disabled={locked} className="space-y-5 min-w-0">
+          <fieldset disabled={locked || saving} className="space-y-5 min-w-0">
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
               <div>
                 <label className={labelClass} htmlFor="c-date">Fecha</label>
@@ -589,9 +612,9 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
 
           {!locked && (
             <label className="flex items-start gap-2 text-xs text-[#1D2924] cursor-pointer">
-              <input type="checkbox" checked={syncMetrics} onChange={e => setSyncMetrics(e.target.checked)} className="mt-0.5" />
+              <input type="checkbox" disabled={!isDemo || saving} checked={syncMetrics} onChange={e => setSyncMetrics(e.target.checked)} className="mt-0.5" />
               <span>
-                Al cerrar la consulta, registrar peso, presión arterial y glucosa en el expediente 360° del paciente.
+                {isDemo ? 'Al cerrar, sincronizar mediciones con la ficha local (glucosa solo con ayuno confirmado).' : 'La sincronización de mediciones con el servidor queda pendiente.'}
               </span>
             </label>
           )}
@@ -601,6 +624,28 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
               {error}
             </div>
           )}
+
+          {draft.id && <details className="text-xs space-y-2">
+            <summary className="font-bold cursor-pointer">Historial de cambios</summary>
+            {consultations.find(item => item.id === draft.id)?.revisions?.map((revision, index) => (
+              <details key={index} className="p-2 border rounded-xl">
+                <summary>{new Date(revision.at).toLocaleString('es-MX')} · {revision.actor.label} · {{ created: 'Creación', updated: 'Edición', closed: 'Cierre', reopened: 'Reapertura', voided: 'Anulación' }[revision.action]}{revision.reason ? ` · ${revision.reason}` : ''}</summary>
+                {revision.previous && <div className="space-y-1 mt-2 whitespace-pre-wrap">
+                  <p><strong>Fecha anterior:</strong> {revision.previous.date}</p>
+                  <p><strong>Motivo:</strong> {revision.previous.chief_complaint}</p>
+                  <p><strong>Padecimiento:</strong> {revision.previous.present_illness || 'Sin registro'}</p>
+                  {Object.entries(revision.previous.vitals).map(([key, value]) => <p key={key}>
+                    <strong>{{ systolic_bp: 'PA sistólica (mmHg)', diastolic_bp: 'PA diastólica (mmHg)', heart_rate: 'Frecuencia cardiaca (lpm)', resp_rate: 'Frecuencia respiratoria (rpm)', temperature_c: 'Temperatura (°C)', spo2: 'Saturación (%)', weight_kg: 'Peso (kg)', height_cm: 'Talla (cm)', glucose: 'Glucosa (mg/dL)' }[key as keyof VitalSigns]}:</strong> {value}
+                  </p>)}
+                  <p><strong>Condición de glucosa:</strong> {GLUCOSE_CONTEXT_LABELS[revision.previous.glucose_context ?? 'unknown']}</p>
+                  {EXAM_FIELDS.map(field => revision.previous?.exam[field.key] && <p key={field.key}><strong>{field.label}:</strong> {revision.previous.exam[field.key]}</p>)}
+                  <p><strong>Evaluación:</strong> {revision.previous.assessment || 'Sin registro'}</p>
+                  <p><strong>Plan:</strong> {revision.previous.plan || 'Sin registro'}</p>
+                  <p><strong>Seguimiento:</strong> {revision.previous.follow_up_date} {revision.previous.follow_up_notes}</p>
+                </div>}
+              </details>
+            ))}
+          </details>}
 
           <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#E7ECE6]">
             <button type="button" onClick={() => handlePrint(draft)} className="btn-secondary flex items-center gap-1.5 px-3 py-2 text-xs cursor-pointer">

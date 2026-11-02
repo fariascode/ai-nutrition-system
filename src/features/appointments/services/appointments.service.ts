@@ -8,6 +8,7 @@ import type {
 } from '@/types/appointment'
 import type { Patient } from '@/types/patient'
 import type { Consultation } from '@/types/consultation'
+import { readLocalJson } from '@/lib/localStorage'
 import { calculateBMI, calculateAge, calculateBMR, calculateTDEE } from '@/lib/clinicalEngine'
 
 const DEMO_APPOINTMENTS_KEY = 'nutriai_demo_appointments_v1'
@@ -146,7 +147,7 @@ export async function getAppointments(): Promise<Appointment[]> {
     localStorage.setItem(DEMO_APPOINTMENTS_KEY, JSON.stringify(initial))
     return initial
   }
-  return JSON.parse(stored)
+  return readLocalJson<Appointment[]>(DEMO_APPOINTMENTS_KEY, [])
 }
 
 export async function createAppointment(input: AppointmentInsert): Promise<Appointment> {

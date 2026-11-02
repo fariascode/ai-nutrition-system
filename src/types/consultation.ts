@@ -1,4 +1,12 @@
-export type ConsultationStatus = 'draft' | 'closed'
+export type ConsultationStatus = 'draft' | 'closed' | 'voided'
+export interface ClinicalActor { id: string; label: string }
+export interface ConsultationRevision {
+  at: string
+  actor: ClinicalActor
+  action: 'created' | 'updated' | 'closed' | 'reopened' | 'voided'
+  reason?: string
+  previous?: Omit<Consultation, 'revisions'>
+}
 export type GlucoseContext = 'unknown' | 'fasting' | 'random' | 'postprandial'
 
 export interface VitalSigns {
@@ -41,6 +49,7 @@ export interface Consultation {
   follow_up_schedule?: { time: string; duration_min: number; modality: 'in_person' | 'video_call' }
   created_at: string
   updated_at: string
+  revisions?: ConsultationRevision[]
 }
 
 export const EMPTY_EXAM: PhysicalExam = {
