@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
@@ -21,51 +22,78 @@ const sizeClasses = {
 
 export default function Modal({ open, title, subtitle, size = 'lg', onClose, children }: Props) {
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    if (open) document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
+    if (!open) return
+
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handler)
+
+    // Bloquear el scroll del body de fondo mientras la ventana modal está abierta
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.removeEventListener('keydown', handler)
+      document.body.style.overflow = previousOverflow
+    }
   }, [open, onClose])
 
   if (!open) return null
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5"
+      className="fixed inset-0 z-[100] overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
     >
       {/* Fondo translúcido con desenfoque sutil Liquid Glass */}
       <div
-        className="absolute inset-0 bg-[#1D2924]/45 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-[#1D2924]/55 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
-      <div
-        className={cn(
-          'relative bg-white rounded-[24px] shadow-[0_24px_60px_-12px_rgba(29,41,36,0.22)] border border-[#E7ECE6] w-full max-h-[92vh] flex flex-col overflow-hidden animate-wellness-in',
-          sizeClasses[size],
-        )}
-      >
-        <div className="liquid-glass flex items-center justify-between px-6 py-4 border-b border-[#E7ECE6] sticky top-0 z-10">
-          <div>
-            <h2 id="modal-title" className="font-extrabold text-[#1D2924] text-base sm:text-lg tracking-tight">
-              {title}
-            </h2>
-            {subtitle && <p className="text-xs text-[#76847B] mt-0.5 font-medium">{subtitle}</p>}
+
+      {/* Contenedor centrado con soporte para pantallas pequeñas y móviles */}
+      <div className="relative min-h-full flex items-center justify-center p-2.5 sm:p-5">
+        <div
+          className={cn(
+            'relative bg-white rounded-[24px] shadow-[0_24px_60px_-12px_rgba(29,41,36,0.32)] border border-[#E7ECE6] w-full max-h-[90dvh] flex flex-col overflow-hidden animate-wellness-in my-auto',
+            sizeClasses[size],
+          )}
+        >
+          {/* Cabecera fija (shrink-0 evita que se comprima o corte) */}
+          <div className="liquid-glass shrink-0 flex items-start sm:items-center justify-between gap-3 px-4 sm:px-6 py-3.5 sm:py-4 border-b border-[#E7ECE6] z-10">
+            <div className="min-w-0 flex-1">
+              <h2
+                id="modal-title"
+                className="font-extrabold text-[#1D2924] text-sm sm:text-lg tracking-tight leading-snug break-words"
+              >
+                {title}
+              </h2>
+              {subtitle && (
+                <p className="text-[11px] sm:text-xs text-[#76847B] mt-0.5 font-medium leading-relaxed">
+                  {subtitle}
+                </p>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Cerrar ventana"
+              className="shrink-0 p-2 text-[#76847B] hover:text-[#1D2924] hover:bg-[#F7F8F4] rounded-xl transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Cerrar ventana"
-            className="p-2 text-[#76847B] hover:text-[#1D2924] hover:bg-[#F7F8F4] rounded-xl transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="overflow-y-auto flex-1 px-6 py-5 bg-white">
-          {children}
+
+          {/* Cuerpo con scroll interno independiente (min-h-0 es clave en Flexbox) */}
+          <div className="overflow-y-auto overscroll-contain flex-1 min-h-0 px-4 sm:px-6 py-4 sm:py-5 bg-white">
+            {children}
+          </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

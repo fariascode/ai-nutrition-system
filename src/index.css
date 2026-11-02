@@ -115,7 +115,7 @@ html.dark {
 }
 
 html.dark .liquid-glass {
-  background: rgba(22, 32, 28, 0.82);
+  background: rgba(22, 32, 28, 0.85);
   border-color: rgba(37, 53, 46, 0.9);
 }
 
@@ -128,7 +128,7 @@ html.dark .liquid-glass {
 }
 
 html.dark .liquid-glass-nav {
-  background: rgba(22, 32, 28, 0.90);
+  background: rgba(22, 32, 28, 0.92);
   border: 1px solid rgba(56, 82, 70, 0.75);
 }
 
@@ -234,6 +234,7 @@ html.dark .bg-gray-50\/60,
 html.dark .bg-gray-50\/70,
 html.dark .bg-gray-50\/80,
 html.dark .bg-slate-50,
+html.dark .bg-slate-50\/60,
 html.dark .bg-slate-100 {
   background-color: #111916 !important;
 }
@@ -249,8 +250,16 @@ html.dark .bg-gray-100 {
 html.dark .bg-\[\#EBF3EE\],
 html.dark .bg-emerald-50,
 html.dark .bg-emerald-50\/50,
-html.dark .bg-emerald-50\/70 {
+html.dark .bg-emerald-50\/70,
+html.dark .bg-emerald-50\/90 {
   background-color: rgba(45, 114, 88, 0.22) !important;
+}
+
+/* Adaptación de banners con gradiente claro dentro de modales en modo oscuro */
+html.dark .from-emerald-50 {
+  --tw-gradient-from: rgba(36, 92, 71, 0.32) !important;
+  --tw-gradient-via: rgba(29, 41, 36, 0.45) !important;
+  --tw-gradient-to: rgba(36, 92, 71, 0.25) !important;
 }
 
 html.dark .bg-\[\#F2FAE4\],
@@ -263,13 +272,18 @@ html.dark .text-\[\#1D2924\],
 html.dark .text-gray-900,
 html.dark .text-gray-800,
 html.dark .text-slate-900,
-html.dark .text-emerald-950,
+html.dark .text-emerald-950:not(.bg-emerald-400),
 html.dark .text-emerald-900 {
   color: #EFF4F0 !important;
 }
 
-/* Mantener texto oscuro cuando el fondo es explícitamente verde lima #C8ED8F */
+html.dark .fill-gray-800 {
+  fill: #EFF4F0 !important;
+}
+
+/* Mantener texto oscuro cuando el fondo es explícitamente verde lima #C8ED8F o emerald-400 */
 html.dark .bg-\[\#C8ED8F\].text-\[\#1D2924\],
+html.dark .bg-emerald-400.text-emerald-950,
 html.dark .btn-lime {
   color: #14201B !important;
 }
@@ -298,7 +312,8 @@ html.dark .border-gray-300,
 html.dark .border-slate-100,
 html.dark .border-slate-200,
 html.dark .border-emerald-100,
-html.dark .border-emerald-200 {
+html.dark .border-emerald-200,
+html.dark .border-emerald-300 {
   border-color: #25352E !important;
 }
 
@@ -316,7 +331,7 @@ html.dark textarea {
   border-color: #283A32;
 }
 
-/* Microinteracciones y Animaciones */
+/* Microinteracciones y Animaciones (transform: none al terminar para no afectar position: fixed) */
 @keyframes fadeSlideUp {
   from {
     opacity: 0;
@@ -324,7 +339,7 @@ html.dark textarea {
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
