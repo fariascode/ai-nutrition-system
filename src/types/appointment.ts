@@ -40,6 +40,7 @@ export interface Appointment {
   reason: string
   prep_instructions?: string | null
   soap_note?: SoapNote | null
+  source_consultation_id?: string
 }
 
 export type AppointmentInsert = Omit<Appointment, 'id' | 'created_at'>

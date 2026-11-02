@@ -38,6 +38,7 @@ export interface Consultation {
   plan: string                // plan y tratamiento
   follow_up_date?: string | null
   follow_up_notes?: string
+  follow_up_schedule?: { time: string; duration_min: number; modality: 'in_person' | 'video_call' }
   created_at: string
   updated_at: string
 }

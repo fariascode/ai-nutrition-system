@@ -4,6 +4,7 @@ import {
   AlertTriangle, ChevronLeft, CheckCircle2, Printer, Pencil,
 } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
+import { syncConsultationAppointments } from '@/features/appointments/services/appointments.service'
 import MedicalRecordSummary from '@/features/medical-record/components/MedicalRecordSummary'
 import { getMedicalRecord } from '@/features/medical-record/services/medicalRecord.service'
 import type { MedicalRecord } from '@/types/medicalRecord'
@@ -61,6 +62,8 @@ interface Draft {
   plan: string
   follow_up_date: string
   follow_up_notes: string
+  schedule_follow_up: boolean
+  follow_up_time: string
 }
 
 const VITAL_KEYS: (keyof VitalSigns)[] = [
@@ -85,6 +88,8 @@ function blankDraft(patient: Patient | null, appointment?: Appointment | null): 
     plan: '',
     follow_up_date: '',
     follow_up_notes: '',
+    schedule_follow_up: false,
+    follow_up_time: '',
   }
 }
 
@@ -105,6 +110,8 @@ function draftFromConsultation(c: Consultation): Draft {
     plan: c.plan,
     follow_up_date: c.follow_up_date ?? '',
     follow_up_notes: c.follow_up_notes ?? '',
+    schedule_follow_up: Boolean(c.follow_up_schedule),
+    follow_up_time: c.follow_up_schedule?.time ?? '',
   }
 }
 
@@ -199,11 +206,15 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
       setError('Para cerrar la consulta captura la evaluación y el plan de seguimiento.')
       return
     }
+    if (draft.schedule_follow_up && (!draft.follow_up_date || !draft.follow_up_time || draft.follow_up_date < draft.date)) {
+      setError('Para agendar el seguimiento elige fecha y hora; la fecha no puede ser anterior a la consulta.')
+      return
+    }
     setSaving(true)
     setError(null)
     try {
       const vitals = parseVitals(draft.vitals)
-      await saveConsultation({
+      const saved = await saveConsultation({
         id: draft.id,
         patient_id: patient.id,
         appointment_id: appointment?.id ?? consultations.find(c => c.id === draft.id)?.appointment_id ?? null,
@@ -218,7 +229,10 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
         plan: draft.plan.trim(),
         follow_up_date: draft.follow_up_date || null,
         follow_up_notes: draft.follow_up_notes.trim(),
+        follow_up_schedule: draft.schedule_follow_up ? { time: draft.follow_up_time, duration_min: 30, modality: 'in_person' } : undefined,
       })
+      setDraft({ ...draft, id: saved.id, status: saved.status })
+      await syncConsultationAppointments(saved, patient)
 
       // Al cerrar, llevar mediciones a la ficha del paciente para que el resto del sistema las use
       if (status === 'closed' && syncMetrics) {
@@ -546,7 +560,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className={labelClass} htmlFor="c-fu-date">Próxima cita</label>
+                  <label className={labelClass} htmlFor="c-fu-date">Fecha de seguimiento</label>
                   <input id="c-fu-date" type="date" value={draft.follow_up_date} onChange={e => patchDraft({ follow_up_date: e.target.value })} className={inputClass} />
                 </div>
                 <div className="sm:col-span-2">
@@ -559,6 +573,17 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
                   />
                 </div>
               </div>
+            </div>
+            <div className="space-y-2 text-xs">
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={draft.schedule_follow_up} onChange={e => patchDraft({ schedule_follow_up: e.target.checked })} />
+                Agendar seguimiento presencial de 30 minutos al cerrar
+              </label>
+              {draft.schedule_follow_up && <div>
+                <label className={labelClass} htmlFor="c-fu-time">Hora del seguimiento</label>
+                <input id="c-fu-time" type="time" value={draft.follow_up_time} onChange={e => patchDraft({ follow_up_time: e.target.value })} className={inputClass} />
+              </div>}
+              <p className="text-[#76847B]">Sin esta opción, la fecha queda como indicación y no reserva un horario. Para cancelar una cita ya creada, usa la agenda.</p>
             </div>
           </fieldset>
 

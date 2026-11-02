@@ -7,6 +7,7 @@ import type {
   SoapNote,
 } from '@/types/appointment'
 import type { Patient } from '@/types/patient'
+import type { Consultation } from '@/types/consultation'
 import { calculateBMI, calculateAge, calculateBMR, calculateTDEE } from '@/lib/clinicalEngine'
 
 const DEMO_APPOINTMENTS_KEY = 'nutriai_demo_appointments_v1'
@@ -152,7 +153,7 @@ export async function createAppointment(input: AppointmentInsert): Promise<Appoi
   const list = await getAppointments()
   const created: Appointment = {
     ...input,
-    id: `apt-${Date.now()}`,
+    id: `apt-${crypto.randomUUID()}`,
     created_at: new Date().toISOString(),
   }
   list.unshift(created)
@@ -176,6 +177,43 @@ export async function updateAppointment(id: string, input: AppointmentUpdate): P
 export async function deleteAppointment(id: string): Promise<void> {
   const list = (await getAppointments()).filter(a => a.id !== id)
   localStorage.setItem(DEMO_APPOINTMENTS_KEY, JSON.stringify(list))
+}
+
+/** Vincula el cierre y el seguimiento sin crear citas duplicadas al reintentar. */
+export async function syncConsultationAppointments(consultation: Consultation, patient: Patient): Promise<void> {
+  if (consultation.status !== 'closed') return
+  const list = await getAppointments()
+  const original = list.find(item => item.id === consultation.appointment_id)
+  if (consultation.appointment_id && (!original || original.patient_id !== patient.id)) {
+    throw new Error('La cita de origen no corresponde a este paciente o ya no existe.')
+  }
+  if (original?.status === 'cancelled') throw new Error('La cita está cancelada. Revisa su estado antes de cerrar la consulta.')
+  const schedule = consultation.follow_up_schedule
+  const existing = list.find(item => item.source_consultation_id === consultation.id)
+  if (schedule && consultation.follow_up_date) {
+    const start = new Date(`${consultation.follow_up_date}T${schedule.time}`).getTime()
+    const end = start + schedule.duration_min * 60000
+    const conflict = list.some(item => {
+      if (item.id === existing?.id || item.id === original?.id || item.status === 'cancelled') return false
+      if (item.doctor_id !== patient.doctor_id) return false
+      const other = new Date(`${item.date}T${item.time}`).getTime()
+      return start < other + item.duration_min * 60000 && end > other
+    })
+    if (!Number.isFinite(start) || ![30, 45, 60].includes(schedule.duration_min)) throw new Error('Revisa la fecha, hora y duración del seguimiento.')
+    if (conflict) throw new Error('El horario de seguimiento se cruza con otra cita. Elige otra hora.')
+    const followUp = {
+      patient_id: patient.id, doctor_id: patient.doctor_id, patient_name: patient.full_name,
+      patient_phone: patient.phone, date: consultation.follow_up_date, time: schedule.time,
+      duration_min: schedule.duration_min, modality: schedule.modality,
+      type: 'follow_up' as const, status: 'scheduled' as const,
+      reason: consultation.follow_up_notes || `Seguimiento: ${consultation.chief_complaint}`,
+      source_consultation_id: consultation.id,
+    }
+    if (existing && existing.status === 'completed') throw new Error('El seguimiento ya fue atendido. Agenda otra consulta desde la agenda.')
+    if (existing) await updateAppointment(existing.id, followUp)
+    else await createAppointment(followUp)
+  }
+  if (original && original.status !== 'completed') await updateAppointment(original.id, { status: 'completed' })
 }
 
 /**
