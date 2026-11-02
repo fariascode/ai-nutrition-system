@@ -4,6 +4,9 @@ import {
   AlertTriangle, ChevronLeft, CheckCircle2, Printer, Pencil,
 } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
+import MedicalRecordSummary from '@/features/medical-record/components/MedicalRecordSummary'
+import { getMedicalRecord } from '@/features/medical-record/services/medicalRecord.service'
+import type { MedicalRecord } from '@/types/medicalRecord'
 import { getPatientById, addWeightCheckin, updatePatient } from '@/features/patients/services/patients.service'
 import {
   getConsultationsByPatient, saveConsultation, deleteConsultation,
@@ -113,6 +116,8 @@ const escapeHtml = (s: string) =>
 
 export default function ConsultationModal({ open, patientId, appointment, onClose, onSaved }: Props) {
   const [patient, setPatient]             = useState<Patient | null>(null)
+  const [medicalRecord, setMedicalRecord] = useState<MedicalRecord | null>(null)
+  const [loading, setLoading] = useState(false)
   const [consultations, setConsultations] = useState<Consultation[]>([])
   const [view, setView]                   = useState<View>('list')
   const [draft, setDraft]                 = useState<Draft | null>(null)
@@ -128,9 +133,18 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
     if (!open || !patientId) return
     setError(null)
     setSyncMetrics(true)
+    setLoading(true)
+    setPatient(null)
+    setMedicalRecord(null)
+    setDraft(null)
+    let cancelled = false
     getPatientById(patientId).then(async pat => {
-      setPatient(pat)
+      if (!pat) throw new Error('No se encontró al paciente.')
+      const record = await getMedicalRecord(pat)
       const list = await getConsultationsByPatient(patientId)
+      if (cancelled) return
+      setPatient(pat)
+      setMedicalRecord(record)
       setConsultations(list)
       // Si se abre desde una cita, ir directo al formulario (retomando la consulta de esa cita si ya existe)
       if (appointment) {
@@ -141,7 +155,10 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
         setView('list')
         setDraft(null)
       }
-    })
+    }).catch(() => {
+      if (!cancelled) setError('No se pudo cargar la consulta y el expediente. Cierra e intenta de nuevo.')
+    }).finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [open, patientId, appointment])
 
   if (!open || !patientId) return null
@@ -290,7 +307,10 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
       size="4xl"
       onClose={onClose}
     >
-      {view === 'list' && (
+      {loading && <p role="status">Cargando paciente y expediente...</p>}
+      {error && !draft && <p role="alert" className="text-red-800 text-sm">{error}</p>}
+      {!loading && medicalRecord && <MedicalRecordSummary record={medicalRecord} />}
+      {!loading && patient && view === 'list' && (
         <div className="space-y-4">
           <div className="flex justify-end">
             <button type="button" onClick={startNew} className="btn-forest flex items-center gap-1.5 px-4 py-2 text-xs cursor-pointer">
