@@ -84,7 +84,7 @@ export default function PatientsPage() {
     patientId: string,
     data: PatientUpdate,
   ) {
-    const updated = await updatePatient(patientId, data)
+    const updated = await updatePatient(patientId, data, { fromMedicalRecord: true })
     setPatients(ps => ps.map(p => p.id === updated.id ? updated : p))
   }
 

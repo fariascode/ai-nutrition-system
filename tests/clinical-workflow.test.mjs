@@ -5,6 +5,7 @@ import { getConsultationsByPatient, saveConsultation, deleteConsultation } from 
 import { getMockPatients } from '../src/lib/mockData.ts'
 import { getAppointments } from '../src/features/appointments/services/appointments.service.ts'
 import { getMedicalRecord, saveMedicalRecord } from '../src/features/medical-record/services/medicalRecord.service.ts'
+import { updatePatient } from '../src/features/patients/services/patients.service.ts'
 
 let data
 beforeEach(() => {
@@ -67,4 +68,18 @@ test('un expediente ilegible no se reemplaza por datos vacíos', async () => {
   data.set('nutriai_medical_records_v1', '{invalid')
   await assert.rejects(saveMedicalRecord(record), /No se sobrescribieron/)
   assert.equal(data.get('nutriai_medical_records_v1'), '{invalid')
+})
+
+test('la sincronización desde el expediente conserva la negación explícita y los detalles', async () => {
+  const patient = getMockPatients()[0]
+  const record = await getMedicalRecord(patient)
+  record.allergies = []
+  record.review_status = { allergies: 'none' }
+  record.medications[0].dose = 'Una tableta'
+  await saveMedicalRecord(record)
+  await updatePatient(patient.id, { allergies: null, medications: record.medications.map(item => item.name).join(', ') }, { fromMedicalRecord: true })
+  const saved = await getMedicalRecord(getMockPatients()[0])
+  assert.equal(saved.review_status.allergies, 'none')
+  assert.equal(saved.medications[0].dose, 'Una tableta')
+  assert.equal(getMockPatients()[0].allergies, null)
 })

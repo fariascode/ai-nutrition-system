@@ -76,3 +76,23 @@ npm run build    # Build de producción
 npm run preview  # Preview del build
 npm run lint     # Linter
 ```
+
+## Consulta médica y expediente local
+
+Desde **Pacientes → Expediente 360°** se puede abrir el expediente médico integral o registrar una consulta general. La consulta muestra un resumen de antecedentes, alergias y medicamentos; permite guardar borradores, cerrar, reabrir con motivo y anular conservando versiones anteriores.
+
+- Los nuevos expedientes distinguen información pendiente de antecedentes negados por el paciente. Los valores guardados anteriormente se conservan y deben verificarse durante la consulta.
+- La glucosa registra el contexto de medición. Solo el ayuno confirmado actualiza el campo de glucosa en ayuno de la ficha local.
+- Al cerrar una consulta ligada a una cita, esta queda concluida. Agendar seguimiento es opcional y requiere fecha y hora; se verifica que no se cruce con otra cita del médico. El seguimiento creado desde la consulta es presencial y dura 30 minutos; otros ajustes se hacen desde la agenda.
+- En demostración se sincronizan expediente, ficha y mediciones. Si falla un paso del guardado, se intenta restaurar el estado local previo y se mantienen los cambios del formulario para reintentar.
+- Estos módulos siguen usando el almacenamiento del navegador. La persistencia remota, los permisos de servidor y la sincronización entre dispositivos quedan pendientes. El historial local no constituye una auditoría protegida contra modificaciones del navegador.
+
+### Pruebas
+
+Las pruebas usan el ejecutor nativo de **Node.js 24** y almacenamiento en memoria; no necesitan servicios externos ni credenciales.
+
+```bash
+npm test
+npm run lint
+npm run build
+```

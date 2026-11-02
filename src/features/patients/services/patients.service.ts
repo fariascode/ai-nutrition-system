@@ -55,12 +55,12 @@ export async function createPatient(input: PatientInsert): Promise<Patient> {
   return data
 }
 
-export async function updatePatient(id: string, input: PatientUpdate): Promise<Patient> {
+export async function updatePatient(id: string, input: PatientUpdate, options?: { fromMedicalRecord?: boolean }): Promise<Patient> {
   if (isDemo) {
     const previous = getMockPatients().find(patient => patient.id === id)
     if (!previous) throw new Error('Paciente no encontrado')
     return withLocalRollback(async () => {
-      syncMedicalRecordFromPatient(previous, input)
+      if (!options?.fromMedicalRecord) syncMedicalRecordFromPatient(previous, input)
       return updateMockPatient(id, input)
     })
   }

@@ -1,5 +1,5 @@
 import type { Patient, PatientUpdate } from '@/types/patient'
-import type { MedicalRecord } from '@/types/medicalRecord'
+import type { MedicalRecord, HistorySection, HistoryReview } from '@/types/medicalRecord'
 import { readLocalJson } from '@/lib/localStorage'
 
 const STORAGE_KEY = 'nutriai_medical_records_v1'
@@ -37,7 +37,7 @@ function seedFromPatient(patient: Patient): MedicalRecord {
     allergies: splitList(patient.allergies).map(substance => ({
       id: newId('alg'),
       substance,
-      severity: 'moderate' as const,
+      severity: 'unknown' as const,
     })),
     medications: splitList(patient.medications).map(name => ({
       id: newId('med'),
@@ -45,8 +45,8 @@ function seedFromPatient(patient: Patient): MedicalRecord {
       status: 'active' as const,
     })),
     habits: {
-      smoking: 'never',
-      alcohol: 'none',
+      smoking: 'unknown',
+      alcohol: 'unknown',
       sleep_hours: patient.sleep_hours ?? undefined,
       water_liters: patient.water_liters ?? undefined,
     },
@@ -66,24 +66,33 @@ export async function saveMedicalRecord(record: MedicalRecord): Promise<MedicalR
   return saved
 }
 
+export function getHistoryReview(record: MedicalRecord, section: HistorySection): HistoryReview {
+  if (record[section].length) return 'recorded'
+  return record.review_status?.[section] === 'none' ? 'none' : 'unknown'
+}
+
 export function hasMedicalRecord(patientId: string): boolean {
   return Boolean(readAll()[patientId])
 }
 
 /** Conserva detalles del expediente cuando cambia la ficha o el laboratorio. */
 export function syncMedicalRecordFromPatient(patient: Patient, changes: PatientUpdate): void {
+  const fields: (keyof PatientUpdate)[] = ['allergies', 'conditions', 'medications', 'sleep_hours', 'water_liters']
+  if (!fields.some(field => changes[field] !== undefined && changes[field] !== patient[field])) return
   const all = readAll()
   const record = all[patient.id]
   if (!record) return
   const key = (value: string) => value.trim().toLocaleLowerCase('es-MX')
-  const next = { ...record, habits: { ...record.habits } }
+  const next = { ...record, habits: { ...record.habits }, review_status: { ...record.review_status } }
   if (changes.allergies !== undefined && changes.allergies !== patient.allergies) {
+    next.review_status.allergies = 'unknown'
     next.allergies = splitList(changes.allergies).map(substance =>
       record.allergies.find(item => key(item.substance) === key(substance)) ??
-      { id: newId('alg'), substance, severity: 'moderate' as const },
+      { id: newId('alg'), substance, severity: 'unknown' as const },
     )
   }
   if (changes.conditions !== undefined && changes.conditions !== patient.conditions) {
+    next.review_status.personal = 'unknown'
     const names = splitList(changes.conditions)
     next.personal = [
       ...record.personal.map(item => ({ ...item, status: names.some(name => key(name) === key(item.condition)) ? 'active' as const : 'resolved' as const })),
@@ -92,6 +101,7 @@ export function syncMedicalRecordFromPatient(patient: Patient, changes: PatientU
     ]
   }
   if (changes.medications !== undefined && changes.medications !== patient.medications) {
+    next.review_status.medications = 'unknown'
     const names = splitList(changes.medications)
     next.medications = [
       ...record.medications.map(item => ({ ...item, status: names.some(name => key(name) === key(item.name)) ? 'active' as const : 'suspended' as const })),

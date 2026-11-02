@@ -1,6 +1,6 @@
 import { test, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
-import { getMedicalRecord, saveMedicalRecord, syncMedicalRecordFromPatient } from '../src/features/medical-record/services/medicalRecord.service.ts'
+import { getMedicalRecord, saveMedicalRecord, syncMedicalRecordFromPatient, getHistoryReview } from '../src/features/medical-record/services/medicalRecord.service.ts'
 
 beforeEach(() => {
   const data = new Map()
@@ -36,4 +36,27 @@ test('una lista vacía explícita limpia alergias sin borrar otros antecedentes'
   const updated = await getMedicalRecord(patient)
   assert.deepEqual(updated.allergies, [])
   assert.equal(updated.family.length, 1)
+})
+
+test('un expediente nuevo no supone hábitos negados ni gravedad confirmada', async () => {
+  const record = await getMedicalRecord({ id: 'new', allergies: 'Látex' })
+  assert.equal(record.habits.smoking, 'unknown')
+  assert.equal(record.habits.alcohol, 'unknown')
+  assert.equal(record.allergies[0].severity, 'unknown')
+  assert.equal(getHistoryReview(record, 'family'), 'unknown')
+  assert.equal(getHistoryReview(record, 'allergies'), 'recorded')
+})
+
+test('distingue negación explícita de lista vacía y conserva datos previos', async () => {
+  const patient = { id: 'new' }
+  const record = await getMedicalRecord(patient)
+  record.habits.smoking = 'never'
+  record.habits.alcohol = 'occasional'
+  record.review_status = { allergies: 'none' }
+  await saveMedicalRecord(record)
+  const saved = await getMedicalRecord(patient)
+  assert.equal(getHistoryReview(saved, 'allergies'), 'none')
+  assert.equal(getHistoryReview(saved, 'family'), 'unknown')
+  assert.equal(saved.habits.smoking, 'never')
+  assert.equal(saved.habits.alcohol, 'occasional')
 })

@@ -1,8 +1,10 @@
 export type ItemStatus = 'active' | 'resolved'
-export type AllergySeverity = 'mild' | 'moderate' | 'severe'
+export type AllergySeverity = 'unknown' | 'mild' | 'moderate' | 'severe'
 export type MedicationStatus = 'active' | 'suspended'
-export type SmokingStatus = 'never' | 'former' | 'current'
-export type AlcoholStatus = 'none' | 'occasional' | 'frequent'
+export type SmokingStatus = 'unknown' | 'never' | 'former' | 'current'
+export type AlcoholStatus = 'unknown' | 'none' | 'occasional' | 'frequent'
+export type HistorySection = 'personal' | 'family' | 'surgeries' | 'hospitalizations' | 'allergies' | 'medications'
+export type HistoryReview = 'unknown' | 'none' | 'recorded'
 
 export interface PersonalHistoryItem {
   id: string
@@ -69,5 +71,6 @@ export interface MedicalRecord {
   medications: MedicationItem[]
   habits: HabitsInfo
   updated_at: string
+  review_status?: Partial<Record<HistorySection, HistoryReview>>
 }
 

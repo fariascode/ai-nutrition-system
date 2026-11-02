@@ -7,11 +7,12 @@ import Modal from '@/components/ui/Modal'
 import { withLocalRollback, storageError } from '@/lib/localStorage'
 import { isDemo } from '@/lib/mockData'
 import {
-  getMedicalRecord, saveMedicalRecord, newId,
+  getMedicalRecord, saveMedicalRecord, newId, getHistoryReview,
 } from '../services/medicalRecord.service'
 import type {
   MedicalRecord, PersonalHistoryItem, FamilyHistoryItem, SurgeryItem,
   HospitalizationItem, AllergyItem, MedicationItem,
+  HistorySection, HistoryReview,
 } from '@/types/medicalRecord'
 import type { Patient } from '@/types/patient'
 import type { PatientUpdate } from '@/types/patient'
@@ -158,7 +159,16 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
   }
 
   const rec = record
-  const set = (patch: Partial<MedicalRecord>) => { setRecord({ ...rec, ...patch }); setSaved(false); setDirty(true) }
+  const set = (patch: Partial<MedicalRecord>) => {
+    const sections: HistorySection[] = ['personal', 'family', 'surgeries', 'hospitalizations', 'allergies', 'medications']
+    const review_status = { ...rec.review_status, ...patch.review_status }
+    for (const section of sections) {
+      if (patch[section] !== undefined) review_status[section] = 'unknown'
+    }
+    setRecord({ ...rec, ...patch, review_status })
+    setSaved(false)
+    setDirty(true)
+  }
   const setHabit = (patch: Partial<MedicalRecord['habits']>) => set({ habits: { ...rec.habits, ...patch } })
 
   async function handleSave(e: FormEvent) {
@@ -179,16 +189,16 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
       }
       const persisted = await withLocalRollback(async () => {
         const persisted = await saveMedicalRecord(clean)
-      if (onSyncPatient && isDemo) {
-        const join = (list: string[]) => (list.length ? list.join(', ') : null)
-        await onSyncPatient(patient.id, {
-          allergies:   join(persisted.allergies.map(a => a.substance)),
-          medications: join(persisted.medications.filter(m => m.status === 'active').map(m => m.name)),
-          conditions:  join(persisted.personal.filter(p => p.status === 'active').map(p => p.condition)),
-          sleep_hours: persisted.habits.sleep_hours ?? null,
-          water_liters: persisted.habits.water_liters ?? null,
-        })
-      }
+        if (onSyncPatient && isDemo) {
+          const join = (list: string[]) => (list.length ? list.join(', ') : null)
+          await onSyncPatient(patient.id, {
+            allergies:   join(persisted.allergies.map(a => a.substance)),
+            medications: join(persisted.medications.filter(m => m.status === 'active').map(m => m.name)),
+            conditions:  join(persisted.personal.filter(p => p.status === 'active').map(p => p.condition)),
+            sleep_hours: persisted.habits.sleep_hours ?? null,
+            water_liters: persisted.habits.water_liters ?? null,
+          })
+        }
         return persisted
       })
       setRecord(persisted)
@@ -210,6 +220,14 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
   ]
 
   const severeAllergies = rec.allergies.filter(a => a.severity === 'severe' && a.substance.trim())
+  const sectionLabels: Record<HistorySection, string> = {
+    personal: 'Antecedentes personales', family: 'Antecedentes familiares', surgeries: 'Cirugías',
+    hospitalizations: 'Hospitalizaciones', allergies: 'Alergias', medications: 'Medicamentos',
+  }
+  const tabSections: Record<Tab, HistorySection[]> = {
+    history: ['personal', 'family'], surgical: ['surgeries', 'hospitalizations'],
+    allergies: ['allergies'], medications: ['medications'], habits: [],
+  }
 
   return (
     <Modal
@@ -256,6 +274,17 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
             </button>
           ))}
         </div>
+
+        {tabSections[tab].map(section => <div key={section} className="p-3 rounded-xl border border-[#E7ECE6] text-xs">
+          <label htmlFor={`review-${section}`} className={labelClass}>{sectionLabels[section]}: estado de la información</label>
+          <select id={`review-${section}`} className={inputClass}
+            value={getHistoryReview(rec, section)} disabled={rec[section].length > 0}
+            onChange={e => set({ review_status: { ...rec.review_status, [section]: e.target.value as HistoryReview } })}>
+            <option value="unknown">No interrogado / información pendiente</option>
+            <option value="none">Interrogado: el paciente lo niega</option>
+            {rec[section].length > 0 && <option value="recorded">Con registros</option>}
+          </select>
+        </div>)}
 
         {tab === 'history' && (
           <div className="space-y-6">
@@ -335,12 +364,12 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
               { key: 'substance', label: 'Sustancia / alimento / fármaco', placeholder: 'Ej. Penicilina, mariscos', span: 'sm:col-span-5' },
               { key: 'reaction', label: 'Reacción', placeholder: 'Ej. Urticaria, anafilaxia', span: 'sm:col-span-4' },
               { key: 'severity', label: 'Gravedad', span: 'sm:col-span-3', options: [
-                { value: 'mild', label: 'Leve' }, { value: 'moderate', label: 'Moderada' }, { value: 'severe', label: 'Grave' },
+                  { value: 'unknown', label: 'Por confirmar' }, { value: 'mild', label: 'Leve' }, { value: 'moderate', label: 'Moderada' }, { value: 'severe', label: 'Grave' },
               ] },
             ]}
-            emptyText="Sin alergias registradas. Si el paciente no refiere alergias, deja la lista vacía."
+            emptyText="No hay alergias capturadas. Indica arriba si falta interrogar o si el paciente las niega."
             addLabel="Agregar alergia"
-            makeEmpty={() => ({ id: newId('alg'), substance: '', severity: 'moderate' })}
+            makeEmpty={() => ({ id: newId('alg'), substance: '', severity: 'unknown' })}
             onChange={allergies => set({ allergies })}
           />
         )}
@@ -378,6 +407,7 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
                   onChange={e => setHabit({ smoking: e.target.value as MedicalRecord['habits']['smoking'] })}
                   className={inputClass}
                 >
+                  <option value="unknown">No interrogado / desconocido</option>
                   <option value="never">Nunca ha fumado</option>
                   <option value="former">Exfumador</option>
                   <option value="current">Fumador actual</option>
@@ -390,6 +420,7 @@ export default function MedicalRecordModal({ open, patient, onClose, onSyncPatie
                   onChange={e => setHabit({ alcohol: e.target.value as MedicalRecord['habits']['alcohol'] })}
                   className={inputClass}
                 >
+                  <option value="unknown">No interrogado / desconocido</option>
                   <option value="none">Ninguno</option>
                   <option value="occasional">Ocasional</option>
                   <option value="frequent">Frecuente</option>
