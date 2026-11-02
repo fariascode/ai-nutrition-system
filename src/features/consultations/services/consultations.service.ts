@@ -1,4 +1,4 @@
-import type { Consultation, VitalSigns } from '@/types/consultation'
+import type { Consultation, VitalSigns, GlucoseContext } from '@/types/consultation'
 
 const STORAGE_KEY = 'nutriai_consultations_v1'
 
@@ -72,7 +72,7 @@ export interface VitalFlag {
  * Señala valores fuera de rangos de referencia generales para adulto.
  * Es una ayuda visual para el médico, no un diagnóstico.
  */
-export function evaluateVitals(v: VitalSigns): VitalFlag[] {
+export function evaluateVitals(v: VitalSigns, glucoseContext: GlucoseContext = 'unknown'): VitalFlag[] {
   const flags: VitalFlag[] = []
 
   if (v.systolic_bp && v.diastolic_bp) {
@@ -101,7 +101,7 @@ export function evaluateVitals(v: VitalSigns): VitalFlag[] {
   }
   if (v.glucose) {
     if (v.glucose >= 200) flags.push({ key: 'glu', label: 'Glucosa capilar', text: `${v.glucose} mg/dL: muy elevada`, level: 'danger' })
-    else if (v.glucose >= 126) flags.push({ key: 'glu', label: 'Glucosa capilar', text: `${v.glucose} mg/dL: elevada`, level: 'warning' })
+    else if (glucoseContext === 'fasting' && v.glucose >= 126) flags.push({ key: 'glu', label: 'Glucosa capilar', text: `${v.glucose} mg/dL: elevada en ayuno registrado`, level: 'warning' })
     else if (v.glucose < 70) flags.push({ key: 'glu', label: 'Glucosa capilar', text: `${v.glucose} mg/dL: hipoglucemia`, level: 'danger' })
   }
   return flags

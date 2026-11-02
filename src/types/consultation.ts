@@ -1,4 +1,5 @@
 export type ConsultationStatus = 'draft' | 'closed'
+export type GlucoseContext = 'unknown' | 'fasting' | 'random' | 'postprandial'
 
 export interface VitalSigns {
   systolic_bp?: number     // mmHg
@@ -31,6 +32,7 @@ export interface Consultation {
   chief_complaint: string     // motivo de consulta
   present_illness: string     // padecimiento actual
   vitals: VitalSigns
+  glucose_context?: GlucoseContext
   exam: PhysicalExam
   assessment: string          // evaluación / impresión diagnóstica
   plan: string                // plan y tratamiento

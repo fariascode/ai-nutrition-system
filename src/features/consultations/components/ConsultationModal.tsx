@@ -14,7 +14,7 @@ import {
 } from '../services/consultations.service'
 import { calculateBMI } from '@/lib/clinicalEngine'
 import { EMPTY_EXAM } from '@/types/consultation'
-import type { Consultation, PhysicalExam, VitalSigns } from '@/types/consultation'
+import type { Consultation, PhysicalExam, VitalSigns, GlucoseContext } from '@/types/consultation'
 import type { Appointment } from '@/types/appointment'
 import type { Patient } from '@/types/patient'
 
@@ -44,6 +44,9 @@ const EXAM_FIELDS: { key: keyof PhysicalExam; label: string; placeholder: string
 ]
 
 const todayStr = () => new Date().toISOString().split('T')[0]
+const GLUCOSE_CONTEXT_LABELS: Record<GlucoseContext, string> = {
+  unknown: 'No especificado', fasting: 'Ayuno confirmado', random: 'Casual / sin ayuno', postprandial: 'Posprandial',
+}
 
 interface Draft {
   id?: string
@@ -52,6 +55,7 @@ interface Draft {
   chief_complaint: string
   present_illness: string
   vitals: Record<keyof VitalSigns, string>
+  glucose_context: GlucoseContext
   exam: PhysicalExam
   assessment: string
   plan: string
@@ -75,6 +79,7 @@ function blankDraft(patient: Patient | null, appointment?: Appointment | null): 
     chief_complaint: appointment?.reason ?? '',
     present_illness: '',
     vitals,
+    glucose_context: 'unknown',
     exam: { ...EMPTY_EXAM },
     assessment: '',
     plan: '',
@@ -94,6 +99,7 @@ function draftFromConsultation(c: Consultation): Draft {
     chief_complaint: c.chief_complaint,
     present_illness: c.present_illness,
     vitals,
+    glucose_context: c.glucose_context ?? 'unknown',
     exam: { ...EMPTY_EXAM, ...c.exam },
     assessment: c.assessment,
     plan: c.plan,
@@ -165,7 +171,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
 
   const locked = draft?.status === 'closed'
   const vitalsNum = draft ? parseVitals(draft.vitals) : {}
-  const flags = evaluateVitals(vitalsNum)
+  const flags = evaluateVitals(vitalsNum, draft?.glucose_context)
   const map = meanArterialPressure(vitalsNum)
   const bmi = vitalsNum.weight_kg && vitalsNum.height_cm
     ? calculateBMI(vitalsNum.weight_kg, vitalsNum.height_cm)
@@ -206,6 +212,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
         chief_complaint: draft.chief_complaint.trim(),
         present_illness: draft.present_illness.trim(),
         vitals,
+        glucose_context: draft.glucose_context,
         exam: draft.exam,
         assessment: draft.assessment.trim(),
         plan: draft.plan.trim(),
@@ -228,7 +235,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
               ...patient.biomarkers,
               ...(vitals.systolic_bp ? { systolic_bp: vitals.systolic_bp } : {}),
               ...(vitals.diastolic_bp ? { diastolic_bp: vitals.diastolic_bp } : {}),
-              ...(vitals.glucose ? { fasting_glucose: vitals.glucose } : {}),
+              ...(vitals.glucose && draft.glucose_context === 'fasting' ? { fasting_glucose: vitals.glucose } : {}),
             },
           })
         }
@@ -266,7 +273,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
       ['Temperatura', v.temperature_c ? `${v.temperature_c} °C` : ''],
       ['SpO₂', v.spo2 ? `${v.spo2} %` : ''],
       ['Peso / Talla', v.weight_kg ? `${v.weight_kg} kg / ${v.height_cm ?? '—'} cm` : ''],
-      ['Glucosa capilar', v.glucose ? `${v.glucose} mg/dL` : ''],
+      ['Glucosa capilar', v.glucose ? `${v.glucose} mg/dL (${GLUCOSE_CONTEXT_LABELS[d.glucose_context]})` : ''],
     ].filter(([, val]) => val)
     const examRows = EXAM_FIELDS.filter(f => d.exam[f.key].trim())
 
@@ -329,7 +336,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
           ) : (
             <div className="space-y-2.5">
               {consultations.map(c => {
-                const cFlags = evaluateVitals(c.vitals)
+                const cFlags = evaluateVitals(c.vitals, c.glucose_context)
                 return (
                   <div key={c.id} className="p-4 rounded-2xl border border-[#E7ECE6] bg-[#F7F8F4]/70 space-y-2">
                     <div className="flex flex-wrap items-start justify-between gap-2">
@@ -467,6 +474,14 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
                 ))}
               </div>
 
+              <div>
+                <label className={labelClass} htmlFor="c-glucose-context">Condición de la medición de glucosa</label>
+                <select id="c-glucose-context" value={draft.glucose_context}
+                  onChange={e => patchDraft({ glucose_context: e.target.value as GlucoseContext })} className={inputClass}>
+                  {Object.entries(GLUCOSE_CONTEXT_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </select>
+                <p className="text-[11px] text-[#76847B] mt-1">La glucosa se conserva en esta consulta. Solo se actualiza el campo de ayuno si seleccionas ayuno confirmado.</p>
+              </div>
               {(map || bmi) && (
                 <div className="flex flex-wrap gap-2 text-[11px] font-bold">
                   {map && <span className="px-2.5 py-1 rounded-full bg-[#EBF3EE] text-[#245C47]">PAM: {map} mmHg</span>}
