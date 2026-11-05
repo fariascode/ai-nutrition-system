@@ -5,6 +5,7 @@ import {
   Phone, Mail, Calendar, Pencil, Ruler, Microscope, ClipboardList, Stethoscope,
 } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
+import PatientTimeline from '@/features/history/components/PatientTimeline'
 import {
   calculateAge, calculateBMI, calculateBMR, calculateTDEE,
   ACTIVITY_LABELS, evaluatePatientAlerts,
@@ -181,6 +182,8 @@ export default function PatientDossierModal({
             </button>
           </div>
         </div>
+
+        {open && <details className="rounded-2xl border border-line p-4 space-y-3"><summary className="font-bold cursor-pointer">Historial unificado del paciente</summary><div className="pt-3"><PatientTimeline patient={patient} onOpenConsultations={onOpenConsultation ? () => onOpenConsultation(patient) : undefined} /></div></details>}
 
         {/* Tarjetas Biométricas en Tiempo Real */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
