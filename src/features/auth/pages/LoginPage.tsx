@@ -53,10 +53,10 @@ export default function LoginPage() {
 
             <div className="space-y-3">
               <h1 className="text-3xl xl:text-4xl font-extrabold tracking-tight leading-[1.15]">
-                Nutrición clínica de precisión impulsada por IA.
+                Medicina general y nutrición en un consultorio digital.
               </h1>
               <p className="text-sm text-[#DCE7E1] leading-relaxed max-w-md">
-                Diseña planes dietoterapéuticos con eficacia superior al 95%, interpreta biomarcadores de laboratorio y monitorea a tus pacientes en tiempo real.
+                Organiza consultas, registra biomarcadores y prepara borradores nutricionales para tu revisión profesional.
               </p>
             </div>
           </div>
@@ -67,9 +67,9 @@ export default function LoginPage() {
               <div className="w-8 h-8 rounded-xl bg-lime-solid text-content flex items-center justify-center">
                 <Sparkles className="w-4 h-4" />
               </div>
-              <p className="text-lg font-extrabold text-white">&gt;95% Eficacia</p>
+              <p className="text-lg font-extrabold text-white">Planes revisables</p>
               <p className="text-[11px] text-[#DCE7E1]">
-                Motor Mifflin-St Jeor + validación de alergias y SMAE.
+                Cálculos Mifflin-St Jeor y referencias SMAE para apoyar tu revisión.
               </p>
             </div>
 

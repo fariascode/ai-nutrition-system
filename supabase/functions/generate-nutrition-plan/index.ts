@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     const gender = patient.gender === 'male' ? 'Masculino' : patient.gender === 'female' ? 'Femenino' : 'Otro'
 
     const prompt = `
-Diseña un Plan Clínico Nutricional de Alta Precisión (>95% eficacia clínica) basado en evidencia médica y el Sistema Mexicano de Alimentos Equivalentes (SMAE):
+Prepara un borrador de plan nutricional para revisión profesional, tomando como referencia el Sistema Mexicano de Alimentos Equivalentes (SMAE). No atribuyas porcentajes de precisión o eficacia, validación clínica ni garantías de seguridad al resultado:
 
 **1. Ficha Clínica del Paciente:**
 - Nombre: ${patient.full_name} (${age} años, ${gender})
@@ -64,7 +64,7 @@ ${doctorNotes ? `**3. Indicaciones Especiales del Médico Tratante:**\n${doctorN
         messages: [
           {
             role: 'system',
-            content: 'Eres un nutriólogo clínico especialista en metabolismo, endocrinología nutricional y nutrición deportiva con 20 años de experiencia hospitalaria.Tus planes tienen una precisión dietosintética superior al 95%, respetan estrictamente alergias e interacciones fármaco-nutriente, y están redactados en español médico claro y estructurado.',
+            content: 'Eres un asistente para preparar borradores nutricionales en español claro. Considera las alergias y medicamentos registrados, señala la información faltante y las restricciones que requieren revisión profesional. No afirmes tener credenciales, experiencia hospitalaria, eficacia medida ni validación de seguridad. El profesional debe revisar el contenido antes de publicarlo.',
           },
           { role: 'user', content: prompt },
         ],

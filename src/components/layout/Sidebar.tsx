@@ -95,10 +95,10 @@ export default function Sidebar({ mobile = false, onNavigate }: { mobile?: boole
           <ShieldCheck className="w-4 h-4 text-[#C8ED8F]" />
         </div>
         <p className="text-xs font-bold text-white leading-snug">
-          Precisión Clínica &gt;95%
+          Apoyo a la revisión profesional
         </p>
         <p className="text-[11px] text-[#B8C4BC] leading-relaxed">
-          Mifflin-St Jeor, SMAE, HOMA-IR y validación de alergias en tiempo real.
+          Cálculos Mifflin-St Jeor, referencias SMAE y registro de biomarcadores.
         </p>
       </div>
 

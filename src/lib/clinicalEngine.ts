@@ -241,45 +241,6 @@ export function evaluatePatientAlerts(patient: Patient): ClinicalAlert[] {
   return alerts
 }
 
-export function calculateEfficacyScore(patient: Patient, protocol: ClinicalProtocol, macros: MacroTargets): {
-  score: number
-  checks: { label: string; passed: boolean }[]
-} {
-  const checks = [
-    {
-      label: `Cálculo energético Mifflin-St Jeor exacto (${macros.calories} kcal)`,
-      passed: macros.calories >= 1100 && macros.calories <= 4500,
-    },
-    {
-      label: `Aporte proteico óptimo (${(macros.protein_g / patient.weight_kg).toFixed(1)} g/kg de peso)`,
-      passed: macros.protein_g / patient.weight_kg >= 1.2,
-    },
-    {
-      label: patient.allergies
-        ? `Exclusión garantizada de alérgenos (${patient.allergies})`
-        : 'Verificación de tolerancia alimentaria completa',
-      passed: true,
-    },
-    {
-      label: patient.conditions
-        ? `Adaptación fisiopatológica para: ${patient.conditions}`
-        : `Alineación con protocolo ${PROTOCOL_INFO[protocol].badge}`,
-      passed: true,
-    },
-    {
-      label: `Meta de fibra dietética (${macros.fiber_g}g) e hidratación (${macros.water_liters}L)`,
-      passed: true,
-    },
-  ]
-
-  const baseScore = 94
-  const bonus = (patient.biomarkers ? 2 : 0) + (patient.body_fat_pct ? 2 : 0) + (patient.medications ? 1 : 0)
-  return {
-    score: Math.min(99, baseScore + bonus),
-    checks,
-  }
-}
-
 export function generateHighPrecisionAiPlan(
   patient: Patient,
   options: {
@@ -295,7 +256,6 @@ export function generateHighPrecisionAiPlan(
   const tdee = calculateTDEE(bmr, patient.activity_level ?? 'moderate')
   const proto = PROTOCOL_INFO[options.protocol]
   const { macros, mealsPerDay, doctorNotes } = options
-  const efficacy = calculateEfficacyScore(patient, options.protocol, macros)
 
   const isLactoseFree = (patient.allergies ?? '').toLowerCase().includes('lactosa')
   const isSeafoodFree = (patient.allergies ?? '').toLowerCase().includes('marisco')
@@ -305,9 +265,9 @@ export function generateHighPrecisionAiPlan(
   const carbSource = isGlutenFree ? 'quinoa real, arroz basmati integral o tortilla de maíz nixtamalizado' : 'avena integral laminada, pan de masa madre integral o quinoa'
   const fishSource = isSeafoodFree ? 'pechuga de pavo, salmón chileno o lomo de bacalao (sin crustáceos)' : 'filete de salmón salvaje, robalo o atún fresco a la plancha'
 
-  return `# PLAN CLÍNICO NUTRICIONAL DE ALTA PRECISIÓN
+  return `# BORRADOR DEMOSTRATIVO DE PLAN NUTRICIONAL
 **Paciente:** ${patient.full_name} (${age} años) | **Protocolo:** ${proto.name}
-**Índice de Eficacia Clínica IA:** ${efficacy.score}% (Validado por biometría Mifflin-St Jeor y perfil clínico)
+**Origen:** plantilla local de demostración con cálculos energéticos. Requiere revisión profesional de alimentos, alergias, interacciones y objetivos antes de publicarse; no tiene validación clínica de eficacia.
 
 ---
 

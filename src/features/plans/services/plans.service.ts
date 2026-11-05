@@ -9,7 +9,7 @@ import {
   updateMockPlan,
   generateMockAiPlan,
 } from '@/lib/mockData'
-import { calculateClinicalMacros, calculateEfficacyScore, recommendProtocol } from '@/lib/clinicalEngine'
+import { calculateClinicalMacros, recommendProtocol } from '@/lib/clinicalEngine'
 
 export async function getPlans(): Promise<PlanWithPatient[]> {
   if (isDemo) {
@@ -89,7 +89,6 @@ export async function generateAndSavePlan(
   const protocol = options?.protocol ?? recommendProtocol(patient)
   const mealsPerDay = options?.mealsPerDay ?? 4
   const macros = options?.macros ?? calculateClinicalMacros(patient, protocol)
-  const efficacy = calculateEfficacyScore(patient, protocol, macros)
 
   if (isDemo) {
     // Simula el procesamiento clínico y validación metabólica de la IA
@@ -111,7 +110,6 @@ export async function generateAndSavePlan(
       protocol,
       meals_per_day:           mealsPerDay,
       macros,
-      clinical_efficacy_score: efficacy.score,
       valid_from:              new Date().toISOString(),
       valid_until:             null,
     })
@@ -141,7 +139,6 @@ export async function generateAndSavePlan(
     protocol,
     meals_per_day:           mealsPerDay,
     macros,
-    clinical_efficacy_score: efficacy.score,
     valid_from:              new Date().toISOString(),
     valid_until:             null,
   })

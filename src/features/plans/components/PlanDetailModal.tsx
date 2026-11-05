@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  CheckCircle, Archive, ShieldCheck, Copy, Check, Printer,
+  CheckCircle, Archive, Copy, Check, Printer,
   Edit3, Eye, Flame, Droplets, Smartphone, Share2,
   ShoppingCart, Scale, FileText,
 } from 'lucide-react'
@@ -166,12 +166,7 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
               {statusLabel[plan.status]}
             </span>
 
-            {plan.clinical_efficacy_score && (
-              <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-accent-soft text-accent border border-accent-line">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                {plan.clinical_efficacy_score}% Eficacia Clínica IA
-              </span>
-            )}
+
 
             {plan.protocol && PROTOCOL_INFO[plan.protocol] && (
               <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-subtle text-muted">

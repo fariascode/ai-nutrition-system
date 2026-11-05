@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Plus, FileText, Sparkles, ShieldCheck, Flame, Search, Smartphone,
+  Plus, FileText, Sparkles, Flame, Search, Smartphone,
 } from 'lucide-react'
 import { useAuth } from '@/features/auth/context/AuthContext'
 import { getPlans } from '../services/plans.service'
@@ -67,7 +67,7 @@ export default function PlansPage() {
         <div>
           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-lime-tint border border-[#C8ED8F] text-content text-[11px] font-extrabold mb-1.5">
             <Sparkles className="w-3.5 h-3.5 text-accent" />
-            Motor Dietoterapéutico IA (&gt;95% Eficacia)
+            Borradores nutricionales para revisión profesional
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-content tracking-tight">
             Planes Nutricionales con IA
@@ -172,11 +172,7 @@ export default function PlansPage() {
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                      {plan.clinical_efficacy_score && (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-lime-tint text-content border border-[#C8ED8F]">
-                          <ShieldCheck className="w-3 h-3 text-accent" /> {plan.clinical_efficacy_score}% IA
-                        </span>
-                      )}
+
                       <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${statusColor[plan.status]}`}>
                         {statusLabel[plan.status]}
                       </span>

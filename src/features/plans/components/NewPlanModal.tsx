@@ -8,7 +8,7 @@ import { getPatients } from '@/features/patients/services/patients.service'
 import { generateAndSavePlan } from '../services/plans.service'
 import {
   PROTOCOL_INFO, calculateAge, calculateBMI, calculateBMR,
-  calculateTDEE, calculateClinicalMacros, calculateEfficacyScore,
+  calculateTDEE, calculateClinicalMacros,
   recommendProtocol,
 } from '@/lib/clinicalEngine'
 import type { Patient } from '@/types/patient'
@@ -80,10 +80,6 @@ export default function NewPlanModal({ open, doctorId, initialPatientId, onClose
     ? calculateClinicalMacros(selectedPatient, protocol, customKcal)
     : null
 
-  const efficacy = selectedPatient && macros
-    ? calculateEfficacyScore(selectedPatient, protocol, macros)
-    : null
-
   const age  = selectedPatient ? calculateAge(selectedPatient.birth_date) : 0
   const bmi  = selectedPatient ? calculateBMI(selectedPatient.weight_kg, selectedPatient.height_cm) : null
   const bmr  = selectedPatient ? calculateBMR(selectedPatient.weight_kg, selectedPatient.height_cm, age, selectedPatient.gender) : 0
@@ -125,13 +121,13 @@ export default function NewPlanModal({ open, doctorId, initialPatientId, onClose
 
   const title = step === 'review'
     ? 'Plan Clínico Generado con Éxito'
-    : 'Motor Clínico IA — Generador de Planes (>95% Eficacia)'
+    : 'Generador de borradores nutricionales'
 
   return (
     <Modal
       open={open}
       title={title}
-      subtitle="Fórmula dietosintética Mifflin-St Jeor + validación de patologías y alérgenos en tiempo real"
+      subtitle="Cálculos Mifflin-St Jeor. Revisa alimentos, alergias e interacciones antes de publicar."
       size="2xl"
       onClose={step === 'generating' ? () => {} : onClose}
     >
@@ -156,7 +152,7 @@ export default function NewPlanModal({ open, doctorId, initialPatientId, onClose
           </div>
 
           {/* Resumen Biometría en Tiempo Real del Paciente Seleccionado */}
-          {selectedPatient && bmi && macros && efficacy && (
+          {selectedPatient && bmi && macros && (
             <>
               <div className="p-4 rounded-2xl surface-inverse bg-slate-900 text-white space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
@@ -168,7 +164,7 @@ export default function NewPlanModal({ open, doctorId, initialPatientId, onClose
                   </div>
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                     <ShieldCheck className="w-3.5 h-3.5" />
-                    Eficacia Clínica Estimada: {efficacy.score}%
+                    Pendiente de revisión profesional
                   </span>
                 </div>
 
@@ -331,7 +327,7 @@ export default function NewPlanModal({ open, doctorId, initialPatientId, onClose
               className="flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-action hover:bg-action-hover disabled:opacity-50 rounded-xl shadow-sm transition-colors"
             >
               <Sparkles className="w-4 h-4" />
-              Generar Plan Clínico IA ({efficacy?.score ?? 96}% Eficacia)
+              Generar borrador nutricional
             </button>
           </div>
         </form>
@@ -352,7 +348,7 @@ export default function NewPlanModal({ open, doctorId, initialPatientId, onClose
           <div className="w-full max-w-md space-y-2.5 bg-subtle p-4 rounded-2xl border border-line text-xs">
             {[
               '1. Calculando TMB, GET y distribución exacta de macronutrientes...',
-              '2. Validando exclusión de alérgenos e interacciones fármaco-nutriente...',
+              '2. Incorporando los datos y restricciones registrados para revisión...',
               '3. Estructurando menú por equivalentes SMAE y lista de compras...',
             ].map((label, idx) => (
               <div key={idx} className="flex items-center gap-2.5">
@@ -376,7 +372,7 @@ export default function NewPlanModal({ open, doctorId, initialPatientId, onClose
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-accent shrink-0" />
               <span>
-                <strong>Plan generado y validado con {generatedPlan.clinical_efficacy_score ?? 97}% de eficacia clínica.</strong> Guardado en borradores para tu revisión.
+                <strong>Borrador generado.</strong> Revisa alimentos, alergias, interacciones y objetivos antes de publicarlo.
               </span>
             </div>
           </div>

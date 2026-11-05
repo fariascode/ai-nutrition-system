@@ -23,7 +23,7 @@ Del antecedente al seguimiento: información organizada para acompañar la atenc
 
 <p align="center"><sub>Interfaz real con datos ficticios. Tema oscuro Carbón & Bosque.</sub></p>
 
-> **Estado del proyecto:** prototipo funcional en desarrollo. La demostración utiliza almacenamiento local y combina funciones implementadas con simulaciones explícitas. Los porcentajes de “eficacia” o “precisión” que aún aparecen en la interfaz son puntuaciones heurísticas de la demo; no representan validación clínica ni resultados medidos.
+> **Estado del proyecto:** prototipo funcional en desarrollo. La demostración utiliza almacenamiento local y combina funciones implementadas con simulaciones explícitas. Los planes son borradores para revisión profesional; no se atribuyen porcentajes de eficacia ni validación clínica. Los documentos guardados con versiones anteriores conservan su texto y deben revisarse antes de compartirlos.
 
 ## Vista del proyecto
 
@@ -121,10 +121,10 @@ La demo no requiere cuentas de Supabase ni de OpenAI.
 
 ### 1. Obtener la versión presentada
 
-El desarrollo descrito en este README se encuentra actualmente en `feat/clinical-ai-suite-v2`:
+La versión integrada del proyecto está disponible en `main`:
 
 ```bash
-git clone --branch feat/clinical-ai-suite-v2 https://github.com/fariascode/ai-nutrition-system.git
+git clone https://github.com/fariascode/ai-nutrition-system.git
 cd ai-nutrition-system
 npm ci
 ```
@@ -278,7 +278,8 @@ La compilación conserva una advertencia de tamaño del bundle. La división de 
 - [ ] Solicitudes de estudios vinculadas con el expediente.
 - [ ] Extracción real de resultados desde PDF e imágenes, con revisión del médico.
 - [ ] Seguimiento longitudinal de enfermedades crónicas.
-- [ ] Validación de resultados generados y sustitución de las métricas heurísticas de eficacia.
+- [x] Retirar métricas heurísticas de eficacia de la interfaz y de los nuevos borradores.
+- [ ] Validación de los resultados generados.
 - [ ] Optimización del bundle y ampliación de pruebas de interfaz.
 
 ## Autoría y colaboración

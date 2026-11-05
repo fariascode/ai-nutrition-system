@@ -40,6 +40,7 @@ export interface NutritionPlan {
   protocol?: ClinicalProtocol
   meals_per_day?: number
   macros?: MacroTargets | null
+  /** Campo heredado: no se genera ni se muestra como una medición de eficacia. */
   clinical_efficacy_score?: number
 }
 

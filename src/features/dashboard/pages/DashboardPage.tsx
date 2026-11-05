@@ -63,9 +63,7 @@ export default function DashboardPage() {
 
   const publishedCount = plans.filter(p => p.status === 'published').length
   const draftCount     = plans.filter(p => p.status === 'draft').length
-  const avgEfficacy    = plans.length > 0
-    ? (plans.reduce((acc, p) => acc + (p.clinical_efficacy_score ?? 96), 0) / plans.length).toFixed(1)
-    : '97.5'
+
 
   // Métricas nutricionales reales consolidadas del plan activo principal (o promedio de planes activos)
   const featuredPlan = plans.find(p => p.status === 'published' && p.macros) ?? plans[0]
@@ -142,7 +140,7 @@ export default function DashboardPage() {
               NutriAI Clinical Intelligence
             </h1>
             <p className="text-[#DCE7E1] text-xs sm:text-sm max-w-xl leading-relaxed">
-              Biometría longitudinal en tiempo real, interpretación bioquímica con IA y diseño de planes nutricionales personalizados con eficacia clínica superior al 95%.
+              Consultas, seguimiento de mediciones y borradores nutricionales en un solo lugar, con revisión profesional antes de compartir indicaciones.
             </p>
           </div>
 
@@ -330,12 +328,12 @@ export default function DashboardPage() {
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <span className="text-[11px] font-extrabold text-accent bg-lime-tint border border-[#C8ED8F] px-2.5 py-0.5 rounded-full">
-                Mifflin-St Jeor
+                Registro de planes
               </span>
             </div>
             <div>
-              <p className="text-3xl font-extrabold text-accent tracking-tight">{avgEfficacy}%</p>
-              <p className="text-xs text-muted mt-0.5 font-semibold">Precisión clínica media IA</p>
+              <p className="text-3xl font-extrabold text-accent tracking-tight">{plans.length}</p>
+              <p className="text-xs text-muted mt-0.5 font-semibold">Planes registrados</p>
             </div>
           </div>
         </div>
@@ -600,7 +598,7 @@ export default function DashboardPage() {
                   </span>
                   <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-lime-tint text-content border border-[#C8ED8F]">
                     <Sparkles className="w-3 h-3 text-accent" />
-                    {plan.clinical_efficacy_score ?? 97}% IA
+                    {plan.status === 'published' ? 'Publicado' : plan.status === 'archived' ? 'Archivado' : 'Borrador'}
                   </span>
                 </div>
                 <p className="text-xs font-semibold text-accent">

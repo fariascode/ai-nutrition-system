@@ -136,7 +136,6 @@ const INITIAL_PLANS: PlanWithPatient[] = [
     status: 'published',
     protocol: 'glycemic_control',
     meals_per_day: 4,
-    clinical_efficacy_score: 98,
     calories_target: 1680,
     macros: {
       calories: 1680,
@@ -180,7 +179,6 @@ const INITIAL_PLANS: PlanWithPatient[] = [
     status: 'draft',
     protocol: 'dash_cardio',
     meals_per_day: 4,
-    clinical_efficacy_score: 97,
     calories_target: 2050,
     macros: {
       calories: 2050,
