@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { preparePlanUpdate } from './planPublication'
 import type { NutritionPlan, PlanInsert, PlanUpdate, PlanWithPatient, ClinicalProtocol, MacroTargets } from '@/types/plan'
 import type { Patient } from '@/types/patient'
 import {
@@ -55,13 +56,16 @@ export async function createPlan(input: PlanInsert): Promise<NutritionPlan> {
 }
 
 export async function updatePlan(id: string, input: PlanUpdate): Promise<NutritionPlan> {
+  const current = await getPlanById(id)
+  if (!current) throw new Error('Plan no encontrado.')
+  const changes = preparePlanUpdate(current, input)
   if (isDemo) {
-    return updateMockPlan(id, input)
+    return updateMockPlan(id, changes)
   }
 
   const { data, error } = await supabase
     .from('nutrition_plans')
-    .update(input)
+    .update(changes)
     .eq('id', id)
     .select()
     .single()

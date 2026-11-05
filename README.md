@@ -54,6 +54,7 @@ Está pensado para un médico general que también trabaja en áreas como nutric
 - Tratamiento farmacológico capturado por el médico: presentación, dosis, vía, frecuencia, duración e instrucciones. Los detalles pueden completarse en borrador y se validan antes del cierre.
 - Resumen de antecedentes, alergias y medicamentos visible mientras se documenta la consulta.
 - Borradores, cierre e impresión de la nota.
+- Documento de indicaciones con vista previa, datos del profesional y salida para impresión o PDF.
 - Reapertura con motivo y anulación que conserva el contenido y las versiones anteriores.
 - Contexto de glucosa diferenciado: ayuno confirmado, casual, posprandial o no especificado.
 
@@ -64,6 +65,7 @@ Está pensado para un médico general que también trabaja en áreas como nutric
 - Hábitos de tabaco, alcohol, ejercicio, sueño, hidratación y alimentación.
 - Distinción entre **información pendiente**, **antecedente negado por el paciente** e **información registrada**.
 - Seguimiento antropométrico y consulta de biomarcadores.
+- Historial unificado con consultas, notas SOAP, diagnósticos, tratamientos, controles, planes y el último conjunto de resultados de laboratorio.
 - Sincronización local de la ficha y el expediente conservando detalles como reacciones, dosis y antecedentes resueltos.
 
 ![Expediente médico integral de un paciente ficticio en NutriAI](docs/images/medical-record.jpg)
@@ -88,7 +90,9 @@ Está pensado para un médico general que también trabaja en áreas como nutric
 
 ### Portal del paciente y experiencia de uso
 
-- Acceso al plan mediante una ruta de portal, con menú, hidratación, compras, intercambios y registro de progreso.
+- Prescripción publicada mostrada exactamente como la guardó el profesional, indicaciones de consulta aprobadas y registro de mediciones.
+- Portal por paciente, disponible también cuando hay indicaciones aprobadas sin un plan nutricional.
+- Una consulta reabierta deja de compartir sus indicaciones hasta una nueva aprobación. Editar un plan publicado lo devuelve a borrador hasta su nueva publicación.
 - Diseño adaptable a escritorio y móvil, con temas claro y oscuro.
 - Navbar fijo, perfil arriba a la derecha y cierre de sesión sin desplazarse al final de la página.
 - Barra lateral plegable en escritorio y menú hamburguesa en móvil.
@@ -141,7 +145,8 @@ El modo demo se activa cuando no hay una URL de Supabase configurada, cuando la 
 2. Entra en **Expediente Médico** para revisar antecedentes, alergias y hábitos.
 3. Abre **Consulta Médica**, captura información y guarda un borrador o cierra la consulta.
 4. Revisa **Agenda y SOAP** para explorar citas, notas y seguimiento.
-5. Genera un plan desde **Planes con IA**, edítalo y abre **App Paciente** para consultar el portal.
+5. Genera un plan desde **Planes con IA**, revísalo y publícalo; después abre **App Paciente** para consultar el portal.
+6. Para compartir indicaciones de medicina general, abre una consulta cerrada → **Indicaciones del paciente** → revisa la vista previa y los datos profesionales → **Aprobar para el paciente**. Desde esa misma vista puedes imprimir o copiar el enlace del portal.
 
 Los cambios de demostración permanecen en ese navegador. No se comparten automáticamente con otro dispositivo y se pierden si se elimina su almacenamiento local. Un enlace `localhost` tampoco es accesible desde el teléfono de otro usuario.
 
@@ -158,7 +163,8 @@ Los cambios de demostración permanecen en ese navegador. No se comparten autom�
 | Notas SOAP | Borradores mediante plantillas locales, editables por el profesional. |
 | Laboratorios en texto | Extracción con expresiones regulares e interpretación basada en reglas. |
 | PDF e imágenes de laboratorio | Simulación con resultados de ejemplo; todavía no existe extracción OCR real. |
-| Portal | El menú interactivo, las compras y los intercambios utilizan reglas y plantillas. El menú no se deriva automáticamente de todas las ediciones de la prescripción. |
+| Portal | Muestra el texto exacto del plan publicado y las indicaciones aprobadas de consultas cerradas. El menú fijo de demostración fue sustituido por la prescripción revisada. Las compras y equivalencias calculadas permanecen como referencias del profesional. |
+| Indicaciones | Documento con datos profesionales capturados manualmente, vista previa e impresión/PDF. La aprobación se guarda localmente; reapertura, modificación, anulación o retirada invalidan el contenido compartido. |
 | WhatsApp | Construye el mensaje y abre un enlace para que el usuario lo envíe. No hay envío automático ni confirmación de entrega. |
 | Producción | Pendientes la persistencia remota completa, los controles de acceso del servidor y la validación del comportamiento clínico. |
 
@@ -244,7 +250,7 @@ npm run build    # TypeScript + compilación de producción
 npm run preview  # Vista local del resultado compilado
 ```
 
-Las **23 pruebas actuales** cubren sincronización del expediente, conservación de detalles, contexto de glucosa, citas de seguimiento sin duplicados, conflictos de horario, recuperación ante fallos de almacenamiento, diagnósticos y tratamientos estructurados, y versiones de consultas.
+Las **38 pruebas actuales** cubren sincronización del expediente, conservación de detalles, contexto de glucosa, citas de seguimiento, recuperación ante fallos, diagnósticos y tratamientos, documentos de indicaciones, historial unificado y aprobación/publicación del contenido del portal.
 
 La revisión de interfaz abarca las cinco pantallas principales, ocho modales, el portal y tamaños de escritorio y móvil en ambos temas. El alcance y los límites de esa comprobación están documentados en [la revisión de navegación y temas](docs/navigation-theme-review.md).
 
@@ -258,6 +264,9 @@ La compilación conserva una advertencia de tamaño del bundle. La división de 
 - [x] Diagnósticos y tratamiento farmacológico estructurados por consulta.
 - [x] Integración local entre ficha, expediente, consulta y agenda.
 - [x] Planes nutricionales editables y portal de demostración.
+- [x] Documento imprimible de indicaciones con datos del paciente y del profesional.
+- [x] Historial unificado por paciente, con filtros por tipo de evento.
+- [x] Portal consistente con las prescripciones publicadas y las indicaciones aprobadas.
 - [x] Navbar persistente, perfil y navegación adaptable.
 - [x] Temas claro y oscuro con colores compartidos.
 - [x] Pruebas de regresión para los flujos locales principales.
@@ -266,9 +275,8 @@ La compilación conserva una advertencia de tamaño del bundle. La división de 
 
 - [ ] Persistencia remota completa y sincronización entre dispositivos.
 - [ ] Roles, controles de acceso y trazabilidad protegida en servidor.
-- [ ] Recetas y solicitudes de estudios vinculadas con el expediente.
+- [ ] Solicitudes de estudios vinculadas con el expediente.
 - [ ] Extracción real de resultados desde PDF e imágenes, con revisión del médico.
-- [ ] Menú del portal consistente con la prescripción aprobada.
 - [ ] Seguimiento longitudinal de enfermedades crónicas.
 - [ ] Validación de resultados generados y sustitución de las métricas heurísticas de eficacia.
 - [ ] Optimización del bundle y ampliación de pruebas de interfaz.

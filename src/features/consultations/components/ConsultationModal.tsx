@@ -4,6 +4,7 @@ import {
   AlertTriangle, ChevronLeft, CheckCircle2, Printer, Pencil,
 } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
+import { calendarDate } from '@/utils/calendarDate'
 import PatientInstructionsModal from './PatientInstructionsModal'
 import DiagnosisEditor, { DiagnosisSummary } from './DiagnosisEditor'
 import TreatmentEditor, { TreatmentSummary } from './TreatmentEditor'
@@ -51,7 +52,7 @@ const EXAM_FIELDS: { key: keyof PhysicalExam; label: string; placeholder: string
   { key: 'other',           label: 'Otros hallazgos',          placeholder: 'Neurológico, osteomuscular, etc.' },
 ]
 
-const todayStr = () => new Date().toISOString().split('T')[0]
+const todayStr = () => calendarDate(new Date().toISOString())
 const GLUCOSE_CONTEXT_LABELS: Record<GlucoseContext, string> = {
   unknown: 'No especificado', fasting: 'Ayuno confirmado', random: 'Casual / sin ayuno', postprandial: 'Posprandial',
 }

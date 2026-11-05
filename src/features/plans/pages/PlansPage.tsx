@@ -217,6 +217,7 @@ export default function PlansPage() {
                 <div className="flex items-center justify-between pt-3 border-t border-line text-xs">
                   <button
                     type="button"
+                    disabled={plan.status !== 'published'}
                     onClick={e => {
                       e.stopPropagation()
                       navigate(`/portal/${plan.id}`)

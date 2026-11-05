@@ -48,12 +48,14 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
   const [saved, setSaved]             = useState(false)
   const [copied, setCopied]           = useState(false)
   const [linkCopied, setLinkCopied]   = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     if (plan) {
       setContent(plan.edited_content ?? plan.ai_generated_content)
       setDoctorNotes(plan.doctor_notes ?? '')
       setSaved(false)
+      setError('')
       setMode('preview')
       setActiveTab('prescription')
       getPatientById(plan.patient_id).then(setPatient)
@@ -79,10 +81,12 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
   }
 
   const macros = plan.macros ?? calculateClinicalMacros(fallbackPatient, plan.protocol ?? 'balanced', plan.calories_target ?? undefined)
+  const portalAvailable = plan.status === 'published' && content === (plan.edited_content ?? plan.ai_generated_content)
 
   async function handleSave(newStatus?: PlanStatus) {
     if (!plan) return
     setSaving(true)
+    setError('')
     try {
       const updated = await updatePlan(plan.id, {
         edited_content: content !== plan.ai_generated_content ? content : null,
@@ -92,6 +96,8 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
       onUpdated(updated)
       setSaved(true)
       if (newStatus) onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo guardar el plan.')
     } finally {
       setSaving(false)
     }
@@ -104,9 +110,9 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
   }
 
   async function handleCopyPatientLink() {
-    if (!plan) return
+    if (!plan || !portalAvailable) return
     const url = `${window.location.origin}/portal/${plan.id}`
-    const msg = `Hola ${plan.patients.full_name.split(' ')[0]} 👋, aquí tienes el acceso a tu Plan Nutricional Interactivo en NutriAI (menú diario, lista de supermercado inteligente, intercambios SMAE y registro de progreso): ${url}`
+    const msg = `Hola ${plan.patients.full_name.split(' ')[0]} 👋, aquí puedes consultar tu plan publicado, las indicaciones aprobadas y el registro de progreso en NutriAI: ${url}`
     await navigator.clipboard.writeText(msg)
     setLinkCopied(true)
     setTimeout(() => setLinkCopied(false), 2500)
@@ -151,6 +157,8 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
       onClose={onClose}
     >
       <div className="space-y-4">
+        {error && <p role="alert" className="text-sm text-danger">{error}</p>}
+        <p className="text-xs text-muted">El portal muestra la prescripción publicada. Guardar cambios en un plan publicado lo devuelve a borrador hasta que vuelvas a publicarlo. Las listas de compras y equivalencias de esta pantalla son referencias para el profesional.</p>
         {/* Barra superior de estado y acciones rápidas */}
         <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-line">
           <div className="flex flex-wrap items-center gap-2">
@@ -221,7 +229,7 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
                 Portal Móvil Interactivo del Paciente (PWA)
               </h4>
               <p className="text-[11px] text-accent">
-                Checklist de comidas, lista del súper interactiva, equivalentes SMAE y reporte de peso
+                Prescripción publicada, indicaciones aprobadas y registro de progreso
               </p>
             </div>
           </div>
@@ -230,6 +238,7 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
             <button
               type="button"
               onClick={handleCopyPatientLink}
+              disabled={!portalAvailable || saving}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-accent-soft/60 text-accent border border-accent-line text-xs font-bold transition"
             >
               {linkCopied ? <Check className="w-3.5 h-3.5 text-accent" /> : <Share2 className="w-3.5 h-3.5" />}
@@ -238,6 +247,7 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
 
             <button
               type="button"
+              disabled={!portalAvailable || saving}
               onClick={() => {
                 onClose()
                 navigate(`/portal/${plan.id}`)
@@ -249,6 +259,8 @@ export default function PlanDetailModal({ open, plan, onClose, onUpdated }: Prop
             </button>
           </div>
         </div>
+
+        {!portalAvailable && <p className="text-xs text-warning">Publica la versión guardada del plan para habilitar el enlace del paciente.</p>}
 
         {/* Resumen de Macros */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 surface-inverse bg-slate-900 text-white p-3.5 rounded-2xl text-xs">

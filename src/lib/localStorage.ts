@@ -1,6 +1,7 @@
 export const CLINICAL_STORAGE_KEYS = [
   'nutriai_consultations_v1', 'nutriai_medical_records_v1',
   'nutriai_demo_patients_v2', 'nutriai_demo_appointments_v1',
+  'nutriai_patient_instructions_v1',
 ]
 
 export function readLocalJson<T>(key: string, fallback: T): T {

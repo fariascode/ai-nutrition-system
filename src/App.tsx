@@ -20,6 +20,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             {/* Ruta pública / móvil para el Portal del Paciente */}
             <Route path="/portal/:planId" element={<PatientPortalPage />} />
+            <Route path="/portal/patient/:patientId" element={<PatientPortalPage />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
             <Route

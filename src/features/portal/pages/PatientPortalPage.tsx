@@ -1,627 +1,142 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import {
-  Utensils, Droplets, CheckCircle2, RefreshCw, TrendingDown,
-  TrendingUp, Sparkles, ArrowLeft, Flame, ShieldCheck,
-  FileText, Activity, Scale, Plus, AlertTriangle, ShoppingCart,
-} from 'lucide-react'
-import { getPlanById } from '@/features/plans/services/plans.service'
-import { getPatientById, addWeightCheckin } from '@/features/patients/services/patients.service'
-import { PROTOCOL_INFO, calculateBMI, calculateClinicalMacros } from '@/lib/clinicalEngine'
-import GroceryAndSmaeView from '@/features/plans/components/GroceryAndSmaeView'
+import { ArrowLeft, FileText, Activity, ClipboardCheck } from 'lucide-react'
 import { ThemeToggle } from '@/context/ThemeContext'
-import type { PlanWithPatient } from '@/types/plan'
-import type { Patient } from '@/types/patient'
+import { getPatientPortalData, portalPatient } from '../services/patientPortal.service'
+import { addWeightCheckin } from '@/features/patients/services/patients.service'
+import { DiagnosisSummary } from '@/features/consultations/components/DiagnosisEditor'
+import { TreatmentSummary } from '@/features/consultations/components/TreatmentEditor'
+import { storageError } from '@/lib/localStorage'
+import { calendarDate } from '@/utils/calendarDate'
 
-type PortalTab = 'today' | 'grocery' | 'swaps' | 'progress' | 'prescription'
-
-interface MealSlot {
-  id: string
-  time: string
-  title: string
-  kcalPct: number
-  optionA: string
-  optionB: string
-  smaeSwap: string
-}
+type PortalData = NonNullable<Awaited<ReturnType<typeof getPatientPortalData>>>
+type PortalTab = 'plan' | 'instructions' | 'progress'
 
 export default function PatientPortalPage() {
-  const { planId } = useParams<{ planId: string }>()
+  const { planId, patientId } = useParams<{ planId: string; patientId: string }>()
   const navigate = useNavigate()
-
-  const [plan, setPlan]       = useState<PlanWithPatient | null>(null)
-  const [patient, setPatient] = useState<Patient | null>(null)
+  const [data, setData] = useState<PortalData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [tab, setTab]         = useState<PortalTab>('today')
-
-  // Estado interactivo del día del paciente (persistido por fecha + plan)
-  const todayKey = new Date().toISOString().split('T')[0]
-  const storageKey = `nutriai_portal_${planId}_${todayKey}`
-
-  const [completedMeals, setCompletedMeals] = useState<Record<string, boolean>>({})
-  const [selectedOption, setSelectedOption] = useState<Record<string, 'A' | 'B' | 'SMAE'>>({})
-  const [waterGlasses, setWaterGlasses]     = useState(0) // cada vaso = 250ml
-
-  // Formulario de reporte de peso desde casa
-  const [newWeight, setNewWeight]       = useState('')
-  const [newWaist, setNewWaist]         = useState('')
-  const [feeling, setFeeling]           = useState('Excelente energía y saciedad')
-  const [checkinSaved, setCheckinSaved] = useState(false)
+  const [error, setError] = useState('')
+  const [tab, setTab] = useState<PortalTab>('plan')
+  const [weight, setWeight] = useState('')
+  const [waist, setWaist] = useState('')
+  const [notes, setNotes] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [notice, setNotice] = useState('')
 
   useEffect(() => {
-    async function loadPortal() {
-      if (!planId) return
+    let cancelled = false
+    let request = 0
+    setLoading(true)
+    setData(null)
+    setNotice('')
+    setTab('plan')
+    async function load() {
+      const currentRequest = ++request
       setLoading(true)
       try {
-        const foundPlan = await getPlanById(planId)
-        setPlan(foundPlan)
-        if (foundPlan) {
-          const foundPatient = await getPatientById(foundPlan.patient_id)
-          setPatient(foundPatient)
-          if (foundPatient) {
-            setNewWeight(String(foundPatient.weight_kg))
-            setNewWaist(foundPatient.waist_cm ? String(foundPatient.waist_cm) : '')
-          }
-        }
-      } finally {
-        setLoading(false)
-      }
+        const next = await getPatientPortalData({ planId, patientId })
+        if (cancelled || currentRequest !== request) return
+        setData(next)
+        setError('')
+      } catch (err) {
+        if (!cancelled && currentRequest === request) { setData(null); setError(storageError(err)) }
+      } finally { if (!cancelled && currentRequest === request) setLoading(false) }
     }
-    loadPortal()
-  }, [planId])
-
-  useEffect(() => {
-    const saved = localStorage.getItem(storageKey)
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved)
-        setCompletedMeals(parsed.completedMeals ?? {})
-        setSelectedOption(parsed.selectedOption ?? {})
-        setWaterGlasses(parsed.waterGlasses ?? 0)
-      } catch {
-        // ignore
-      }
+    load()
+    const refresh = () => { void load() }
+    const storageRefresh = (event: StorageEvent) => {
+      if (event.key === null || ['nutriai_consultations_v1', 'nutriai_patient_instructions_v1', 'nutriai_demo_plans_v2', 'nutriai_demo_patients_v2'].includes(event.key)) refresh()
     }
-  }, [storageKey])
+    window.addEventListener('focus', refresh)
+    window.addEventListener('storage', storageRefresh)
+    return () => { cancelled = true; window.removeEventListener('focus', refresh); window.removeEventListener('storage', storageRefresh) }
+  }, [planId, patientId])
 
-  function persistDayState(
-    nextMeals: Record<string, boolean>,
-    nextOpts: Record<string, 'A' | 'B' | 'SMAE'>,
-    nextWater: number,
-  ) {
-    localStorage.setItem(
-      storageKey,
-      JSON.stringify({
-        completedMeals: nextMeals,
-        selectedOption: nextOpts,
-        waterGlasses: nextWater,
-      }),
-    )
+  async function reportWeight(event: FormEvent) {
+    event.preventDefault()
+    if (!data || saving) return
+    const nextWeight = Number(weight)
+    const nextWaist = waist.trim() ? Number(waist) : undefined
+    if (!weight.trim() || !Number.isFinite(nextWeight) || nextWeight <= 0 || (nextWaist !== undefined && (!Number.isFinite(nextWaist) || nextWaist <= 0))) {
+      setError('Captura mediciones positivas y válidas.')
+      return
+    }
+    setSaving(true)
+    setError('')
+    try {
+      const date = new Date()
+      const localDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+      const updated = await addWeightCheckin(data.patient.id, { date: localDate, weight_kg: nextWeight, waist_cm: nextWaist, notes: notes.trim() ? `Reporte del paciente: ${notes.trim()}` : 'Reporte del paciente' })
+      setData({ ...data, patient: portalPatient(updated) })
+      setNotice('Medición guardada en el seguimiento del paciente.')
+      setWeight(''); setWaist(''); setNotes('')
+    } catch (err) { setError(storageError(err)) }
+    finally { setSaving(false) }
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-canvas flex items-center justify-center p-4">
-        <div className="w-9 h-9 border-4 border-[#245C47] border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
-
-  if (!plan || !patient) {
-    return (
-      <div className="min-h-screen bg-canvas flex flex-col items-center justify-center p-6 text-center">
-        <Utensils className="w-12 h-12 text-accent mb-3" />
-        <h1 className="text-xl font-extrabold text-content">Plan no encontrado</h1>
-        <p className="text-sm text-muted mt-1">Verifica el enlace compartido por tu nutriólogo.</p>
-        <button
-          type="button"
-          onClick={() => navigate('/plans')}
-          className="btn-forest mt-4 px-5 py-2.5 text-xs cursor-pointer"
-        >
-          Volver a Planes
-        </button>
-      </div>
-    )
-  }
-
-  const macros = plan.macros ?? calculateClinicalMacros(patient, plan.protocol ?? 'balanced', plan.calories_target ?? undefined)
-  const mealsCount = plan.meals_per_day ?? 4
-  const isLactoseFree = (patient.allergies ?? '').toLowerCase().includes('lactosa')
-  const isSeafoodFree = (patient.allergies ?? '').toLowerCase().includes('marisco')
-
-  const dairyName = isLactoseFree ? 'Yogur griego deslactosado / bebida de almendra' : 'Yogur griego natural sin azúcar'
-  const fishName  = isSeafoodFree ? 'Filete de salmón o lomo de bacalao (sin mariscos)' : 'Filete de salmón o pescado blanco a la plancha'
-
-  const mealSlots: MealSlot[] = [
-    {
-      id: 'breakfast',
-      time: '08:00 AM',
-      title: '🌅 Desayuno Metabólico',
-      kcalPct: 0.25,
-      optionA: `Omelette de 2 huevos enteros + 2 claras con espinaca baby y champiñones + 1 porción de avena/pan masa madre + 1/3 aguacate Hass.`,
-      optionB: `Bowl de 180g de ${dairyName} + 1 scoop de proteína + 40g avena con chía, frutos rojos y 10 almendras.`,
-      smaeSwap: `2 huevos revueltos con nopales o ejotes + 2 tortillas de maíz nixtamalizado + 1/3 de aguacate.`,
-    },
-    ...(mealsCount >= 4
-      ? [
-          {
-            id: 'snack_am',
-            time: '11:30 AM',
-            title: '🍏 Colación Matutina',
-            kcalPct: 0.10,
-            optionA: `1 manzana verde o pera mediana + 15g de nueces de castilla (control glucémico).`,
-            optionB: `1 taza de jícama y pepino con limón + 100g de pechuga de pavo baja en sodio o edamames.`,
-            smaeSwap: `1 taza de fresas o arándanos + 12 almendras naturales.`,
-          },
-        ]
-      : []),
-    {
-      id: 'lunch',
-      time: '02:30 PM',
-      title: '☀️ Comida Principal (Regla del Plato)',
-      kcalPct: mealsCount >= 4 ? 0.35 : 0.40,
-      optionA: `160g de pechuga de pollo a las finas hierbas + 2 tazas de ensalada verde con 1 cda de aceite de oliva + 120g de quinoa o arroz integral + 1/2 taza de lentejas.`,
-      optionB: `170g de ${fishName} al horno + brócoli y espárragos al vapor + 140g de camote horneado con canela.`,
-      smaeSwap: `150g de bistec de res magro asado + ensalada de nopales con jitomate y aguacate + 2 tortillas de maíz.`,
-    },
-    ...(mealsCount >= 5
-      ? [
-          {
-            id: 'snack_pm',
-            time: '05:30 PM',
-            title: '🥜 Colación Vespertina / Pre-Entreno',
-            kcalPct: 0.10,
-            optionA: `150g de ${dairyName} con canela + 1 cdita de crema de almendra o cacahuate natural.`,
-            optionB: `2 tortitas de arroz integral con 1/3 de aguacate y 60g de atún al agua o hummus.`,
-            smaeSwap: `1 scoop de proteína aislada en agua + 1 puñado pequeño de pistachos.`,
-          },
-        ]
-      : []),
-    {
-      id: 'dinner',
-      time: '08:30 PM',
-      title: '🌙 Cena Ligera Reparadora',
-      kcalPct: mealsCount >= 5 ? 0.20 : mealsCount === 4 ? 0.30 : 0.35,
-      optionA: `140g de filete de pescado blanco o pollo deshebrado + fajitas de pimientos, cebolla y nopales asados + 1/4 de aguacate + 1 tostada horneada.`,
-      optionB: `Omelette nocturno de 3 claras + 1 huevo con espinacas + crema casera de calabacín sin lácteos + infusión relajante.`,
-      smaeSwap: `Ensalada tibia de 150g de pavo o tofu a la plancha con champiñones, calabacitas y semillas de calabaza.`,
-    },
-  ]
-
-  const targetGlasses = Math.max(6, Math.round((macros.water_liters * 1000) / 250))
-  const doneMealsCount = mealSlots.filter(m => completedMeals[m.id]).length
-  const mealProgress = (doneMealsCount / mealSlots.length) * 75
-  const waterProgress = Math.min(25, (waterGlasses / targetGlasses) * 25)
-  const totalAdherence = Math.round(mealProgress + waterProgress)
-
-  function toggleMeal(id: string) {
-    const next = { ...completedMeals, [id]: !completedMeals[id] }
-    setCompletedMeals(next)
-    persistDayState(next, selectedOption, waterGlasses)
-  }
-
-  function changeMealOption(id: string, opt: 'A' | 'B' | 'SMAE') {
-    const next = { ...selectedOption, [id]: opt }
-    setSelectedOption(next)
-    persistDayState(completedMeals, next, waterGlasses)
-  }
-
-  function updateWater(glasses: number) {
-    const clamped = Math.max(0, Math.min(16, glasses))
-    setWaterGlasses(clamped)
-    persistDayState(completedMeals, selectedOption, clamped)
-  }
-
-  async function handleWeightReport(e: FormEvent) {
-    e.preventDefault()
-    if (!patient || !newWeight) return
-    const updated = await addWeightCheckin(patient.id, {
-      date: todayKey,
-      weight_kg: parseFloat(newWeight),
-      waist_cm: newWaist ? parseFloat(newWaist) : undefined,
-      notes: `Reporte desde App Paciente: ${feeling}`,
-    })
-    setPatient(updated)
-    setCheckinSaved(true)
-    setTimeout(() => setCheckinSaved(false), 3500)
-  }
-
-  const bmi = calculateBMI(patient.weight_kg, patient.height_cm)
-  const history = patient.weight_history ?? []
-  const firstWeight = history[0]?.weight_kg ?? patient.weight_kg
-  const weightDelta = Number((patient.weight_kg - firstWeight).toFixed(1))
-
-  return (
-    <div className="min-h-screen bg-canvas text-content pb-28">
-      {/* Barra superior con Liquid Glass para volver al consultorio */}
-      <div className="liquid-glass sticky top-0 z-30 px-4 py-2.5 text-xs flex items-center justify-between border-b border-line">
-        <button
-          type="button"
-          onClick={() => navigate('/plans')}
-          className="flex items-center gap-1.5 text-accent hover:underline font-extrabold cursor-pointer"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" /> Volver al Consultorio
-        </button>
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-lime-tint border border-[#C8ED8F] text-content text-[10px] font-extrabold">
-            <Sparkles className="w-3 h-3 text-accent" /> App Móvil Paciente (PWA)
-          </span>
-          <ThemeToggle compact />
-        </div>
-      </div>
-
-      {/* Contenedor Móvil / Tablet Centrado */}
-      <div className="max-w-xl mx-auto p-3.5 sm:p-5 space-y-4 animate-wellness-in">
-        {/* Tarjeta Hero del Paciente en Verde Bosque + Lima */}
-        <div className="bg-[#245C47] text-white p-6 rounded-[26px] shadow-[0_18px_40px_-12px_rgba(36,92,71,0.32)] space-y-4 relative overflow-hidden">
-          <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-lime-solid/15 blur-xl pointer-events-none" />
-
-          <div className="relative z-10 flex items-start justify-between gap-3">
-            <div>
-              <span className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-surface/10 text-[#C8ED8F] border border-white/15 mb-2">
-                <ShieldCheck className="w-3 h-3" /> Plan Personalizado ({plan.clinical_efficacy_score ?? 98}% Precisión)
-              </span>
-              <h1 className="text-2xl font-extrabold tracking-tight">Hola, {patient.full_name.split(' ')[0]} 👋</h1>
-              <p className="text-xs text-[#DCE7E1] mt-0.5 font-medium">
-                {plan.protocol ? PROTOCOL_INFO[plan.protocol].name : patient.goal}
-              </p>
-            </div>
-
-            <div className="bg-surface/12 backdrop-blur-xs border border-white/15 rounded-2xl p-3 text-center shrink-0">
-              <span className="text-2xl font-extrabold text-[#C8ED8F] block leading-none">{totalAdherence}%</span>
-              <span className="text-[10px] text-[#DCE7E1] font-semibold mt-0.5 block">Logro hoy</span>
-            </div>
-          </div>
-
-          {/* Barra de progreso del día en Verde Lima */}
-          <div className="relative z-10 space-y-1.5">
-            <div className="flex justify-between text-[11px] text-[#DCE7E1] font-semibold">
-              <span>{doneMealsCount} de {mealSlots.length} comidas cumplidas</span>
-              <span>{(waterGlasses * 0.25).toFixed(2)}L / {macros.water_liters}L agua</span>
-            </div>
-            <div className="w-full h-2.5 bg-black/25 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-lime-solid rounded-full transition-all duration-500"
-                style={{ width: `${totalAdherence}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Resumen Bento de Macros del Paciente */}
-          <div className="relative z-10 grid grid-cols-4 gap-2 pt-1 text-center">
-            <div className="bg-surface/10 rounded-2xl p-2.5 border border-white/10">
-              <span className="text-[10px] text-[#C8ED8F] font-semibold block">Calorías</span>
-              <span className="text-xs font-extrabold">{macros.calories}</span>
-            </div>
-            <div className="bg-surface/10 rounded-2xl p-2.5 border border-white/10">
-              <span className="text-[10px] text-[#DCE7E1] font-semibold block">Proteína</span>
-              <span className="text-xs font-extrabold">{macros.protein_g}g</span>
-            </div>
-            <div className="bg-surface/10 rounded-2xl p-2.5 border border-white/10">
-              <span className="text-[10px] text-[#DCE7E1] font-semibold block">Carbos</span>
-              <span className="text-xs font-extrabold">{macros.carbs_g}g</span>
-            </div>
-            <div className="bg-surface/10 rounded-2xl p-2.5 border border-white/10">
-              <span className="text-[10px] text-[#DCE7E1] font-semibold block">Grasas</span>
-              <span className="text-xs font-extrabold">{macros.fat_g}g</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Contenido por Pestaña */}
-        <div className="space-y-4">
-          {tab === 'today' && (
-            <>
-              {patient.allergies && (
-                <div className="p-3.5 rounded-2xl bg-danger-soft border border-danger-line flex items-center gap-2.5 text-xs text-danger font-medium">
-                  <AlertTriangle className="w-4 h-4 text-danger shrink-0" />
-                  <span>
-                    <strong>Menú 100% libre de:</strong> {patient.allergies} (Validado por tu nutriólogo).
-                  </span>
-                </div>
-              )}
-
-              {/* Contador Interactivo de Hidratación Bento */}
-              <div className="bento-card p-4 sm:p-5 space-y-3.5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-2xl bg-accent-soft text-accent flex items-center justify-center">
-                      <Droplets className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h3 className="text-xs sm:text-sm font-extrabold text-content">
-                        Hidratación Diaria ({macros.water_liters} Litros)
-                      </h3>
-                      <p className="text-[11px] text-muted">
-                        Toca un vaso cada vez que bebas 250 ml de agua
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-xs font-extrabold text-accent bg-lime-tint border border-[#C8ED8F] px-2.5 py-1 rounded-full">
-                    {waterGlasses} / {targetGlasses} vasos
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-8 gap-1.5">
-                  {[...Array(targetGlasses)].map((_, i) => {
-                    const filled = i < waterGlasses
-                    return (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => updateWater(filled && i === waterGlasses - 1 ? i : i + 1)}
-                        className={`h-11 rounded-xl border flex flex-col items-center justify-center transition-all cursor-pointer ${
-                          filled
-                            ? 'bg-[#245C47] border-[#245C47] text-[#C8ED8F] shadow-2xs'
-                            : 'bg-canvas border-line text-muted hover:border-[#245C47]/40'
-                        }`}
-                      >
-                        <Droplets className="w-3.5 h-3.5" />
-                        <span className="text-[9px] font-bold">{i + 1}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Lista Interactiva de Comidas del Día */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between px-1">
-                  <h2 className="text-sm font-extrabold text-content">Tu Plan de Alimentación de Hoy</h2>
-                  <span className="text-[11px] text-muted font-medium">Intercambia opciones con 1 toque</span>
-                </div>
-
-                {mealSlots.map(meal => {
-                  const isDone = !!completedMeals[meal.id]
-                  const activeOpt = selectedOption[meal.id] ?? 'A'
-                  const mealKcal = Math.round(macros.calories * meal.kcalPct)
-
-                  return (
-                    <div
-                      key={meal.id}
-                      className={`bento-card p-4 sm:p-5 transition-all ${
-                        isDone ? 'bg-lime-tint/60 border-[#C8ED8F]' : ''
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-3">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-extrabold text-accent bg-accent-soft px-2.5 py-0.5 rounded-lg">
-                              {meal.time}
-                            </span>
-                            <span className="text-[11px] font-bold text-muted flex items-center gap-0.5">
-                              <Flame className="w-3 h-3 text-accent" /> ~{mealKcal} kcal
-                            </span>
-                          </div>
-                          <h3 className={`font-extrabold text-sm sm:text-base mt-1 ${isDone ? 'line-through text-accent' : 'text-content'}`}>
-                            {meal.title}
-                          </h3>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => toggleMeal(meal.id)}
-                          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all shrink-0 cursor-pointer ${
-                            isDone
-                              ? 'bg-[#245C47] text-[#C8ED8F] shadow-xs'
-                              : 'bg-canvas hover:bg-accent-soft text-content border border-line'
-                          }`}
-                        >
-                          <CheckCircle2 className="w-4 h-4" />
-                          {isDone ? 'Cumplida' : 'Marcar'}
-                        </button>
-                      </div>
-
-                      {/* Selector de Opción A / Opción B / Intercambio Equivalente */}
-                      <div className="flex items-center gap-1.5 mb-2.5">
-                        {[
-                          { id: 'A' as const,    label: 'Opción A' },
-                          { id: 'B' as const,    label: 'Opción B' },
-                          { id: 'SMAE' as const, label: '🔄 Intercambiar Platillo' },
-                        ].map(opt => (
-                          <button
-                            key={opt.id}
-                            type="button"
-                            onClick={() => changeMealOption(meal.id, opt.id)}
-                            className={`px-3 py-1 rounded-xl text-[11px] font-bold transition-colors cursor-pointer ${
-                              activeOpt === opt.id
-                                ? 'bg-[#1D2924] text-[#C8ED8F]'
-                                : 'bg-canvas text-muted hover:text-content border border-line'
-                            }`}
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
-                      </div>
-
-                      <div className="p-3.5 rounded-2xl bg-canvas border border-line text-xs text-content leading-relaxed font-medium">
-                        {activeOpt === 'A' && meal.optionA}
-                        {activeOpt === 'B' && meal.optionB}
-                        {activeOpt === 'SMAE' && (
-                          <div>
-                            <span className="text-[10px] font-extrabold uppercase text-accent block mb-0.5">
-                              Equivalente Clínico Iso-Calórico (SMAE):
-                            </span>
-                            {meal.smaeSwap}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </>
-          )}
-
-          {(tab === 'grocery' || tab === 'swaps') && (
-            <GroceryAndSmaeView
-              patient={patient}
-              macros={macros}
-              protocol={plan.protocol}
-              initialSubTab={tab === 'grocery' ? 'grocery' : 'smae'}
-            />
-          )}
-
-          {tab === 'progress' && (
-            <div className="space-y-4">
-              {/* Resumen de Progreso */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bento-card p-4">
-                  <span className="text-xs font-semibold text-muted block">Peso Actual</span>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-2xl font-extrabold text-content">{patient.weight_kg} kg</span>
-                    {weightDelta !== 0 && (
-                      <span className={`text-xs font-extrabold flex items-center ${weightDelta < 0 ? 'text-accent' : 'text-info'}`}>
-                        {weightDelta < 0 ? <TrendingDown className="w-3.5 h-3.5 mr-0.5" /> : <TrendingUp className="w-3.5 h-3.5 mr-0.5" />}
-                        {weightDelta > 0 ? `+${weightDelta}` : weightDelta} kg
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-[11px] text-muted mt-1 block">
-                    Meta saludable: {bmi.idealMinKg} – {bmi.idealMaxKg} kg
-                  </span>
-                </div>
-
-                <div className="bento-card p-4">
-                  <span className="text-xs font-semibold text-muted block">IMC y Cintura</span>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-2xl font-extrabold text-content">{bmi.value}</span>
-                    <span className="text-xs font-bold text-accent">{bmi.category}</span>
-                  </div>
-                  <span className="text-[11px] text-muted mt-1 block">
-                    Cintura actual: {patient.waist_cm ? `${patient.waist_cm} cm` : 'Por registrar'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Formulario para reportar peso al doctor en tiempo real */}
-              <form onSubmit={handleWeightReport} className="bento-card p-5 space-y-4">
-                <div>
-                  <h3 className="font-extrabold text-content text-sm flex items-center gap-2">
-                    <Scale className="w-4 h-4 text-accent" />
-                    Reportar mi Peso y Avance al Especialista
-                  </h3>
-                  <p className="text-xs text-muted mt-0.5">
-                    Tus mediciones se sincronizan al instante con tu Expediente 360°.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-content mb-1">Mi Peso Hoy (kg) *</label>
-                    <input
-                      type="number" step="0.1" required value={newWeight}
-                      onChange={e => setNewWeight(e.target.value)}
-                      className="input-wellness w-full px-3 py-2 text-sm font-extrabold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-content mb-1">Cintura (cm) opcional</label>
-                    <input
-                      type="number" step="0.1" value={newWaist}
-                      onChange={e => setNewWaist(e.target.value)}
-                      placeholder="Ej. 75"
-                      className="input-wellness w-full px-3 py-2 text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-content mb-1">¿Cómo te has sentido con el plan?</label>
-                  <select
-                    value={feeling}
-                    onChange={e => setFeeling(e.target.value)}
-                    className="input-wellness w-full px-3 py-2.5 text-xs font-semibold"
-                  >
-                    <option value="Excelente energía y saciedad">⚡ Excelente energía y sin hambre</option>
-                    <option value="Buena digestión y desinflamación">🌱 Buena digestión y menos inflamación</option>
-                    <option value="Un poco de hambre por la tarde">🍎 Un poco de ansiedad por la tarde</option>
-                    <option value="Entrenamientos con más fuerza">💪 Mejor rendimiento en el ejercicio</option>
-                  </select>
-                </div>
-
-                {checkinSaved && (
-                  <div className="p-3 rounded-xl bg-lime-tint border border-[#C8ED8F] text-content text-xs font-bold flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-accent shrink-0" />
-                    ¡Registro enviado! El expediente de tu especialista ya se actualizó.
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  className="btn-forest w-full py-2.5 text-xs flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Plus className="w-4 h-4 text-[#C8ED8F]" /> Enviar Registro al Consultorio
-                </button>
-              </form>
-
-              {/* Historial de pesajes */}
-              <div className="bento-card p-5 space-y-2.5">
-                <h4 className="text-xs font-extrabold text-muted uppercase tracking-wider">Historial de Controles</h4>
-                <div className="divide-y divide-line text-xs">
-                  {[...history].reverse().map((h, i) => (
-                    <div key={i} className="py-2.5 flex items-center justify-between">
-                      <div>
-                        <span className="font-extrabold text-content">{h.weight_kg} kg</span>
-                        {h.waist_cm && <span className="text-muted ml-2">• {h.waist_cm} cm cintura</span>}
-                        {h.notes && <p className="text-[11px] text-muted mt-0.5">{h.notes}</p>}
-                      </div>
-                      <span className="text-[11px] text-muted font-semibold">{h.date}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {tab === 'prescription' && (
-            <div className="bento-card p-5 space-y-3">
-              <div className="flex items-center justify-between border-b border-line pb-3">
-                <div>
-                  <h2 className="font-extrabold text-content text-sm">Documento Clínico Completo</h2>
-                  <p className="text-[11px] text-muted">Prescripción oficial generada por tu especialista</p>
-                </div>
-              </div>
-              <div className="text-xs text-content whitespace-pre-wrap leading-relaxed font-sans">
-                {plan.edited_content ?? plan.ai_generated_content}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Barra de Navegación Inferior Flotante Liquid Glass para el Paciente */}
-      <div className="fixed bottom-0 inset-x-0 z-40 px-3 pb-safe pointer-events-none">
-        <nav
-          aria-label="Navegación del portal del paciente"
-          className="liquid-glass-nav pointer-events-auto max-w-xl mx-auto rounded-2xl flex items-center justify-around py-1.5 px-1.5 mb-2"
-        >
-          {[
-            { id: 'today' as PortalTab,        icon: Utensils,     label: 'Mi Día' },
-            { id: 'grocery' as PortalTab,      icon: ShoppingCart, label: 'Mi Súper' },
-            { id: 'swaps' as PortalTab,        icon: RefreshCw,    label: 'SMAE' },
-            { id: 'progress' as PortalTab,     icon: Activity,     label: 'Progreso' },
-            { id: 'prescription' as PortalTab, icon: FileText,     label: 'Receta' },
-          ].map(item => {
-            const active = tab === item.id
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setTab(item.id)}
-                className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] sm:text-[11px] font-bold transition-all cursor-pointer ${
-                  active
-                    ? 'bg-[#245C47] text-white shadow-xs'
-                    : 'text-muted hover:text-content'
-                }`}
-              >
-                <item.icon className={`w-4 h-4 ${active ? 'text-[#C8ED8F]' : 'text-muted'}`} />
-                <span>{item.label}</span>
-              </button>
-            )
-          })}
-        </nav>
-      </div>
+  if (loading) return <div role="status" className="min-h-screen grid place-items-center bg-canvas text-content">Cargando contenido aprobado...</div>
+  if (!data) return <div className="min-h-screen bg-canvas text-content grid place-items-center p-6">
+    <div className="max-w-md space-y-3 text-center"><h1 className="text-xl font-bold">Contenido no disponible</h1>
+      <p className="text-sm text-muted">El plan debe estar publicado o las indicaciones aprobadas por el profesional. Verifica el enlace con el consultorio.</p>
+      {error && <p role="alert" className="text-sm text-danger">{error}</p>}
+      <button className="btn-secondary px-4 py-2" onClick={() => navigate('/login')}>Ir al acceso del consultorio</button>
     </div>
-  )
+  </div>
+
+  return <div className="min-h-screen bg-canvas text-content pb-28">
+    <header className="liquid-glass sticky top-0 z-30 flex items-center justify-between gap-2 px-4 py-3 border-b border-line">
+      <button className="flex items-center gap-1 text-xs text-accent font-bold" onClick={() => navigate('/dashboard')}><ArrowLeft className="h-4 w-4" /> Consultorio</button>
+      <span className="text-xs font-bold">Portal del paciente</span><ThemeToggle compact />
+    </header>
+    <main className="max-w-2xl mx-auto p-4 sm:p-6 space-y-4">
+      <section className="rounded-3xl bg-[#245C47] text-white p-5 space-y-2">
+        <h1 className="text-xl font-extrabold break-words">{data.patient.full_name}</h1>
+        <p className="text-sm text-[#DCE7E1]">Tu prescripción publicada y las indicaciones que aprobó tu profesional.</p>
+      </section>
+      {error && <p role="alert" className="text-sm text-danger">{error}</p>}
+      {notice && <p role="status" className="text-sm text-accent">{notice}</p>}
+      {tab === 'plan' && <section className="bento-card p-5 space-y-3">
+        <h2 className="font-extrabold text-lg">Plan nutricional publicado</h2>
+        {data.plan && data.content !== null ? <>
+          <p className="text-xs text-muted">Actualizado: {calendarDate(data.plan.updated_at)}{data.plan.valid_from ? ` · Desde ${calendarDate(data.plan.valid_from)}` : ''}{data.plan.valid_until ? ` · Hasta ${calendarDate(data.plan.valid_until)}` : ''}</p>
+          <div className="whitespace-pre-wrap break-words text-sm leading-relaxed" data-testid="published-prescription">{data.content}</div>
+        </> : <p className="text-sm text-muted">No hay un plan nutricional publicado. Consulta tus indicaciones en la pestaña correspondiente.</p>}
+      </section>}
+      {tab === 'instructions' && <section className="space-y-4">
+        <h2 className="text-lg font-extrabold">Indicaciones aprobadas</h2>
+        {!data.instructions.length && <p className="bento-card p-5 text-sm text-muted">Tu profesional todavía no ha aprobado indicaciones de consulta para este portal.</p>}
+        {data.instructions.map(approval => <article key={approval.consultation_id} className="bento-card p-5 space-y-3">
+          <h3 className="text-sm font-extrabold">Consulta del {approval.source.date}</h3>
+          <p className="text-xs text-muted">{approval.professional.name}{approval.professional.registration ? ` · Registro: ${approval.professional.registration}` : ''} · Aprobadas el {calendarDate(approval.approved_at)}</p>
+          <DiagnosisSummary items={approval.source.diagnoses} />
+          <TreatmentSummary items={approval.source.medications} />
+          {approval.source.plan && <div><h4 className="text-sm font-bold">Indicaciones generales</h4><p className="whitespace-pre-wrap break-words text-sm">{approval.source.plan}</p></div>}
+          {approval.source.follow_up_date && <p className="text-sm">Fecha indicada de seguimiento: {approval.source.follow_up_date}</p>}
+          {approval.source.follow_up_notes && <p className="whitespace-pre-wrap text-sm">{approval.source.follow_up_notes}</p>}
+        </article>)}
+      </section>}
+      {tab === 'progress' && <section className="space-y-4">
+        <form className="bento-card p-5 space-y-3" onSubmit={reportWeight}>
+          <h2 className="font-extrabold text-lg">Registrar mediciones</h2>
+          <fieldset disabled={saving} className="grid gap-3 sm:grid-cols-2 min-w-0">
+            <label className="text-xs font-bold">Peso (kg)<input type="number" min="0.1" step="0.1" required className="input-wellness w-full px-3 py-2 mt-1" value={weight} onChange={e => setWeight(e.target.value)} /></label>
+            <label className="text-xs font-bold">Cintura (cm, opcional)<input type="number" min="0.1" step="0.1" className="input-wellness w-full px-3 py-2 mt-1" value={waist} onChange={e => setWaist(e.target.value)} /></label>
+            <label className="text-xs font-bold sm:col-span-2">Observaciones (opcional)<textarea className="input-wellness w-full px-3 py-2 mt-1" value={notes} onChange={e => setNotes(e.target.value)} /></label>
+          </fieldset>
+          <button disabled={saving} className="btn-forest px-4 py-2 w-full disabled:opacity-50">{saving ? 'Guardando...' : 'Guardar medición'}</button>
+        </form>
+        <div className="bento-card p-5 space-y-3"><h3 className="font-bold">Tus controles registrados</h3>
+          {!(data.patient.weight_history ?? []).length && <p className="text-sm text-muted">Aún no hay controles registrados.</p>}
+          {[...(data.patient.weight_history ?? [])].sort((a, b) => b.date.localeCompare(a.date)).map((record, index) => <div key={index} className="text-sm border-b border-line pb-2"><p>{record.date} · {record.weight_kg} kg{record.waist_cm ? ` · Cintura ${record.waist_cm} cm` : ''}</p></div>)}
+        </div>
+      </section>}
+    </main>
+    <nav aria-label="Navegación del portal del paciente" className="fixed bottom-0 inset-x-0 z-40 px-3 pb-safe">
+      <div className="liquid-glass-nav max-w-2xl mx-auto rounded-2xl flex justify-around gap-1 p-2">
+        {([{ id: 'plan', label: 'Mi plan', icon: FileText }, { id: 'instructions', label: 'Indicaciones', icon: ClipboardCheck }, { id: 'progress', label: 'Progreso', icon: Activity }] as const).map(item => <button key={item.id} type="button" aria-pressed={tab === item.id} onClick={() => setTab(item.id)} className={`min-w-0 flex-1 flex flex-col items-center gap-1 px-2 py-2 rounded-xl text-xs font-bold ${tab === item.id ? 'bg-[#245C47] text-white' : 'text-muted'}`}><item.icon className="h-4 w-4" />{item.label}</button>)}
+      </div>
+    </nav>
+  </div>
 }
