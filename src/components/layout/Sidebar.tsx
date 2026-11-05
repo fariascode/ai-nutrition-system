@@ -1,56 +1,107 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Users, FileText, History, LogOut, Utensils } from 'lucide-react'
-import { useAuth } from '@/features/auth/context/AuthContext'
+import {
+  LayoutDashboard, Users, FileText, Calendar, History,
+  Utensils, Sparkles, ShieldCheck,
+} from 'lucide-react'
 import { cn } from '@/utils/cn'
 
-const navItems = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/patients',  icon: Users,           label: 'Pacientes' },
-  { to: '/plans',     icon: FileText,         label: 'Planes' },
-  { to: '/history',   icon: History,          label: 'Historial' },
+export const navItems = [
+  { to: '/dashboard',    icon: LayoutDashboard, label: 'Centro de Mando' },
+  { to: '/patients',     icon: Users,           label: 'Pacientes 360°' },
+  { to: '/plans',        icon: FileText,        label: 'Planes con IA' },
+  { to: '/appointments', icon: Calendar,        label: 'Agenda y SOAP' },
+  { to: '/history',      icon: History,         label: 'Historial Clínico' },
 ]
 
-export default function Sidebar() {
-  const { signOut } = useAuth()
+export default function Sidebar({ mobile = false, onNavigate }: { mobile?: boolean; onNavigate?: () => void }) {
 
   return (
-    <aside className="w-64 min-h-screen bg-white border-r border-gray-200 flex flex-col">
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-200">
-        <div className="flex items-center justify-center w-8 h-8 bg-emerald-100 rounded-lg">
-          <Utensils className="w-4 h-4 text-emerald-600" />
+    <aside id={mobile ? undefined : 'desktop-navigation'} className={cn('bg-[var(--bg-surface)] text-[var(--text-primary)] flex-col shrink-0 select-none', mobile ? 'flex w-full flex-1' : 'hidden md:flex w-68 sticky top-16 h-[calc(100dvh-4rem)] overflow-y-auto border-r border-[var(--border-wellness)]')}>
+      {/* Cabecera de Marca */}
+      <div className="flex items-center justify-between px-6 py-6 border-b border-line/80">
+        <div className="flex items-center gap-3.5">
+          <div className="relative flex items-center justify-center w-10 h-10 bg-[#245C47] rounded-2xl shadow-[0_6px_16px_rgba(36,92,71,0.22)]">
+            <Utensils className="w-4 h-4 text-white" />
+            <span
+              className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-lime-solid border-2 border-white"
+              title="Motor IA Activo"
+            />
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="font-extrabold text-content text-base tracking-tight leading-none">
+                NutriAI
+              </span>
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-lime-solid text-content uppercase tracking-wider">
+                PRO
+              </span>
+            </div>
+            <span className="text-[11px] font-semibold text-muted block mt-1">
+              Wellness &amp; Clinical AI
+            </span>
+          </div>
         </div>
-        <span className="font-bold text-gray-900">NutriAI</span>
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      {/* Navegación Principal */}
+      <div className="px-4 pt-5 pb-2">
+        <span className="px-3 text-[10px] font-bold uppercase tracking-widest text-muted">
+          Plataforma Clínica
+        </span>
+      </div>
+
+      <nav className="flex-1 px-3.5 space-y-1.5" aria-label="Navegación principal">
         {navItems.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
+            onClick={onNavigate}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                'group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200',
                 isActive
-                  ? 'bg-emerald-50 text-emerald-700'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  ? 'bg-[#245C47] text-white shadow-[0_6px_18px_rgba(36,92,71,0.20)]'
+                  : 'text-muted hover:bg-canvas hover:text-content'
               )
             }
           >
-            <Icon className="w-4 h-4 shrink-0" />
-            {label}
+            {({ isActive }) => (
+              <>
+                <div className="flex items-center gap-3">
+                  <Icon
+                    className={cn(
+                      'w-4 h-4 shrink-0 transition-colors',
+                      isActive ? 'text-[#C8ED8F]' : 'text-muted group-hover:text-accent'
+                    )}
+                  />
+                  <span>{label}</span>
+                </div>
+                {isActive && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-lime-solid" />
+                )}
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
 
-      <div className="px-3 py-4 border-t border-gray-200">
-        <button
-          onClick={signOut}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors"
-        >
-          <LogOut className="w-4 h-4 shrink-0" />
-          Cerrar sesión
-        </button>
+      {/* Tarjeta de Identidad IA en el Sidebar */}
+      <div className="mx-4 mb-4 p-4 rounded-[20px] bg-[#1D2924] text-white space-y-2 relative overflow-hidden border border-[#245C47]">
+        <div className="flex items-center justify-between">
+          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-lime-solid/20 border border-[#C8ED8F]/35 text-[#C8ED8F] text-[10px] font-extrabold">
+            <Sparkles className="w-3 h-3" />
+            Motor IA v2.5
+          </div>
+          <ShieldCheck className="w-4 h-4 text-[#C8ED8F]" />
+        </div>
+        <p className="text-xs font-bold text-white leading-snug">
+          Apoyo a la revisión profesional
+        </p>
+        <p className="text-[11px] text-[#B8C4BC] leading-relaxed">
+          Cálculos Mifflin-St Jeor, referencias SMAE y registro de biomarcadores.
+        </p>
       </div>
+
     </aside>
   )
 }

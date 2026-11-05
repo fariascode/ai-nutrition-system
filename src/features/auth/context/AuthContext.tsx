@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { isDemo } from '@/lib/mockData'
 
 interface AuthContextValue {
   user: User | null
@@ -18,6 +19,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (isDemo) {
+      const stored = localStorage.getItem('nutriai_demo_user')
+      if (stored) {
+        try {
+          setUser(JSON.parse(stored))
+        } catch {
+          // ignore parsing error
+        }
+      }
+      setLoading(false)
+      return
+    }
+
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session)
       setUser(data.session?.user ?? null)
@@ -33,12 +47,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   async function signIn(email: string, password: string) {
+    if (isDemo) {
+      const demoUser = {
+        id: 'demo-doctor-uuid-1234',
+        email: email || 'doctor@clinica.com',
+        user_metadata: { full_name: 'Dr. Demo' },
+        app_metadata: {},
+        aud: 'authenticated',
+        created_at: new Date().toISOString(),
+      } as unknown as User
+
+      localStorage.setItem('nutriai_demo_user', JSON.stringify(demoUser))
+      setUser(demoUser)
+      return { error: null }
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     return { error }
   }
 
   async function signOut() {
-    await supabase.auth.signOut()
+    if (isDemo) {
+      localStorage.removeItem('nutriai_demo_user')
+      setUser(null)
+      setSession(null)
+      return
+    }
+    const { error } = await supabase.auth.signOut()
+    if (error) throw error
   }
 
   return (
