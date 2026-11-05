@@ -4,6 +4,7 @@ import {
   AlertTriangle, ChevronLeft, CheckCircle2, Printer, Pencil,
 } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
+import PatientInstructionsModal from './PatientInstructionsModal'
 import DiagnosisEditor, { DiagnosisSummary } from './DiagnosisEditor'
 import TreatmentEditor, { TreatmentSummary } from './TreatmentEditor'
 import { diagnosesToHtml, medicationsToHtml } from '../services/consultationDetails'
@@ -141,6 +142,7 @@ const escapeHtml = (s: string) =>
 
 export default function ConsultationModal({ open, patientId, appointment, onClose, onSaved }: Props) {
   const { user } = useAuth()
+  const [documentOpen, setDocumentOpen] = useState(false)
   const actor = { id: user?.id ?? 'local', label: user?.email ?? 'Usuario local' }
   const [dirty, setDirty] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
@@ -160,6 +162,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
 
   useEffect(() => {
     if (!open || !patientId) return
+    setDocumentOpen(false)
     setError(null)
     setSyncMetrics(isDemo)
     setDirty(false)
@@ -349,6 +352,11 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
   const title = view === 'form'
     ? `Consulta médica — ${patient?.full_name ?? ''}`
     : `Consultas médicas — ${patient?.full_name ?? ''}`
+
+  if (documentOpen && patient && draft) return <PatientInstructionsModal
+    source={{ id: draft.id, date: draft.date, status: draft.status, diagnoses: draft.diagnoses, medications: draft.medications, plan: draft.plan, follow_up_date: draft.follow_up_date, follow_up_notes: draft.follow_up_notes }}
+    patient={patient} actorId={actor.id} defaults={{ name: typeof user?.user_metadata?.full_name === 'string' ? user.user_metadata.full_name : '', email: user?.email ?? '' }}
+    onClose={() => setDocumentOpen(false)} />
 
   return (
     <Modal
@@ -669,8 +677,9 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
 
           <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-line">
             <button type="button" onClick={() => handlePrint(draft)} className="btn-secondary flex items-center gap-1.5 px-3 py-2 text-xs cursor-pointer">
-              <Printer className="w-3.5 h-3.5" /> Imprimir
+              <Printer className="w-3.5 h-3.5" /> Imprimir nota clínica
             </button>
+            <button type="button" className="btn-secondary px-3 py-2 text-xs" onClick={() => setDocumentOpen(true)}>Indicaciones del paciente</button>
             {!locked && (
               <div className="flex flex-wrap items-center gap-2">
                 <button type="submit" disabled={saving} className="btn-secondary px-4 py-2 text-xs disabled:opacity-60 cursor-pointer">
