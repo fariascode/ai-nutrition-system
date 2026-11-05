@@ -4,6 +4,8 @@ import {
   AlertTriangle, ChevronLeft, CheckCircle2, Printer, Pencil,
 } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
+import DiagnosisEditor, { DiagnosisSummary } from './DiagnosisEditor'
+import { diagnosesToHtml } from '../services/consultationDetails'
 import { saveConsultationWorkflow } from '../services/consultationWorkflow'
 import { storageError } from '@/lib/localStorage'
 import { useAuth } from '@/features/auth/context/AuthContext'
@@ -18,7 +20,7 @@ import {
 } from '../services/consultations.service'
 import { calculateBMI } from '@/lib/clinicalEngine'
 import { EMPTY_EXAM } from '@/types/consultation'
-import type { Consultation, PhysicalExam, VitalSigns, GlucoseContext } from '@/types/consultation'
+import type { Consultation, PhysicalExam, VitalSigns, GlucoseContext, ConsultationDiagnosis } from '@/types/consultation'
 import type { Appointment } from '@/types/appointment'
 import type { Patient } from '@/types/patient'
 
@@ -62,6 +64,7 @@ interface Draft {
   glucose_context: GlucoseContext
   exam: PhysicalExam
   assessment: string
+  diagnoses: ConsultationDiagnosis[]
   plan: string
   follow_up_date: string
   follow_up_notes: string
@@ -88,6 +91,7 @@ function blankDraft(patient: Patient | null, appointment?: Appointment | null): 
     glucose_context: 'unknown',
     exam: { ...EMPTY_EXAM },
     assessment: '',
+    diagnoses: [],
     plan: '',
     follow_up_date: '',
     follow_up_notes: '',
@@ -110,6 +114,7 @@ function draftFromConsultation(c: Consultation): Draft {
     glucose_context: c.glucose_context ?? 'unknown',
     exam: { ...EMPTY_EXAM, ...c.exam },
     assessment: c.assessment,
+    diagnoses: c.diagnoses ?? [],
     plan: c.plan,
     follow_up_date: c.follow_up_date ?? '',
     follow_up_notes: c.follow_up_notes ?? '',
@@ -212,8 +217,8 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
       setError('El motivo de consulta es obligatorio.')
       return
     }
-    if (status === 'closed' && (!draft.assessment.trim() || !draft.plan.trim())) {
-      setError('Para cerrar la consulta captura la evaluación y el plan de seguimiento.')
+    if (status === 'closed' && ((!draft.assessment.trim() && !draft.diagnoses.length) || !draft.plan.trim())) {
+      setError('Para cerrar la consulta captura la evaluación o los diagnósticos, y el plan de seguimiento.')
       return
     }
     if (draft.schedule_follow_up && (!draft.follow_up_date || !draft.follow_up_time || draft.follow_up_date < draft.date)) {
@@ -236,6 +241,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
         glucose_context: draft.glucose_context,
         exam: draft.exam,
         assessment: draft.assessment.trim(),
+        diagnoses: draft.diagnoses,
         plan: draft.plan.trim(),
         follow_up_date: draft.follow_up_date || null,
         follow_up_notes: draft.follow_up_notes.trim(),
@@ -326,6 +332,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
       ${rows.length ? `<h2>Signos vitales</h2><table>${rows.map(([k, val]) => `<tr><td>${k}</td><td><b>${escapeHtml(String(val))}</b></td></tr>`).join('')}</table>` : ''}
       ${examRows.length ? `<h2>Exploración física</h2>${examRows.map(f => `<p><b>${f.label}:</b> ${escapeHtml(d.exam[f.key])}</p>`).join('')}` : ''}
       ${d.assessment.trim() ? `<h2>Evaluación</h2><p>${escapeHtml(d.assessment)}</p>` : ''}
+      ${diagnosesToHtml(d.diagnoses)}
       ${d.plan.trim() ? `<h2>Plan y tratamiento</h2><p>${escapeHtml(d.plan)}</p>` : ''}
       ${d.follow_up_date || d.follow_up_notes.trim() ? `<h2>Seguimiento</h2><p>${d.follow_up_date ? `Próxima cita: ${escapeHtml(d.follow_up_date)}. ` : ''}${escapeHtml(d.follow_up_notes)}</p>` : ''}
       </body></html>`)
@@ -416,6 +423,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
                         <strong className="text-content">Evaluación:</strong> {c.assessment}
                       </p>
                     )}
+                    <DiagnosisSummary items={c.diagnoses} />
                     {c.follow_up_date && (
                       <p className="text-[11px] font-bold text-accent">Seguimiento: {c.follow_up_date}</p>
                     )}
@@ -560,11 +568,13 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
               </div>
             </div>
 
+            <DiagnosisEditor items={draft.diagnoses} disabled={locked || saving} onChange={diagnoses => patchDraft({ diagnoses })} />
+
             {/* Evaluación y plan */}
             <div className="space-y-3">
               <h4 className={sectionTitle}><ClipboardCheck className="w-4 h-4 text-accent" /> Evaluación y plan</h4>
               <div>
-                <label className={labelClass} htmlFor="c-assess">Evaluación / impresión diagnóstica {`(requerido para cerrar)`}</label>
+                <label className={labelClass} htmlFor="c-assess">Evaluación / impresión diagnóstica (o registra un diagnóstico)</label>
                 <textarea
                   id="c-assess" rows={3} value={draft.assessment}
                   onChange={e => patchDraft({ assessment: e.target.value })}
@@ -640,6 +650,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
                   <p><strong>Condición de glucosa:</strong> {GLUCOSE_CONTEXT_LABELS[revision.previous.glucose_context ?? 'unknown']}</p>
                   {EXAM_FIELDS.map(field => revision.previous?.exam[field.key] && <p key={field.key}><strong>{field.label}:</strong> {revision.previous.exam[field.key]}</p>)}
                   <p><strong>Evaluación:</strong> {revision.previous.assessment || 'Sin registro'}</p>
+                  <DiagnosisSummary items={revision.previous.diagnoses} />
                   <p><strong>Plan:</strong> {revision.previous.plan || 'Sin registro'}</p>
                   <p><strong>Seguimiento:</strong> {revision.previous.follow_up_date} {revision.previous.follow_up_notes}</p>
                 </div>}

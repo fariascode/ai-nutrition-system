@@ -9,6 +9,14 @@ export interface ConsultationRevision {
 }
 export type GlucoseContext = 'unknown' | 'fasting' | 'random' | 'postprandial'
 
+export interface ConsultationDiagnosis {
+  id: string
+  name: string
+  role: 'primary' | 'secondary'
+  certainty: 'suspected' | 'confirmed'
+  notes: string
+}
+
 export interface VitalSigns {
   systolic_bp?: number     // mmHg
   diastolic_bp?: number    // mmHg
@@ -43,6 +51,7 @@ export interface Consultation {
   glucose_context?: GlucoseContext
   exam: PhysicalExam
   assessment: string          // evaluación / impresión diagnóstica
+  diagnoses?: ConsultationDiagnosis[]
   plan: string                // plan y tratamiento
   follow_up_date?: string | null
   follow_up_notes?: string

@@ -1,5 +1,6 @@
 import type { Consultation, VitalSigns, GlucoseContext, ClinicalActor, ConsultationRevision } from '@/types/consultation'
 import { readLocalJson } from '@/lib/localStorage'
+import { normalizeDiagnoses } from './consultationDetails'
 
 const STORAGE_KEY = 'nutriai_consultations_v1'
 
@@ -28,7 +29,8 @@ export async function saveConsultation(
 ): Promise<Consultation> {
   if (!input.chief_complaint.trim()) throw new Error('El motivo de consulta es obligatorio.')
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date) || Number.isNaN(new Date(input.date).getTime())) throw new Error('Selecciona una fecha válida para la consulta.')
-  if (input.status === 'closed' && (!input.assessment.trim() || !input.plan.trim())) throw new Error('Para cerrar captura evaluación y plan.')
+  const diagnoses = normalizeDiagnoses(input.diagnoses)
+  if (input.status === 'closed' && ((!input.assessment.trim() && !diagnoses.length) || !input.plan.trim())) throw new Error('Para cerrar captura evaluación o diagnósticos, y un plan.')
   if (Object.values(input.vitals).some(value => !Number.isFinite(value) || value <= 0) || (input.vitals.spo2 ?? 0) > 100) {
     throw new Error('Revisa los signos vitales: deben ser números positivos y la saturación no puede superar 100%.')
   }
@@ -45,7 +47,7 @@ export async function saveConsultation(
     if ((reopening || input.status === 'voided') && !reason?.trim()) throw new Error('Escribe el motivo de la reapertura o anulación.')
     const { revisions, ...snapshot } = previous
     const action: ConsultationRevision['action'] = input.status === 'voided' ? 'voided' : reopening ? 'reopened' : input.status === 'closed' ? 'closed' : 'updated'
-    const updated: Consultation = { ...previous, ...input, id: previous.id, updated_at: now,
+    const updated: Consultation = { ...previous, ...input, diagnoses, id: previous.id, updated_at: now,
       revisions: [...(revisions ?? []), { at: now, actor, action, reason: reason?.trim(), previous: snapshot }],
     }
     list[idx] = updated
@@ -55,6 +57,7 @@ export async function saveConsultation(
 
   const created: Consultation = {
     ...input,
+    diagnoses,
     id: `con-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
     created_at: now,
     updated_at: now,
