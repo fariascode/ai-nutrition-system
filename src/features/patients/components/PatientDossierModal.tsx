@@ -23,6 +23,8 @@ interface Props {
   onOpenConsultation?: (patient: Patient) => void
 }
 
+const patientActionClass = 'flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 text-center text-xs font-bold text-white transition hover:bg-white/20'
+
 export default function PatientDossierModal({
   open,
   patient,
@@ -105,14 +107,14 @@ export default function PatientDossierModal({
     >
       <div className="space-y-6">
         {/* Cabecera del Paciente */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-900 text-white shadow-md">
-          <div className="flex items-center gap-4">
+        <div className="min-w-0 space-y-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-900 text-white shadow-md">
+          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
             <div className="w-14 h-14 rounded-2xl bg-surface/15 backdrop-blur-xs flex items-center justify-center text-xl font-bold border border-white/20 shrink-0">
               {patient.full_name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()}
             </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-xl font-bold">{patient.full_name}</h3>
+            <div className="min-w-0 flex-1 space-y-2">
+              <h3 className="break-words text-lg sm:text-xl font-bold leading-snug">{patient.full_name}</h3>
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
                 <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-200 border border-emerald-400/30 font-medium">
                   {age} años • {patient.gender === 'male' ? 'Masculino' : patient.gender === 'female' ? 'Femenino' : 'Otro'}
                 </span>
@@ -120,59 +122,62 @@ export default function PatientDossierModal({
                   {ACTIVITY_LABELS[patient.activity_level ?? 'moderate'].label}
                 </span>
               </div>
-              <p className="text-emerald-100 text-sm mt-1 font-medium">🎯 {patient.goal}</p>
-              <div className="flex flex-wrap items-center gap-4 mt-2 text-xs text-emerald-200/90">
-                {patient.phone && (
-                  <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5" /> {patient.phone}</span>
-                )}
-                {patient.email && (
-                  <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5" /> {patient.email}</span>
-                )}
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5" /> Nacimiento: {patient.birth_date}
-                </span>
-              </div>
+              <p className="break-words text-emerald-100 text-sm font-medium leading-relaxed">🎯 {patient.goal}</p>
             </div>
           </div>
+          <div aria-label="Datos de contacto del paciente" className="grid min-w-0 gap-3 border-t border-white/15 pt-4 text-xs text-emerald-100 sm:grid-cols-2">
+                {patient.phone && (
+                  <span className="flex min-w-0 items-start gap-2"><Phone aria-hidden="true" className="mt-0.5 w-3.5 h-3.5 shrink-0" /><span className="min-w-0 break-words">{patient.phone}</span></span>
+                )}
+                {patient.email && (
+                  <span className="flex min-w-0 items-start gap-2"><Mail aria-hidden="true" className="mt-0.5 w-3.5 h-3.5 shrink-0" /><span className="min-w-0 break-all">{patient.email}</span></span>
+                )}
+                <span className="flex min-w-0 items-start gap-2">
+                  <Calendar aria-hidden="true" className="mt-0.5 w-3.5 h-3.5 shrink-0" /><span className="break-words">Nacimiento: {patient.birth_date}</span>
+                </span>
+          </div>
 
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <div role="group" aria-label="Acciones del paciente" className="grid min-w-0 gap-2 border-t border-white/15 pt-4 sm:grid-cols-2 lg:grid-cols-4">
             {onOpenConsultation && (
               <button
                 type="button"
                 onClick={() => onOpenConsultation(patient)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface/15 hover:bg-surface/25 text-white text-xs font-bold border border-white/20 transition"
+                className={patientActionClass}
               >
-                <Stethoscope className="w-3.5 h-3.5 text-emerald-300" /> Consulta Médica
+                <Stethoscope aria-hidden="true" className="w-3.5 h-3.5 shrink-0 text-emerald-300" /><span className="min-w-0 break-words">Consulta Médica</span>
               </button>
             )}
             {onOpenMedicalRecord && (
               <button
                 type="button"
                 onClick={() => onOpenMedicalRecord(patient)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface/15 hover:bg-surface/25 text-white text-xs font-bold border border-white/20 transition"
+                className={patientActionClass}
               >
-                <ClipboardList className="w-3.5 h-3.5 text-emerald-300" /> Expediente Médico
+                <ClipboardList aria-hidden="true" className="w-3.5 h-3.5 shrink-0 text-emerald-300" /><span className="min-w-0 break-words">Expediente Médico</span>
               </button>
             )}
             {onOpenLabScanner && (
               <button
+                type="button"
                 onClick={() => onOpenLabScanner(patient)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface/15 hover:bg-surface/25 text-white text-xs font-bold border border-white/20 transition"
+                className={patientActionClass}
               >
-                <Microscope className="w-3.5 h-3.5 text-emerald-300" /> Laboratorio IA
+                <Microscope aria-hidden="true" className="w-3.5 h-3.5 shrink-0 text-emerald-300" /><span className="min-w-0 break-words">Laboratorio IA</span>
               </button>
             )}
             <button
+              type="button"
               onClick={() => onEdit(patient)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface/10 hover:bg-surface/20 text-white text-xs font-medium border border-white/15 transition"
+              className={patientActionClass}
             >
-              <Pencil className="w-3.5 h-3.5" /> Editar Ficha
+              <Pencil aria-hidden="true" className="w-3.5 h-3.5 shrink-0" /><span className="min-w-0 break-words">Editar Ficha</span>
             </button>
             <button
+              type="button"
               onClick={() => onGeneratePlan(patient)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-content text-xs font-bold shadow-sm transition"
+              className="btn-lime flex min-h-11 w-full min-w-0 items-center justify-center gap-2 px-4 py-3 text-center text-xs sm:text-sm sm:col-span-2 lg:col-span-4"
             >
-              <Sparkles className="w-4 h-4" /> Generar Plan IA
+              <Sparkles aria-hidden="true" className="w-4 h-4 shrink-0" /><span className="min-w-0 break-words">Generar Plan IA</span>
             </button>
           </div>
         </div>
