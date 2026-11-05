@@ -1,15 +1,15 @@
 import { useState, useEffect, type ChangeEvent } from 'react'
 import {
-  Microscope, Upload, Sparkles, CheckCircle2, AlertTriangle,
+  Microscope, Upload, Sparkles, AlertTriangle,
   FileText, Activity, Pill, ShieldCheck, ArrowRight,
 } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
 import {
   SAMPLE_LAB_PRESETS,
-  parseLabReportText,
   interpretBiomarkers,
 } from '@/lib/labAnalyzerEngine'
 import { PROTOCOL_INFO } from '@/lib/clinicalEngine'
+import { extractLabInput, readLabTextFile } from '@/lib/labInput'
 import type { Patient, LabBiomarkers } from '@/types/patient'
 
 interface Props {
@@ -25,7 +25,7 @@ interface Props {
   onGeneratePlanAfterSave?: (patientId: string) => void
 }
 
-type Step = 'input' | 'scanning' | 'review'
+type Step = 'input' | 'review'
 
 export default function LabScannerModal({
   open,
@@ -37,9 +37,11 @@ export default function LabScannerModal({
   const [step, setStep]                   = useState<Step>('input')
   const [rawText, setRawText]             = useState('')
   const [fileName, setFileName]           = useState<string | null>(null)
-  const [scanStage, setScanStage]         = useState(0)
+  const [example, setExample]             = useState(false)
+  const [error, setError]                 = useState<string | null>(null)
+  const [reading, setReading]             = useState(false)
   const [bio, setBio]                     = useState<LabBiomarkers>({})
-  const [syncConditions, setSyncConditions] = useState(true)
+  const [syncConditions, setSyncConditions] = useState(false)
   const [saving, setSaving]               = useState(false)
 
   useEffect(() => {
@@ -48,7 +50,9 @@ export default function LabScannerModal({
       setRawText('')
       setFileName(null)
       setBio(patient.biomarkers ?? {})
-      setSyncConditions(true)
+      setSyncConditions(false)
+      setExample(false)
+      setError(null)
     }
   }, [open, patient])
 
@@ -58,47 +62,39 @@ export default function LabScannerModal({
     const found = SAMPLE_LAB_PRESETS.find(p => p.id === presetId)
     if (!found) return
     setRawText(found.sampleText)
-    setFileName(`Estudio_${presetId}.pdf`)
+    setFileName(null)
+    setExample(true)
+    setError(null)
   }
 
   async function handleFileUpload(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    setFileName(file.name)
-
-    if (file.type === 'text/plain' || file.name.endsWith('.txt') || file.name.endsWith('.csv')) {
-      const text = await file.text()
+    setRawText('')
+    setFileName(null)
+    setExample(false)
+    setError(null)
+    setReading(true)
+    try {
+      const text = await readLabTextFile(file)
       setRawText(text)
-    } else {
-      // Si sube un PDF o Imagen (JPG/PNG), simulamos extracción OCR clínica realista
-      const preset = SAMPLE_LAB_PRESETS[0]
-      setRawText(
-        `[ARCHIVO ESCANEADO POR IA VISION OCR: ${file.name}]\n` + preset.sampleText
-      )
+      setFileName(file.name)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo leer el archivo.')
+    } finally {
+      setReading(false)
+      e.target.value = ''
     }
   }
 
   function startAiAnalysis() {
-    setStep('scanning')
-    setScanStage(0)
-
-    const parsed = rawText.trim()
-      ? parseLabReportText(rawText)
-      : patient?.biomarkers ?? SAMPLE_LAB_PRESETS[0].biomarkers
-
-    // Combinar con existentes si alguno no venía en el texto
-    const merged: LabBiomarkers = {
-      ...patient?.biomarkers,
-      ...Object.fromEntries(Object.entries(parsed).filter(([, v]) => v !== undefined)),
-      last_lab_date: new Date().toISOString().split('T')[0],
-    }
-
-    setTimeout(() => setScanStage(1), 400)
-    setTimeout(() => setScanStage(2), 850)
-    setTimeout(() => {
-      setBio(merged)
+    try {
+      setBio(extractLabInput(rawText))
+      setError(null)
       setStep('review')
-    }, 1250)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo analizar el texto.')
+    }
   }
 
   function updateBioValue(key: keyof LabBiomarkers, val: string) {
@@ -109,7 +105,7 @@ export default function LabScannerModal({
   const interpretation = interpretBiomarkers(bio, patient.gender)
 
   async function handleConfirmSave(andGeneratePlan = false) {
-    if (!patient) return
+    if (!patient || example || !bio.last_lab_date) return
     setSaving(true)
     try {
       const newConditions =
@@ -129,6 +125,8 @@ export default function LabScannerModal({
       if (andGeneratePlan && onGeneratePlanAfterSave) {
         onGeneratePlanAfterSave(patient.id)
       }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudieron guardar los resultados.')
     } finally {
       setSaving(false)
     }
@@ -137,11 +135,16 @@ export default function LabScannerModal({
   return (
     <Modal
       open={open}
-      title={`🔬 Analizador de Laboratorio Clínico con IA — ${patient.full_name}`}
-      subtitle="Extracción automática de Química Sanguínea, HOMA-IR, Perfil Lipídico, Tiroides y Micronutrientes"
+      title={`🔬 Revisión de laboratorio — ${patient.full_name}`}
+      subtitle="Lectura de texto y cálculos locales. Verifica valores, unidades y fecha con el estudio original."
       size="4xl"
-      onClose={step === 'scanning' ? () => {} : onClose}
+      onClose={reading || saving ? () => {} : onClose}
     >
+      {error && <p role="alert" className="mb-3 text-sm text-danger">{error}</p>}
+      {example && <div className="mb-3 p-3 rounded-xl bg-warning-soft text-warning text-sm" role="status">
+        Ejemplo ficticio: estos valores no pertenecen al paciente y no se pueden guardar.
+        <button type="button" disabled={reading} onClick={() => { setExample(false); setRawText(''); setBio({}); setFileName(null); setError(null); setStep('input') }} className="block mt-2 font-bold underline">Iniciar captura de un estudio del paciente</button>
+      </div>}
       {step === 'input' && (
         <div className="space-y-5">
           {/* Presets rápidos de demostración en 1 clic */}
@@ -149,12 +152,13 @@ export default function LabScannerModal({
             <div className="flex items-center justify-between">
               <span className="text-xs font-extrabold text-content flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-accent" />
-                Cargar Estudio Clínico de Prueba en 1 Clic (Simulación Instantánea):
+                Explorar ejemplos ficticios (solo demostración):
               </span>
-              {patient.biomarkers?.fasting_glucose && (
+              {patient.biomarkers && Object.values(patient.biomarkers).some(v => typeof v === 'number') && (
                 <button
                   type="button"
-                  onClick={() => setStep('review')}
+                  onClick={() => { setBio(patient.biomarkers ?? {}); setRawText(''); setFileName(null); setExample(false); setError(null); setStep('review') }}
+                  disabled={reading}
                   className="text-xs font-bold text-accent underline hover:text-accent"
                 >
                   Ver estudios actuales del paciente →
@@ -168,6 +172,7 @@ export default function LabScannerModal({
                   key={preset.id}
                   type="button"
                   onClick={() => handlePresetClick(preset.id)}
+                  disabled={reading}
                   className="p-3 rounded-xl bg-surface hover:bg-accent-soft border border-accent-line hover:border-emerald-400 text-left transition shadow-2xs"
                 >
                   <p className="text-xs font-extrabold text-content">{preset.title}</p>
@@ -177,15 +182,15 @@ export default function LabScannerModal({
             </div>
           </div>
 
-          {/* Zona de subida de archivo PDF / Imagen / TXT */}
+          {/* Lectura de archivos de texto; OCR pendiente */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-line hover:border-emerald-500 rounded-2xl bg-subtle/60 hover:bg-accent-soft/30 cursor-pointer transition text-center">
               <Upload className="w-8 h-8 text-accent mb-2" />
               <span className="text-xs font-bold text-content">
-                Subir PDF, Imagen o TXT
+                Cargar TXT o CSV
               </span>
               <span className="text-[11px] text-muted mt-1">
-                Química sanguínea, biometría o perfil hormonal
+                PDF e imágenes: lectura aún no disponible. Copia su texto para revisarlo aquí.
               </span>
               {fileName && (
                 <span className="mt-2 px-2.5 py-1 rounded-full bg-accent-soft text-accent text-[11px] font-bold">
@@ -194,7 +199,8 @@ export default function LabScannerModal({
               )}
               <input
                 type="file"
-                accept=".pdf,.png,.jpg,.jpeg,.txt,.csv"
+                accept=".txt,.csv"
+                disabled={reading}
                 onChange={handleFileUpload}
                 className="hidden"
               />
@@ -203,11 +209,12 @@ export default function LabScannerModal({
             <div className="md:col-span-2 flex flex-col">
               <label className="block text-xs font-bold text-muted mb-1.5 flex items-center gap-1.5">
                 <FileText className="w-3.5 h-3.5 text-accent" />
-                Texto del Estudio de Laboratorio (OCR / Copiar y Pegar resultados)
+                Texto del estudio (copiar y pegar resultados)
               </label>
               <textarea
                 rows={8}
                 value={rawText}
+                disabled={reading}
                 onChange={e => setRawText(e.target.value)}
                 placeholder={`Pega aquí los resultados del laboratorio o selecciona uno de los 3 casos clínicos de arriba...\n\nEjemplo:\nGlucosa en ayuno: 108 mg/dL\nInsulina basal: 14.2 uU/mL\nHbA1c: 5.8 %\nTriglicéridos: 195 mg/dL\nColesterol HDL: 40 mg/dL\nTSH: 4.5 mUI/L\nVitamina D: 19 ng/mL`}
                 className="w-full flex-1 px-3.5 py-2.5 border border-line rounded-2xl text-xs font-mono bg-surface focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -219,6 +226,7 @@ export default function LabScannerModal({
             <button
               type="button"
               onClick={onClose}
+              disabled={reading}
               className="px-4 py-2 text-xs font-semibold text-muted bg-subtle hover:bg-subtle rounded-xl"
             >
               Cancelar
@@ -226,46 +234,12 @@ export default function LabScannerModal({
             <button
               type="button"
               onClick={startAiAnalysis}
+              disabled={reading || !rawText.trim()}
               className="flex items-center gap-2 px-5 py-2.5 text-xs font-extrabold text-white bg-action hover:bg-action-hover rounded-xl shadow-sm transition"
             >
               <Microscope className="w-4 h-4" />
-              Analizar Biomarcadores con IA →
+              {reading ? 'Leyendo archivo...' : 'Revisar valores del texto →'}
             </button>
-          </div>
-        </div>
-      )}
-
-      {step === 'scanning' && (
-        <div className="py-12 px-4 flex flex-col items-center justify-center gap-5">
-          <div className="w-16 h-16 rounded-2xl bg-accent-soft border border-accent-line flex items-center justify-center">
-            <Microscope className="w-8 h-8 text-accent animate-bounce" />
-          </div>
-          <div className="text-center space-y-1">
-            <h3 className="font-extrabold text-content text-base">
-              Procesando Bioquímica Clínica con IA...
-            </h3>
-            <p className="text-xs text-muted">
-              Extrayendo analitos, calculando índice HOMA-IR y evaluando riesgo cardiometabólico
-            </p>
-          </div>
-
-          <div className="w-full max-w-md bg-subtle border border-line rounded-2xl p-4 space-y-2.5 text-xs">
-            {[
-              '1. Reconociendo analitos de química sanguínea y perfil hormonal...',
-              '2. Calculando Índice HOMA-IR e Índice Aterogénico (TG/HDL)...',
-              '3. Formulando ajustes dietoterapéuticos y suplementación clínica...',
-            ].map((txt, idx) => (
-              <div key={idx} className="flex items-center gap-2.5">
-                <CheckCircle2
-                  className={`w-4 h-4 shrink-0 ${
-                    scanStage >= idx ? 'text-accent' : 'text-muted'
-                  }`}
-                />
-                <span className={scanStage >= idx ? 'font-bold text-content' : 'text-muted'}>
-                  {txt}
-                </span>
-              </div>
-            ))}
           </div>
         </div>
       )}
@@ -308,7 +282,7 @@ export default function LabScannerModal({
 
             <div className="p-4 rounded-2xl surface-inverse bg-slate-900 text-white shadow-2xs">
               <span className="text-[11px] font-bold text-emerald-400 uppercase flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5" /> Protocolo Sugerido por IA
+                <ShieldCheck className="w-3.5 h-3.5" /> Protocolo orientativo
               </span>
               <p className="text-sm font-extrabold mt-1">
                 {PROTOCOL_INFO[interpretation.recommendedProtocol].name}
@@ -324,14 +298,15 @@ export default function LabScannerModal({
             <div className="px-4 py-3 bg-subtle border-b border-line flex items-center justify-between">
               <h4 className="text-xs font-extrabold text-content flex items-center gap-2">
                 <Activity className="w-4 h-4 text-accent" />
-                Biomarcadores Extraídos (Puedes ajustar cualquier valor manualmente)
+                Valores para verificar con el estudio original
               </h4>
               <button
                 type="button"
                 onClick={() => setStep('input')}
+                disabled={saving}
                 className="text-xs font-bold text-accent hover:underline"
               >
-                ← Escanear otro estudio
+                ← Revisar otro texto
               </button>
             </div>
 
@@ -411,7 +386,7 @@ export default function LabScannerModal({
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-accent font-semibold">✓ Todos los analitos en rango fisiológico óptimo.</p>
+                <p className="text-xs text-muted">Sin alertas de estas reglas para los valores capturados. Verifica el estudio y su contexto clínico.</p>
               )}
 
               <ul className="space-y-1 text-xs text-warning pt-1">
@@ -451,10 +426,15 @@ export default function LabScannerModal({
           </div>
 
           {/* Botones de Acción Final */}
+          <label className="block text-xs font-bold text-muted">Fecha del estudio (confirma con el original)
+            <input type="date" value={bio.last_lab_date ?? ''} onChange={e => setBio(prev => ({ ...prev, last_lab_date: e.target.value }))} className="block mt-1 p-2 rounded-lg bg-surface border border-line text-content" />
+          </label>
+          <p className="text-xs text-muted">Se guardará este conjunto de valores como el último estudio. Los valores ausentes quedan sin registrar; revisa cada dato antes de guardar.</p>
           <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-line">
             <button
               type="button"
               onClick={onClose}
+              disabled={saving}
               className="px-4 py-2 text-xs font-semibold text-muted bg-subtle hover:bg-subtle rounded-xl"
             >
               Cancelar
@@ -463,7 +443,7 @@ export default function LabScannerModal({
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                disabled={saving}
+                disabled={saving || example || !bio.last_lab_date}
                 onClick={() => handleConfirmSave(false)}
                 className="px-4 py-2.5 text-xs font-bold text-accent bg-accent-soft hover:bg-accent-soft rounded-xl transition"
               >
@@ -473,7 +453,7 @@ export default function LabScannerModal({
               {onGeneratePlanAfterSave && (
                 <button
                   type="button"
-                  disabled={saving}
+                  disabled={saving || example || !bio.last_lab_date}
                   onClick={() => handleConfirmSave(true)}
                   className="flex items-center gap-1.5 px-5 py-2.5 text-xs font-extrabold text-white bg-action hover:bg-action-hover rounded-xl shadow-sm transition"
                 >

@@ -147,7 +147,7 @@ Presión Arterial:          142/90 mmHg`,
 ]
 
 /**
- * Extrae valores bioquímicos desde texto libre de laboratorio (OCR / PDF / Texto pegado)
+ * Reconoce valores en texto de laboratorio pegado o leído desde TXT/CSV; no realiza OCR.
  */
 export function parseLabReportText(text: string): LabBiomarkers {
   const findNum = (patterns: RegExp[]): number | undefined => {

@@ -162,7 +162,8 @@ Los cambios de demostración permanecen en ese navegador. No se comparten autom�
 | Planes en demo | Plantillas y cálculos locales; no se realizan llamadas a OpenAI. |
 | Notas SOAP | Borradores mediante plantillas locales, editables por el profesional. |
 | Laboratorios en texto | Extracción con expresiones regulares e interpretación basada en reglas. |
-| PDF e imágenes de laboratorio | Simulación con resultados de ejemplo; todavía no existe extracción OCR real. |
+| PDF e imágenes de laboratorio | Lectura no disponible: se solicita pegar el texto o cargar TXT/CSV. Nunca se sustituyen archivos por valores inventados. |
+| Ejemplos de laboratorio | Casos ficticios identificados, solo para explorar; no pueden guardarse en el expediente. Se confirma la fecha del estudio antes de guardar resultados capturados. |
 | Portal | Muestra el texto exacto del plan publicado y las indicaciones aprobadas de consultas cerradas. El menú fijo de demostración fue sustituido por la prescripción revisada. Las compras y equivalencias calculadas permanecen como referencias del profesional. |
 | Indicaciones | Documento con datos profesionales capturados manualmente, vista previa e impresión/PDF. La aprobación se guarda localmente; reapertura, modificación, anulación o retirada invalidan el contenido compartido. |
 | WhatsApp | Construye el mensaje y abre un enlace para que el usuario lo envíe. No hay envío automático ni confirmación de entrega. |
@@ -250,7 +251,7 @@ npm run build    # TypeScript + compilación de producción
 npm run preview  # Vista local del resultado compilado
 ```
 
-Las **38 pruebas actuales** cubren sincronización del expediente, conservación de detalles, contexto de glucosa, citas de seguimiento, recuperación ante fallos, diagnósticos y tratamientos, documentos de indicaciones, historial unificado y aprobación/publicación del contenido del portal.
+Las **42 pruebas actuales** cubren sincronización del expediente, conservación de detalles, contexto de glucosa, citas de seguimiento, recuperación ante fallos, diagnósticos y tratamientos, documentos de indicaciones, historial unificado, aprobación/publicación del contenido del portal y entradas de laboratorio sin resultados inventados ni métricas de eficacia.
 
 La revisión de interfaz abarca las cinco pantallas principales, ocho modales, el portal y tamaños de escritorio y móvil en ambos temas. El alcance y los límites de esa comprobación están documentados en [la revisión de navegación y temas](docs/navigation-theme-review.md).
 
