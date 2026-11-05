@@ -50,6 +50,8 @@ Está pensado para un médico general que también trabaja en áreas como nutric
 - Registro del motivo de consulta y padecimiento actual.
 - Signos vitales: presión arterial, frecuencias cardiaca y respiratoria, temperatura, saturación, peso, talla y glucosa capilar.
 - Exploración física por regiones, evaluación, tratamiento y seguimiento.
+- Diagnósticos estructurados por consulta, con un principal, secundarios y certeza de sospecha o confirmado.
+- Tratamiento farmacológico capturado por el médico: presentación, dosis, vía, frecuencia, duración e instrucciones. Los detalles pueden completarse en borrador y se validan antes del cierre.
 - Resumen de antecedentes, alergias y medicamentos visible mientras se documenta la consulta.
 - Borradores, cierre e impresión de la nota.
 - Reapertura con motivo y anulación que conserva el contenido y las versiones anteriores.
@@ -242,7 +244,7 @@ npm run build    # TypeScript + compilación de producción
 npm run preview  # Vista local del resultado compilado
 ```
 
-Las **13 pruebas actuales** cubren sincronización del expediente, conservación de detalles, contexto de glucosa, citas de seguimiento sin duplicados, conflictos de horario, recuperación ante fallos de almacenamiento y versiones de consultas.
+Las **23 pruebas actuales** cubren sincronización del expediente, conservación de detalles, contexto de glucosa, citas de seguimiento sin duplicados, conflictos de horario, recuperación ante fallos de almacenamiento, diagnósticos y tratamientos estructurados, y versiones de consultas.
 
 La revisión de interfaz abarca las cinco pantallas principales, ocho modales, el portal y tamaños de escritorio y móvil en ambos temas. El alcance y los límites de esa comprobación están documentados en [la revisión de navegación y temas](docs/navigation-theme-review.md).
 
@@ -253,6 +255,7 @@ La compilación conserva una advertencia de tamaño del bundle. La división de 
 ### Base disponible
 
 - [x] Consulta médica general y expediente integral.
+- [x] Diagnósticos y tratamiento farmacológico estructurados por consulta.
 - [x] Integración local entre ficha, expediente, consulta y agenda.
 - [x] Planes nutricionales editables y portal de demostración.
 - [x] Navbar persistente, perfil y navegación adaptable.
@@ -263,7 +266,6 @@ La compilación conserva una advertencia de tamaño del bundle. La división de 
 
 - [ ] Persistencia remota completa y sincronización entre dispositivos.
 - [ ] Roles, controles de acceso y trazabilidad protegida en servidor.
-- [ ] Diagnósticos y tratamientos estructurados por consulta.
 - [ ] Recetas y solicitudes de estudios vinculadas con el expediente.
 - [ ] Extracción real de resultados desde PDF e imágenes, con revisión del médico.
 - [ ] Menú del portal consistente con la prescripción aprobada.

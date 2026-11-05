@@ -83,3 +83,14 @@ test('la sincronización desde el expediente conserva la negación explícita y 
   assert.equal(saved.medications[0].dose, 'Una tableta')
   assert.equal(getMockPatients()[0].allergies, null)
 })
+
+test('el tratamiento de una consulta no reemplaza los medicamentos habituales del paciente', async () => {
+  const patient = getMockPatients()[0]
+  const previous = patient.medications
+  const saved = await saveConsultationWorkflow({ ...input(patient), follow_up_schedule: undefined,
+    medications: [{ id: 'm1', name: 'Medicamento de prueba', presentation: 'Presentación', dose: 'Dosis', route: 'Vía', frequency: 'Frecuencia', duration: 'Duración', instructions: '' }],
+  }, patient, false, actor)
+  assert.equal(getMockPatients()[0].medications, previous)
+  const [loaded] = await getConsultationsByPatient(patient.id)
+  assert.deepEqual(loaded.medications, saved.medications)
+})

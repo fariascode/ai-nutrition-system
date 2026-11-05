@@ -17,6 +17,17 @@ export interface ConsultationDiagnosis {
   notes: string
 }
 
+export interface ConsultationMedication {
+  id: string
+  name: string
+  presentation: string
+  dose: string
+  route: string
+  frequency: string
+  duration: string
+  instructions: string
+}
+
 export interface VitalSigns {
   systolic_bp?: number     // mmHg
   diastolic_bp?: number    // mmHg
@@ -53,6 +64,7 @@ export interface Consultation {
   assessment: string          // evaluación / impresión diagnóstica
   diagnoses?: ConsultationDiagnosis[]
   plan: string                // plan y tratamiento
+  medications?: ConsultationMedication[]
   follow_up_date?: string | null
   follow_up_notes?: string
   follow_up_schedule?: { time: string; duration_min: number; modality: 'in_person' | 'video_call' }

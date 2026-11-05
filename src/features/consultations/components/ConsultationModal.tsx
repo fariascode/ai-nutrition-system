@@ -5,7 +5,8 @@ import {
 } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
 import DiagnosisEditor, { DiagnosisSummary } from './DiagnosisEditor'
-import { diagnosesToHtml } from '../services/consultationDetails'
+import TreatmentEditor, { TreatmentSummary } from './TreatmentEditor'
+import { diagnosesToHtml, medicationsToHtml } from '../services/consultationDetails'
 import { saveConsultationWorkflow } from '../services/consultationWorkflow'
 import { storageError } from '@/lib/localStorage'
 import { useAuth } from '@/features/auth/context/AuthContext'
@@ -20,7 +21,7 @@ import {
 } from '../services/consultations.service'
 import { calculateBMI } from '@/lib/clinicalEngine'
 import { EMPTY_EXAM } from '@/types/consultation'
-import type { Consultation, PhysicalExam, VitalSigns, GlucoseContext, ConsultationDiagnosis } from '@/types/consultation'
+import type { Consultation, PhysicalExam, VitalSigns, GlucoseContext, ConsultationDiagnosis, ConsultationMedication } from '@/types/consultation'
 import type { Appointment } from '@/types/appointment'
 import type { Patient } from '@/types/patient'
 
@@ -66,6 +67,7 @@ interface Draft {
   assessment: string
   diagnoses: ConsultationDiagnosis[]
   plan: string
+  medications: ConsultationMedication[]
   follow_up_date: string
   follow_up_notes: string
   schedule_follow_up: boolean
@@ -93,6 +95,7 @@ function blankDraft(patient: Patient | null, appointment?: Appointment | null): 
     assessment: '',
     diagnoses: [],
     plan: '',
+    medications: [],
     follow_up_date: '',
     follow_up_notes: '',
     schedule_follow_up: false,
@@ -116,6 +119,7 @@ function draftFromConsultation(c: Consultation): Draft {
     assessment: c.assessment,
     diagnoses: c.diagnoses ?? [],
     plan: c.plan,
+    medications: c.medications ?? [],
     follow_up_date: c.follow_up_date ?? '',
     follow_up_notes: c.follow_up_notes ?? '',
     schedule_follow_up: Boolean(c.follow_up_schedule),
@@ -217,8 +221,8 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
       setError('El motivo de consulta es obligatorio.')
       return
     }
-    if (status === 'closed' && ((!draft.assessment.trim() && !draft.diagnoses.length) || !draft.plan.trim())) {
-      setError('Para cerrar la consulta captura la evaluación o los diagnósticos, y el plan de seguimiento.')
+    if (status === 'closed' && ((!draft.assessment.trim() && !draft.diagnoses.length) || (!draft.plan.trim() && !draft.medications.length))) {
+      setError('Para cerrar captura evaluación o diagnósticos, y un plan o tratamiento completo.')
       return
     }
     if (draft.schedule_follow_up && (!draft.follow_up_date || !draft.follow_up_time || draft.follow_up_date < draft.date)) {
@@ -243,6 +247,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
         assessment: draft.assessment.trim(),
         diagnoses: draft.diagnoses,
         plan: draft.plan.trim(),
+        medications: draft.medications,
         follow_up_date: draft.follow_up_date || null,
         follow_up_notes: draft.follow_up_notes.trim(),
         follow_up_schedule: draft.schedule_follow_up ? { time: draft.follow_up_time, duration_min: 30, modality: 'in_person' } : undefined,
@@ -334,6 +339,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
       ${d.assessment.trim() ? `<h2>Evaluación</h2><p>${escapeHtml(d.assessment)}</p>` : ''}
       ${diagnosesToHtml(d.diagnoses)}
       ${d.plan.trim() ? `<h2>Plan y tratamiento</h2><p>${escapeHtml(d.plan)}</p>` : ''}
+      ${medicationsToHtml(d.medications)}
       ${d.follow_up_date || d.follow_up_notes.trim() ? `<h2>Seguimiento</h2><p>${d.follow_up_date ? `Próxima cita: ${escapeHtml(d.follow_up_date)}. ` : ''}${escapeHtml(d.follow_up_notes)}</p>` : ''}
       </body></html>`)
     win.document.close()
@@ -583,7 +589,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
                 />
               </div>
               <div>
-                <label className={labelClass} htmlFor="c-plan">Plan y tratamiento {`(requerido para cerrar)`}</label>
+                <label className={labelClass} htmlFor="c-plan">Plan e indicaciones generales (o completa el tratamiento)</label>
                 <textarea
                   id="c-plan" rows={3} value={draft.plan}
                   onChange={e => patchDraft({ plan: e.target.value })}
@@ -607,6 +613,8 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
                 </div>
               </div>
             </div>
+            <TreatmentEditor items={draft.medications} disabled={locked || saving} onChange={medications => patchDraft({ medications })} />
+
             <div className="space-y-2 text-xs">
               <label className="flex items-center gap-2">
                 <input type="checkbox" checked={draft.schedule_follow_up} onChange={e => patchDraft({ schedule_follow_up: e.target.checked })} />
@@ -652,6 +660,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
                   <p><strong>Evaluación:</strong> {revision.previous.assessment || 'Sin registro'}</p>
                   <DiagnosisSummary items={revision.previous.diagnoses} />
                   <p><strong>Plan:</strong> {revision.previous.plan || 'Sin registro'}</p>
+                  <TreatmentSummary items={revision.previous.medications} />
                   <p><strong>Seguimiento:</strong> {revision.previous.follow_up_date} {revision.previous.follow_up_notes}</p>
                 </div>}
               </details>
