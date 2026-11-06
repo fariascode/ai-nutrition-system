@@ -11,6 +11,7 @@ import AppointmentsPage from '@/features/appointments/pages/AppointmentsPage'
 import HistoryPage from '@/features/history/pages/HistoryPage'
 import PatientPortalPage from '@/features/portal/pages/PatientPortalPage'
 import BackupsPage from '@/features/backups/pages/BackupsPage'
+import StudyOrdersPage from '@/features/study-orders/pages/StudyOrdersPage'
 import LocalDataRecovery from '@/features/backups/components/LocalDataRecovery'
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
                 <Route path="/appointments" element={<AppointmentsPage />} />
                 <Route path="/history"      element={<HistoryPage />} />
                 <Route path="/backups"      element={<BackupsPage />} />
+                <Route path="/studies"      element={<StudyOrdersPage />} />
               </Route>
             </Routes>
           </AuthProvider>

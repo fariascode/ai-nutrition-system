@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Modal from '@/components/ui/Modal'
 import { storageError } from '@/lib/localStorage'
 import { calendarDate } from '@/utils/calendarDate'
 import { getProfessionalProfile } from '@/features/consultations/services/patientInstructions.service'
 import { createStudyOrder, getStudyOrders, studyOrderContext } from '../services/studyOrders.service'
 import { renderStudyOrder } from '../services/studyOrderDocument'
-import { STUDY_KIND_LABELS, STUDY_STATUS_LABELS } from '@/types/studyOrder'
+import { STUDY_KIND_LABELS } from '@/types/studyOrder'
+import StudyOrderCard from './StudyOrderCard'
 import type { StudyOrder, OrderedStudy } from '@/types/studyOrder'
 import type { Patient } from '@/types/patient'
 import type { Consultation, ClinicalActor } from '@/types/consultation'
@@ -21,13 +22,16 @@ export default function StudyOrdersModal({ patient, consultation, actor, onClose
 }) {
   const [orders, setOrders] = useState<StudyOrder[]>([])
   const [creating, setCreating] = useState(false)
-  const [studies, setStudies] = useState<OrderedStudy[]>([blankStudy()])
+  const [studies, setStudies] = useState<OrderedStudy[]>(() => [blankStudy()])
   const [reason, setReason] = useState('')
   const [date, setDate] = useState(calendarDate(new Date().toISOString()))
   const [professional, setProfessional] = useState<ProfessionalProfile>({ name: '', registration: '', clinic: '', address: '', phone: '', email: '' })
   const [preview, setPreview] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [editing, setEditing] = useState<Record<string, boolean>>({})
+  const trackingDirty = Object.values(editing).some(Boolean)
+  const trackEditing = useCallback((id: string, value: boolean) => setEditing(previous => previous[id] === value ? previous : { ...previous, [id]: value }), [])
 
   useEffect(() => {
     try {
@@ -37,7 +41,7 @@ export default function StudyOrdersModal({ patient, consultation, actor, onClose
   }, [actor.id, consultation.id, patient.id])
 
   function close() {
-    if (busy || (creating && !confirm('¿Descartar la solicitud sin guardar?'))) return
+    if (busy || ((creating || trackingDirty) && !confirm('¿Descartar los cambios sin guardar?'))) return
     onClose()
   }
   async function save() {
@@ -70,14 +74,12 @@ export default function StudyOrdersModal({ patient, consultation, actor, onClose
       {error && <p role="alert" className="text-sm text-danger">{error}</p>}
       {consultation.status !== 'closed' && <p className="text-sm text-warning">{consultation.status === 'voided' ? 'Consulta anulada: conserva sus órdenes como historial, sin vigencia.' : 'La consulta está en borrador. El documento se identificará como borrador hasta cerrar la consulta.'}</p>}
       {!creating && <>
-        <button type="button" disabled={consultation.status === 'voided'} className="btn-forest px-4 py-2 min-h-11" onClick={() => { setPreview(''); setCreating(true) }}>Nueva orden de estudios</button>
+        <button type="button" className="btn-secondary min-h-11 px-3 py-2 text-xs" onClick={() => { try { setOrders(getStudyOrders(actor.id).filter(order => order.consultation_id === consultation.id && order.patient_id === patient.id)); setError('') } catch (err) { setError(storageError(err)) } }}>Actualizar órdenes</button>
+        <button type="button" disabled={consultation.status === 'voided' || trackingDirty} className="btn-forest px-4 py-2 min-h-11" onClick={() => { setPreview(''); setCreating(true) }}>Nueva orden de estudios</button>
         {!orders.length && <p className="text-sm text-muted">Esta consulta no tiene órdenes registradas.</p>}
-        {orders.map(order => <article key={order.id} className="bento-card p-4 space-y-2 min-w-0 break-words">
-          <p className="text-xs text-muted">{order.requested_date} · {STUDY_STATUS_LABELS[order.status]}</p>
-          <h3 className="font-bold text-sm">{order.studies.map(item => item.name).join(' · ')}</h3>
-          <p className="text-sm whitespace-pre-wrap">{order.reason}</p>
-          <div className="flex flex-wrap gap-2"><button type="button" className="btn-secondary min-h-11 px-3 py-2 text-xs" onClick={() => documentFor(order)}>Vista previa</button><button type="button" className="btn-secondary min-h-11 px-3 py-2 text-xs" onClick={() => documentFor(order, true)}>Imprimir / Guardar PDF</button></div>
-        </article>)}
+        {orders.map(order => <StudyOrderCard key={order.id} order={order} actor={actor} onEditingChange={trackEditing} sourceVoided={consultation.status === 'voided'} onUpdated={updated => { setOrders(items => items.map(item => item.id === updated.id ? updated : item)); setPreview(''); onSaved?.() }}>
+          <button type="button" className="btn-secondary min-h-11 px-3 py-2 text-xs" onClick={() => documentFor(order)}>Vista previa</button><button type="button" className="btn-secondary min-h-11 px-3 py-2 text-xs" onClick={() => documentFor(order, true)}>Imprimir / Guardar PDF</button>
+        </StudyOrderCard>)}
       </>}
       {creating && <form onSubmit={e => { e.preventDefault(); save() }} className="space-y-4">
         <label className="block text-xs font-bold">Fecha de solicitud<input type="date" required min={consultation.date} value={date} onChange={e => setDate(e.target.value)} className={field} /></label>

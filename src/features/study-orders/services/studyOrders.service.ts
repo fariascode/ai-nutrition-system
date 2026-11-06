@@ -1,9 +1,10 @@
 import { isDemo } from '@/lib/mockData'
 import { readLocalJson } from '@/lib/localStorage'
+import { calendarDate } from '@/utils/calendarDate'
 import { getPatientById } from '@/features/patients/services/patients.service'
 import { getConsultationsByPatient } from '@/features/consultations/services/consultations.service'
 import type { ClinicalActor } from '@/types/consultation'
-import type { StudyOrder, StudyOrderInput } from '@/types/studyOrder'
+import type { StudyOrder, StudyOrderInput, StudyResults } from '@/types/studyOrder'
 
 export const STUDY_ORDERS_KEY = 'nutriai_study_orders_v1'
 function requireLocal() {
@@ -55,4 +56,50 @@ export async function createStudyOrder(input: StudyOrderInput, actor: ClinicalAc
   all.push(order)
   localStorage.setItem(STUDY_ORDERS_KEY, JSON.stringify(all))
   return order
+}
+
+export type StudyOrderChange =
+  | { action: 'received'; results: StudyResults }
+  | { action: 'reviewed'; date: string; notes: string }
+  | { action: 'cancelled'; reason: string }
+
+export async function updateStudyOrder(id: string, expectedEvents: number, change: StudyOrderChange, actor: ClinicalActor): Promise<StudyOrder> {
+  if (!['received', 'reviewed', 'cancelled'].includes(change.action)) throw new Error('La acción de seguimiento no es válida.')
+  const original = getStudyOrders(actor.id).find(order => order.id === id)
+  if (!original) throw new Error('La orden no está disponible para este profesional.')
+  const { consultation } = await studyOrderContext(original.patient_id, original.consultation_id, actor.id)
+  // Releer después de cargar el contexto evita sobrescribir una actualización más reciente.
+  const all = readAll()
+  const index = all.findIndex(order => order.id === id && order.doctor_id === actor.id)
+  const order = all[index]
+  if (!order || order.events.length !== expectedEvents) throw new Error('La orden cambió en otra pantalla. Actualiza la lista y revisa la versión actual antes de continuar.')
+  if (order.status === 'cancelled') throw new Error('Una orden cancelada conserva su historial y no admite cambios.')
+  if (consultation.status === 'voided' && change.action !== 'cancelled') throw new Error('La consulta está anulada. Puedes cancelar la orden conservando su historial.')
+  const updated = { ...order }
+  const today = calendarDate(new Date().toISOString())
+  let notes: string
+  if (change.action === 'received') {
+    if (order.status !== 'requested') throw new Error('Solo una orden solicitada admite la recepción de resultados. Los resultados guardados se conservan sin sobrescribir.')
+    const result = { ...change.results, text: change.results.text.trim(), facility: change.results.facility.trim() }
+    if (!result.text) throw new Error('Captura los resultados o el resumen del informe recibido.')
+    if (!validStudyDate(result.study_date) || !validStudyDate(result.received_date) || result.study_date < order.requested_date || result.received_date < result.study_date || result.received_date > today) throw new Error('Revisa las fechas: el estudio no puede ser anterior a la solicitud ni posterior a su recepción, y la recepción no puede estar en el futuro.')
+    updated.results = result
+    notes = `Resultados recibidos el ${result.received_date}${result.facility ? ` · ${result.facility}` : ''}`
+  } else if (change.action === 'reviewed') {
+    if (order.status !== 'received' || !order.results) throw new Error('Registra la recepción de resultados antes de revisarlos.')
+    if (!validStudyDate(change.date) || change.date < order.results.received_date || change.date > today || !change.notes.trim()) throw new Error('Captura una fecha de revisión entre la recepción y hoy, y una nota de revisión profesional.')
+    updated.review = { date: change.date, notes: change.notes.trim() }
+    notes = updated.review.notes
+  } else {
+    if (!change.reason.trim()) throw new Error('Escribe el motivo de cancelación.')
+    updated.cancellation_reason = change.reason.trim()
+    notes = updated.cancellation_reason
+  }
+  const now = new Date().toISOString()
+  updated.status = change.action
+  updated.updated_at = now
+  updated.events = [...order.events, { at: now, actor: { ...actor }, action: change.action, notes }]
+  all[index] = updated
+  localStorage.setItem(STUDY_ORDERS_KEY, JSON.stringify(all))
+  return updated
 }

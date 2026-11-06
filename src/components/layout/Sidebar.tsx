@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Users, FileText, Calendar, History,
-  Utensils, Sparkles, ShieldCheck,
+  Utensils, Sparkles, ShieldCheck, Microscope,
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
@@ -11,6 +11,7 @@ export const navItems = [
   { to: '/plans',        icon: FileText,        label: 'Planes con IA' },
   { to: '/appointments', icon: Calendar,        label: 'Agenda y SOAP' },
   { to: '/history',      icon: History,         label: 'Historial Clínico' },
+  { to: '/studies',      icon: Microscope,      label: 'Estudios' },
 ]
 
 export default function Sidebar({ mobile = false, onNavigate }: { mobile?: boolean; onNavigate?: () => void }) {

@@ -2,7 +2,7 @@ import { test, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import { getMockPatients } from '../src/lib/mockData.ts'
 import { saveConsultation } from '../src/features/consultations/services/consultations.service.ts'
-import { createStudyOrder, getStudyOrders, STUDY_ORDERS_KEY } from '../src/features/study-orders/services/studyOrders.service.ts'
+import { createStudyOrder, getStudyOrders, updateStudyOrder, STUDY_ORDERS_KEY } from '../src/features/study-orders/services/studyOrders.service.ts'
 import { renderStudyOrder } from '../src/features/study-orders/services/studyOrderDocument.ts'
 import { createLocalBackup } from '../src/features/backups/services/localBackup.ts'
 import { parseLocalBackup } from '../src/features/backups/services/backupValidation.ts'
@@ -12,7 +12,7 @@ beforeEach(() => {
   const data = new Map()
   globalThis.localStorage = { getItem: key => data.get(key) ?? null, setItem: (key, value) => data.set(key, value), removeItem: key => data.delete(key) }
 })
-export async function studyFixture() {
+async function studyFixture() {
   const patient = getMockPatients()[0]
   const actor = { id: patient.doctor_id, label: 'Profesional QA' }
   const consultation = await saveConsultation({ patient_id: patient.id, date: '2026-11-05', status: 'closed', chief_complaint: 'Control', present_illness: 'Interrogatorio privado', vitals: {}, exam: {}, assessment: 'Evaluación privada', plan: 'Seguimiento' }, actor)
@@ -71,4 +71,67 @@ test('importa respaldos v1 sin inventar órdenes y rechaza v2 incompletos', asyn
   assert.equal(legacy.version, 2)
   assert.deepEqual(legacy.data.studyOrders, [])
   assert.throws(() => parseLocalBackup(JSON.stringify({ ...backup, data: oldData })), /studyOrders/)
+})
+
+const receipt = { action: 'received', results: { study_date: '2026-11-05', received_date: '2026-11-05', facility: 'Centro QA', text: 'Informe transcrito con unidades por el profesional' } }
+test('la recepción y revisión conservan el informe y los eventos sin cambiar biomarcadores ni consulta', async () => {
+  const { input, actor, patient, consultation } = await studyFixture()
+  const originalPatient = localStorage.getItem('nutriai_demo_patients_v2')
+  const originalConsultation = localStorage.getItem('nutriai_consultations_v1')
+  const requested = await createStudyOrder(input, actor)
+  const received = await updateStudyOrder(requested.id, 1, receipt, actor)
+  assert.equal(received.status, 'received')
+  assert.deepEqual(received.results, receipt.results)
+  const reviewed = await updateStudyOrder(requested.id, 2, { action: 'reviewed', date: '2026-11-05', notes: 'Revisión profesional registrada' }, actor)
+  assert.equal(reviewed.status, 'reviewed')
+  assert.deepEqual(reviewed.results, receipt.results)
+  assert.deepEqual(reviewed.events.map(event => event.action), ['requested', 'received', 'reviewed'])
+  assert.equal(localStorage.getItem('nutriai_demo_patients_v2'), originalPatient)
+  assert.equal(localStorage.getItem('nutriai_consultations_v1'), originalConsultation)
+  assert.equal(reviewed.patient_id, patient.id)
+  assert.equal(reviewed.consultation_id, consultation.id)
+  parseLocalBackup(JSON.stringify(await createLocalBackup()))
+})
+
+test('bloquea saltos de estado, fechas incoherentes y actualizaciones desde pantallas obsoletas', async () => {
+  const { input, actor } = await studyFixture()
+  const order = await createStudyOrder(input, actor)
+  await assert.rejects(updateStudyOrder(order.id, 1, { action: 'reviewed', date: '2026-11-05', notes: 'Sin recepción' }, actor), /antes de revisarlos/)
+  await assert.rejects(updateStudyOrder(order.id, 1, { ...receipt, results: { ...receipt.results, text: '' } }, actor), /Captura los resultados/)
+  await assert.rejects(updateStudyOrder(order.id, 1, { ...receipt, results: { ...receipt.results, study_date: '2026-11-04' } }, actor), /Revisa las fechas/)
+  await assert.rejects(updateStudyOrder(order.id, 1, { ...receipt, results: { ...receipt.results, received_date: '2099-01-01' } }, actor), /futuro/)
+  await updateStudyOrder(order.id, 1, receipt, actor)
+  await assert.rejects(updateStudyOrder(order.id, 1, { action: 'cancelled', reason: 'Pantalla anterior' }, actor), /cambió/)
+  await assert.rejects(updateStudyOrder(order.id, 2, receipt, actor), /sin sobrescribir/)
+  assert.equal(getStudyOrders(actor.id)[0].status, 'received')
+})
+
+test('la cancelación exige motivo y conserva resultados e historial como registro terminal', async () => {
+  const { input, actor } = await studyFixture()
+  const order = await createStudyOrder(input, actor)
+  await assert.rejects(updateStudyOrder(order.id, 1, { action: 'cancelled', reason: ' ' }, actor), /motivo/)
+  await updateStudyOrder(order.id, 1, receipt, actor)
+  const cancelled = await updateStudyOrder(order.id, 2, { action: 'cancelled', reason: 'Solicitud sustituida' }, actor)
+  assert.equal(cancelled.status, 'cancelled')
+  assert.deepEqual(cancelled.results, receipt.results)
+  assert.equal(cancelled.events.length, 3)
+  await assert.rejects(updateStudyOrder(order.id, 3, receipt, actor), /cancelada/)
+})
+
+test('anular la consulta bloquea la recepción pero permite cancelar su orden', async () => {
+  const { input, actor, consultation } = await studyFixture()
+  const order = await createStudyOrder(input, actor)
+  await saveConsultation({ ...consultation, status: 'voided' }, actor, 'Consulta anulada')
+  await assert.rejects(updateStudyOrder(order.id, 1, receipt, actor), /consulta está anulada/)
+  assert.equal((await updateStudyOrder(order.id, 1, { action: 'cancelled', reason: 'Consulta anulada' }, actor)).status, 'cancelled')
+})
+
+test('un fallo de almacenamiento durante recepción deja la orden en su estado previo', async () => {
+  const { input, actor } = await studyFixture()
+  const order = await createStudyOrder(input, actor)
+  const before = localStorage.getItem(STUDY_ORDERS_KEY)
+  const setItem = localStorage.setItem
+  localStorage.setItem = (key, value) => { if (key === STUDY_ORDERS_KEY) throw new Error('Sin espacio'); setItem(key, value) }
+  await assert.rejects(updateStudyOrder(order.id, 1, receipt, actor), /Sin espacio/)
+  assert.equal(localStorage.getItem(STUDY_ORDERS_KEY), before)
 })
