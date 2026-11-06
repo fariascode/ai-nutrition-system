@@ -1,6 +1,7 @@
 import { test, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import { createLocalBackup, backupCounts, BACKUP_STORES } from '../src/features/backups/services/localBackup.ts'
+import { parseLocalBackup, backupWarnings } from '../src/features/backups/services/backupValidation.ts'
 
 beforeEach(() => {
   const data = new Map()
@@ -34,4 +35,39 @@ test('reporta JSON dañado en lugar de exportarlo como una lista vacía', async 
   localStorage.setItem(BACKUP_STORES.consultations, '{roto')
   await assert.rejects(createLocalBackup(), /no se pudieron leer/)
   assert.equal(localStorage.getItem(BACKUP_STORES.consultations), '{roto')
+})
+
+test('valida el respaldo exportado sin escribir datos y conserva los campos clínicos', async () => {
+  const backup = await createLocalBackup()
+  const before = Object.values(BACKUP_STORES).map(key => localStorage.getItem(key))
+  const parsed = parseLocalBackup(JSON.stringify(backup))
+  assert.deepEqual(parsed, backup)
+  assert.notEqual(parsed, backup)
+  assert.deepEqual(Object.values(BACKUP_STORES).map(key => localStorage.getItem(key)), before)
+  assert.deepEqual(backupWarnings(parsed), [])
+})
+
+test('rechaza versiones desconocidas, datos incompletos, campos extra y tipos dañados', async () => {
+  const backup = await createLocalBackup()
+  const invalid = [
+    { ...backup, version: 2 }, { ...backup, format: 'otro' },
+    { ...backup, data: { patients: [] } },
+    { ...backup, session: { token: 'no' } },
+    { ...backup, data: { ...backup.data, patients: [{ ...backup.data.patients[0], weight_kg: '68' }] } },
+    { ...backup, data: { ...backup.data, patients: [{ ...backup.data.patients[0], biomarkers: { fasting_glucose: {} } }] } },
+    { ...backup, data: { ...backup.data, plans: [{ ...backup.data.plans[0], macros: { calories: 2000 } }] } },
+    { ...backup, data: { ...backup.data, patients: [backup.data.patients[0], backup.data.patients[0]] } },
+  ]
+  for (const candidate of invalid) assert.throws(() => parseLocalBackup(JSON.stringify(candidate)), /inválido/)
+  assert.throws(() => parseLocalBackup('{'), /JSON/)
+  assert.throws(() => parseLocalBackup('{"__proto__":{"polluted":true}}'), /JSON/)
+  assert.equal({}.polluted, undefined)
+})
+
+test('no oculta registros huérfanos de pacientes borrados y los señala para revisión', async () => {
+  const backup = await createLocalBackup()
+  backup.data.patients = []
+  const parsed = parseLocalBackup(JSON.stringify(backup))
+  assert.equal(parsed.data.plans.length, backup.data.plans.length)
+  assert.ok(backupWarnings(parsed).some(warning => warning.includes('no tienen su paciente')))
 })
