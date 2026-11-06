@@ -166,6 +166,7 @@ Los cambios de demostración permanecen en ese navegador. No se comparten autom�
 | Ejemplos de laboratorio | Casos ficticios identificados, solo para explorar; no pueden guardarse en el expediente. Se confirma la fecha del estudio antes de guardar resultados capturados. |
 | Portal | Muestra el texto exacto del plan publicado y las indicaciones aprobadas de consultas cerradas. El menú fijo de demostración fue sustituido por la prescripción revisada. Las compras y equivalencias calculadas permanecen como referencias del profesional. |
 | Indicaciones | Documento con datos profesionales capturados manualmente, vista previa e impresión/PDF. La aprobación se guarda localmente; reapertura, modificación, anulación o retirada invalidan el contenido compartido. |
+| Respaldos locales | Exportación JSON, validación y vista previa, copia previa obligatoria y restauración con recuperación ante fallos. Disponible en modo demo desde el perfil; no respalda Supabase. [Uso y límites](docs/local-backups.md). |
 | WhatsApp | Construye el mensaje y abre un enlace para que el usuario lo envíe. No hay envío automático ni confirmación de entrega. |
 | Producción | Pendientes la persistencia remota completa, los controles de acceso del servidor y la validación del comportamiento clínico. |
 
@@ -251,7 +252,7 @@ npm run build    # TypeScript + compilación de producción
 npm run preview  # Vista local del resultado compilado
 ```
 
-Las **42 pruebas actuales** cubren sincronización del expediente, conservación de detalles, contexto de glucosa, citas de seguimiento, recuperación ante fallos, diagnósticos y tratamientos, documentos de indicaciones, historial unificado, aprobación/publicación del contenido del portal y entradas de laboratorio sin resultados inventados ni métricas de eficacia.
+Las **56 pruebas actuales** cubren sincronización del expediente, conservación de detalles, contexto de glucosa, citas de seguimiento, recuperación ante fallos, diagnósticos y tratamientos, documentos de indicaciones, historial unificado, aprobación/publicación del contenido del portal, entradas de laboratorio sin resultados inventados y respaldos locales con validación, restauración y recuperación tras interrupciones.
 
 La revisión de interfaz abarca las cinco pantallas principales, ocho modales, el portal y tamaños de escritorio y móvil en ambos temas. El alcance y los límites de esa comprobación están documentados en [la revisión de navegación y temas](docs/navigation-theme-review.md).
 
@@ -271,6 +272,7 @@ La compilación conserva una advertencia de tamaño del bundle. La división de 
 - [x] Navbar persistente, perfil y navegación adaptable.
 - [x] Temas claro y oscuro con colores compartidos.
 - [x] Pruebas de regresión para los flujos locales principales.
+- [x] Exportación y restauración de respaldos locales con copia previa y recuperación.
 
 ### Próximas etapas
 

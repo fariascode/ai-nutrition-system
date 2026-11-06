@@ -1,0 +1,40 @@
+import { useEffect, useState, type ReactNode } from 'react'
+import { pendingRecoveryBackup, recoverInterruptedRestore } from '../services/backupRestore'
+import { downloadLocalBackup } from '../services/localBackup'
+import { storageError } from '@/lib/localStorage'
+
+export default function LocalDataRecovery({ children }: { children: ReactNode }) {
+  const [ready, setReady] = useState(false)
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    recoverInterruptedRestore().then(() => { if (active) setReady(true) })
+      .catch(err => { if (active) setError(storageError(err)) })
+    return () => { active = false }
+  }, [])
+
+  async function retry() {
+    setBusy(true)
+    try { await recoverInterruptedRestore(); setReady(true) }
+    catch (err) { setError(storageError(err)) }
+    finally { setBusy(false) }
+  }
+
+  if (ready) return children
+  return <main className="min-h-screen bg-canvas text-content p-6 flex items-center justify-center">
+    <section className="bento-card max-w-xl p-6 space-y-4">
+      <h1 className="text-xl font-bold">Recuperación de datos locales</h1>
+      {error ? <>
+        <p role="alert" className="text-sm text-danger">{error}</p>
+        <p className="text-sm text-muted">Los módulos permanecen cerrados para evitar usar datos incompletos.</p>
+        <button type="button" disabled={busy} onClick={retry} className="btn-forest min-h-11 px-4 py-2">Reintentar recuperación</button>
+        <button type="button" disabled={busy} onClick={() => {
+          try { downloadLocalBackup(pendingRecoveryBackup(), 'nutriai-recuperacion') }
+          catch (err) { setError(storageError(err)) }
+        }} className="btn-secondary block min-h-11 px-4 py-2">Descargar los datos anteriores</button>
+      </> : <p role="status" className="text-sm text-muted">Comprobando si hay un guardado interrumpido…</p>}
+    </section>
+  </main>
+}
