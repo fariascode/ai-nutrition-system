@@ -139,3 +139,13 @@ test('no ejecuta claves arbitrarias de un registro de recuperación dañado ni l
   assert.equal(localStorage.getItem(RESTORE_JOURNAL_KEY), forged)
   assert.equal(localStorage.getItem('nutriai_demo_user'), null)
 })
+
+test('recupera un registro de la versión anterior sin la colección de órdenes', async () => {
+  const prepared = await prepareLocalRestore()
+  const { studyOrders, ...previous } = prepared.baseline
+  assert.equal(studyOrders, null)
+  localStorage.setItem(RESTORE_JOURNAL_KEY, journal(previous))
+  localStorage.setItem(BACKUP_STORES.patients, '[]')
+  assert.equal(await recoverInterruptedRestore(), true)
+  assert.deepEqual((await createLocalBackup()).data, prepared.safetyBackup.data)
+})

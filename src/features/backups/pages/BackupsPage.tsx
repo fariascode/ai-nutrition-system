@@ -103,7 +103,7 @@ export default function BackupsPage() {
     {message && <p role="status" className="text-accent text-sm break-words">{message}</p>}
     <section aria-labelledby="export-title" className="bento-card p-5 space-y-3">
       <h2 id="export-title" className="font-bold text-content">1. Exportar respaldo</h2>
-      <p className="text-sm text-muted">Incluye pacientes y mediciones, planes, agenda y notas SOAP, consultas con sus versiones, expedientes, perfiles profesionales e indicaciones aprobadas. El tema y las casillas de compras son preferencias y quedan fuera.</p>
+      <p className="text-sm text-muted">Incluye pacientes y mediciones, planes, agenda y notas SOAP, consultas con sus versiones, expedientes, perfiles profesionales, indicaciones aprobadas y órdenes de estudios. El tema y las casillas de compras son preferencias y quedan fuera.</p>
       <button type="button" disabled={busy || !isDemo} onClick={exportBackup} className="btn-forest min-h-11 px-4 py-2 flex items-center gap-2 disabled:opacity-50">
         <Download className="w-4 h-4" />{busy ? 'Preparando respaldo…' : 'Descargar respaldo JSON'}
       </button>
@@ -114,6 +114,7 @@ export default function BackupsPage() {
     <section aria-labelledby="import-title" className="bento-card p-5 space-y-3">
       <h2 id="import-title" className="font-bold text-content">2. Revisar un respaldo</h2>
       <p className="text-sm text-muted">Seleccionar el archivo no cambia tus datos. Se comprobarán el formato, la versión y los campos antes de mostrar su contenido. Límite: 20 MB.</p>
+      <p className="text-xs text-muted">Los respaldos anteriores (versión 1) se convierten al formato actual con 0 órdenes de estudios. Restaurarlos también reemplaza las órdenes actuales; comprueba las cantidades.</p>
       <label htmlFor="backup-file" className="flex items-center gap-2 text-sm font-bold text-content"><Upload className="w-4 h-4" />Archivo de respaldo JSON</label>
       <input id="backup-file" type="file" accept=".json,application/json" onChange={inspectFile} disabled={busy || !isDemo || restored} className="block w-full min-h-11 text-sm text-muted file:mr-3 file:rounded-xl file:border file:border-line file:bg-subtle file:text-content file:p-3" />
       {imported && <div className="space-y-3" role="status">

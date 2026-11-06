@@ -8,6 +8,7 @@ import { calendarDate } from '@/utils/calendarDate'
 import PatientInstructionsModal from './PatientInstructionsModal'
 import DiagnosisEditor, { DiagnosisSummary } from './DiagnosisEditor'
 import TreatmentEditor, { TreatmentSummary } from './TreatmentEditor'
+import StudyOrdersModal from '@/features/study-orders/components/StudyOrdersModal'
 import { diagnosesToHtml, medicationsToHtml } from '../services/consultationDetails'
 import { saveConsultationWorkflow } from '../services/consultationWorkflow'
 import { storageError } from '@/lib/localStorage'
@@ -144,6 +145,7 @@ const escapeHtml = (s: string) =>
 export default function ConsultationModal({ open, patientId, appointment, onClose, onSaved }: Props) {
   const { user } = useAuth()
   const [documentOpen, setDocumentOpen] = useState(false)
+  const [orderConsultation, setOrderConsultation] = useState<Consultation | null>(null)
   const actor = { id: user?.id ?? 'local', label: user?.email ?? 'Usuario local' }
   const [dirty, setDirty] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
@@ -164,6 +166,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
   useEffect(() => {
     if (!open || !patientId) return
     setDocumentOpen(false)
+    setOrderConsultation(null)
     setError(null)
     setSyncMetrics(isDemo)
     setDirty(false)
@@ -354,6 +357,8 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
     ? `Consulta médica — ${patient?.full_name ?? ''}`
     : `Consultas médicas — ${patient?.full_name ?? ''}`
 
+  if (orderConsultation && patient) return <StudyOrdersModal key={orderConsultation.id} patient={patient} consultation={orderConsultation} actor={actor} onClose={() => setOrderConsultation(null)} onSaved={onSaved} />
+
   if (documentOpen && patient && draft) return <PatientInstructionsModal
     source={{ id: draft.id, date: draft.date, status: draft.status, diagnoses: draft.diagnoses, medications: draft.medications, plan: draft.plan, follow_up_date: draft.follow_up_date, follow_up_notes: draft.follow_up_notes }}
     patient={patient} actorId={actor.id} defaults={{ name: typeof user?.user_metadata?.full_name === 'string' ? user.user_metadata.full_name : '', email: user?.email ?? '' }}
@@ -415,6 +420,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
                         <p className="text-sm font-extrabold text-content mt-1">{c.chief_complaint}</p>
                       </div>
                       <div className="flex items-center gap-1.5">
+                        {isDemo && <button type="button" className="btn-secondary min-h-11 px-3 py-2 text-xs" onClick={() => setOrderConsultation(c)}>Estudios</button>}
                         <button
                           type="button"
                           onClick={() => { setDirty(false); setDraft(draftFromConsultation(c)); setError(null); setView('form') }}
@@ -455,6 +461,7 @@ export default function ConsultationModal({ open, patientId, appointment, onClos
           onSubmit={(e: FormEvent) => { e.preventDefault(); persist('draft') }}
           className="space-y-5"
         >
+          {isDemo && draft.id && <div className="space-y-1"><button type="button" disabled={dirty || saving} className="btn-secondary min-h-11 px-3 py-2 text-xs" onClick={() => setOrderConsultation(consultations.find(c => c.id === draft.id) ?? null)}>Órdenes de estudios de esta consulta</button>{dirty && <p className="text-xs text-muted">Guarda los cambios antes de abrir las órdenes de estudios.</p>}</div>}
           {!appointment && (
             <button
               type="button"

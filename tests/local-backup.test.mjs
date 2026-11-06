@@ -14,7 +14,7 @@ test('exporta los datos demo visibles y omite sesiones y preferencias', async ()
   localStorage.setItem('sb-auth-token', 'secreto')
   localStorage.setItem('nutriai_theme_v1', 'dark')
   const backup = await createLocalBackup()
-  assert.equal(backup.version, 1)
+  assert.equal(backup.version, 2)
   assert.equal(backup.data.patients.length, 3)
   assert.equal(backup.data.plans.length, 2)
   assert.ok(backup.data.appointments.length > 0)
@@ -51,7 +51,7 @@ test('valida el respaldo exportado sin escribir datos y conserva los campos clí
 test('rechaza versiones desconocidas, datos incompletos, campos extra y tipos dañados', async () => {
   const backup = await createLocalBackup()
   const invalid = [
-    { ...backup, version: 2 }, { ...backup, format: 'otro' },
+    { ...backup, version: 99 }, { ...backup, format: 'otro' },
     { ...backup, data: { patients: [] } },
     { ...backup, session: { token: 'no' } },
     { ...backup, data: { ...backup.data, patients: [{ ...backup.data.patients[0], weight_kg: '68' }] } },
