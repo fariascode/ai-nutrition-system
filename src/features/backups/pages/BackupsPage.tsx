@@ -5,6 +5,8 @@ import { storageError } from '@/lib/localStorage'
 import { backupCounts, createLocalBackup, downloadLocalBackup } from '../services/localBackup'
 import type { LocalBackup } from '../services/localBackup'
 import { backupWarnings, MAX_BACKUP_BYTES, parseLocalBackup } from '../services/backupValidation'
+import { PendingRestoreError, prepareLocalRestore, restoreLocalBackup } from '../services/backupRestore'
+import type { PreparedRestore } from '../services/backupRestore'
 
 export default function BackupsPage() {
   const [backup, setBackup] = useState<LocalBackup | null>(null)
@@ -14,12 +16,18 @@ export default function BackupsPage() {
   const [imported, setImported] = useState<LocalBackup | null>(null)
   const [fileName, setFileName] = useState('')
   const selection = useRef(0)
+  const [prepared, setPrepared] = useState<PreparedRestore | null>(null)
+  const [confirmed, setConfirmed] = useState(false)
+  const [restored, setRestored] = useState(false)
 
   async function inspectFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
     const request = ++selection.current
     event.target.value = ''
     setImported(null)
+    setPrepared(null)
+    setConfirmed(false)
+    setRestored(false)
     setFileName('')
     setError('')
     setMessage('')
@@ -33,6 +41,42 @@ export default function BackupsPage() {
       setFileName(file.name)
     } catch (err) { if (request === selection.current) setError(storageError(err)) }
     finally { if (request === selection.current) setBusy(false) }
+  }
+
+  async function downloadSafetyCopy() {
+    setBusy(true)
+    setError('')
+    setMessage('')
+    setPrepared(null)
+    setConfirmed(false)
+    try {
+      const next = await prepareLocalRestore()
+      const name = downloadLocalBackup(next.safetyBackup, 'nutriai-antes-de-restaurar')
+      setPrepared(next)
+      setMessage(`Descarga previa solicitada: ${name}. Verifica que terminó antes de confirmar.`)
+    } catch (err) { setError(storageError(err)) }
+    finally { setBusy(false) }
+  }
+
+  async function confirmRestore() {
+    if (!imported || !prepared || !confirmed || busy) return
+    setBusy(true)
+    setError('')
+    setMessage('')
+    try {
+      await restoreLocalBackup(imported, prepared)
+      setRestored(true)
+      setBackup(null)
+      setMessage('Respaldo restaurado. Abre los datos restaurados para recargar todos los módulos.')
+    } catch (err) {
+      // El arranque bloqueará los módulos hasta recuperar un reemplazo incompleto.
+      if (err instanceof PendingRestoreError) { window.location.reload(); return }
+      setError(storageError(err))
+    } finally {
+      setPrepared(null)
+      setConfirmed(false)
+      setBusy(false)
+    }
   }
 
   async function exportBackup() {
@@ -70,8 +114,8 @@ export default function BackupsPage() {
     <section aria-labelledby="import-title" className="bento-card p-5 space-y-3">
       <h2 id="import-title" className="font-bold text-content">2. Revisar un respaldo</h2>
       <p className="text-sm text-muted">Seleccionar el archivo no cambia tus datos. Se comprobarán el formato, la versión y los campos antes de mostrar su contenido. Límite: 20 MB.</p>
-      <label className="flex items-center gap-2 text-sm font-bold text-content"><Upload className="w-4 h-4" />Archivo de respaldo JSON</label>
-      <input aria-label="Archivo de respaldo JSON" type="file" accept=".json,application/json" onChange={inspectFile} disabled={busy || !isDemo} className="block w-full min-h-11 text-sm text-muted file:mr-3 file:rounded-xl file:border file:border-line file:bg-subtle file:text-content file:p-3" />
+      <label htmlFor="backup-file" className="flex items-center gap-2 text-sm font-bold text-content"><Upload className="w-4 h-4" />Archivo de respaldo JSON</label>
+      <input id="backup-file" type="file" accept=".json,application/json" onChange={inspectFile} disabled={busy || !isDemo || restored} className="block w-full min-h-11 text-sm text-muted file:mr-3 file:rounded-xl file:border file:border-line file:bg-subtle file:text-content file:p-3" />
       {imported && <div className="space-y-3" role="status">
         <p className="text-sm font-semibold text-content break-all">Archivo válido: {fileName}</p>
         <p className="text-sm text-muted">Creado: {new Date(imported.createdAt).toLocaleString('es-MX')} · Formato versión {imported.version}</p>
@@ -82,5 +126,19 @@ export default function BackupsPage() {
         <p className="text-sm text-muted">La restauración reemplazará todos los datos clínicos locales por los de este archivo, incluidos los estados de publicación y aprobación. No combinará registros.</p>
       </div>}
     </section>
+    {imported && <section aria-labelledby="restore-title" className="bento-card p-5 space-y-4">
+      <h2 id="restore-title" className="font-bold text-content">3. Restaurar con copia previa</h2>
+      {restored ? <button type="button" onClick={() => window.location.assign('/dashboard')} className="btn-forest min-h-11 px-4 py-2">Abrir datos restaurados</button> : <>
+        <p className="text-sm text-muted">Cierra otras pestañas del proyecto y conserva los cambios de tus formularios antes de continuar. La copia previa permitirá volver a tus datos actuales si necesitas deshacer la restauración.</p>
+        <button type="button" disabled={busy || !isDemo} onClick={downloadSafetyCopy} className="btn-secondary min-h-11 px-4 py-2">Descargar copia previa obligatoria</button>
+        {prepared && <>
+          <label className="flex items-start gap-3 text-sm text-content">
+            <input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} disabled={busy} className="mt-1 shrink-0" />
+            Confirmo que la copia previa se descargó y que quiero reemplazar todos los datos clínicos locales por el archivo revisado.
+          </label>
+          <button type="button" disabled={busy || !confirmed || !isDemo} onClick={confirmRestore} className="min-h-11 px-4 py-2 rounded-xl bg-danger-soft text-danger border border-danger-line font-bold disabled:opacity-50">{busy ? 'Restaurando…' : 'Reemplazar datos y restaurar respaldo'}</button>
+        </>}
+      </>}
+    </section>}
   </div>
 }

@@ -156,10 +156,11 @@ export function backupWarnings(backup: LocalBackup): string[] {
   const consultations = new Map(data.consultations.map(c => [c.id, c]))
   const appointments = new Map(data.appointments.map(a => [a.id, a]))
   const warnings: string[] = []
+  const labels = { plans: 'planes', appointments: 'citas', consultations: 'consultas', medicalRecords: 'expedientes', patientInstructions: 'indicaciones' }
   for (const name of ['plans', 'appointments', 'consultations', 'medicalRecords', 'patientInstructions'] as const) {
     const items = Object.values(data[name])
     const missing = items.filter(item => !patients.has(item.patient_id)).length
-    if (missing) warnings.push(`${missing} registros de ${name} no tienen su paciente en el archivo; se conservarán como registros sin ficha asociada.`)
+    if (missing) warnings.push(`${missing} registros de ${labels[name]} no tienen su paciente en el archivo; se conservarán como registros sin ficha asociada.`)
   }
   if (data.consultations.some(c => c.appointment_id && !appointments.has(c.appointment_id))) warnings.push('Algunas consultas remiten a citas que ya no están en la agenda del archivo.')
   if (data.appointments.some(a => a.source_consultation_id && !consultations.has(a.source_consultation_id))) warnings.push('Algunas citas remiten a consultas que no están en el archivo.')

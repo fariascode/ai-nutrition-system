@@ -1,6 +1,7 @@
 import { getMockPatients, getMockPlans, isDemo } from '@/lib/mockData'
 import { getAppointments } from '@/features/appointments/services/appointments.service'
 import { readLocalJson } from '@/lib/localStorage'
+import { parseLocalBackup } from './backupValidation'
 import type { Patient } from '@/types/patient'
 import type { PlanWithPatient } from '@/types/plan'
 import type { Appointment } from '@/types/appointment'
@@ -61,7 +62,7 @@ export async function createLocalBackup(): Promise<LocalBackup> {
     professionalProfiles: readLocalJson(BACKUP_STORES.professionalProfiles, {}),
     patientInstructions: readLocalJson(BACKUP_STORES.patientInstructions, {}),
   }
-  return { format: 'nutriai-local-backup', version: 1, createdAt: new Date().toISOString(), mode: 'demo-local', data }
+  return parseLocalBackup(JSON.stringify({ format: 'nutriai-local-backup', version: 1, createdAt: new Date().toISOString(), mode: 'demo-local', data }))
 }
 
 export function backupCounts(backup: LocalBackup): [string, number][] {

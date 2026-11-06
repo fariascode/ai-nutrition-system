@@ -2,6 +2,7 @@ import { test, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import { createLocalBackup, backupCounts, BACKUP_STORES } from '../src/features/backups/services/localBackup.ts'
 import { parseLocalBackup, backupWarnings } from '../src/features/backups/services/backupValidation.ts'
+import { saveConsultation } from '../src/features/consultations/services/consultations.service.ts'
 
 beforeEach(() => {
   const data = new Map()
@@ -23,11 +24,11 @@ test('exporta los datos demo visibles y omite sesiones y preferencias', async ()
 })
 
 test('incluye datos guardados sin cambiar consultas ni omitir sus versiones', async () => {
-  const consultations = [{ id: 'c1', revisions: [{ action: 'created' }] }]
-  localStorage.setItem(BACKUP_STORES.consultations, JSON.stringify(consultations))
+  const patient = (await createLocalBackup()).data.patients[0]
+  const consultation = await saveConsultation({ patient_id: patient.id, date: '2026-11-05', status: 'draft', chief_complaint: 'Control', present_illness: '', vitals: {}, exam: {}, assessment: '', plan: '' })
   const before = localStorage.getItem(BACKUP_STORES.consultations)
   const backup = await createLocalBackup()
-  assert.deepEqual(backup.data.consultations, consultations)
+  assert.deepEqual(backup.data.consultations, [consultation])
   assert.equal(localStorage.getItem(BACKUP_STORES.consultations), before)
 })
 
