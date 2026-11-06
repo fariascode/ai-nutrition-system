@@ -10,6 +10,7 @@ import PlansPage from '@/features/plans/pages/PlansPage'
 import AppointmentsPage from '@/features/appointments/pages/AppointmentsPage'
 import HistoryPage from '@/features/history/pages/HistoryPage'
 import PatientPortalPage from '@/features/portal/pages/PatientPortalPage'
+import BackupsPage from '@/features/backups/pages/BackupsPage'
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
               <Route path="/plans"        element={<PlansPage />} />
               <Route path="/appointments" element={<AppointmentsPage />} />
               <Route path="/history"      element={<HistoryPage />} />
+              <Route path="/backups"      element={<BackupsPage />} />
             </Route>
           </Routes>
         </AuthProvider>

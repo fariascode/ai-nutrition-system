@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { ChevronDown, LogOut } from 'lucide-react'
+import { ChevronDown, LogOut, Download } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '@/features/auth/context/AuthContext'
 
 export default function ProfileMenu() {
@@ -59,6 +60,9 @@ export default function ProfileMenu() {
         <p className="text-xs text-[var(--text-secondary)] break-all mt-1">{user?.email}</p>
       </div>
       {error && <p role="alert" className="text-xs text-[var(--status-danger-text)] p-2">{error}</p>}
+      <Link to="/backups" onClick={() => setOpen(false)} className="flex items-center gap-2 w-full rounded-xl p-3 text-sm font-semibold hover:bg-subtle min-h-11">
+        <Download className="h-4 w-4" />Respaldos locales
+      </Link>
       <button ref={logout} type="button" disabled={busy} onClick={logoutUser}
         className="account-logout flex items-center gap-2 w-full rounded-xl p-3 text-sm font-semibold disabled:opacity-60">
         <LogOut className="h-4 w-4" />{busy ? 'Cerrando sesión...' : 'Cerrar sesión'}
