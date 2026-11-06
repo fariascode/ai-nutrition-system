@@ -7,6 +7,9 @@ import { getAppointments } from '@/features/appointments/services/appointments.s
 import type { Appointment } from '@/types/appointment'
 import { getPatientById } from '@/features/patients/services/patients.service'
 import { calendarDate } from '@/utils/calendarDate'
+import { isDemo } from '@/lib/mockData'
+import { getStudyOrders } from '@/features/study-orders/services/studyOrders.service'
+import type { StudyOrder, StudyOrderStatus } from '@/types/studyOrder'
 
 type TimelineBase = { id: string; date: string; title: string }
 export type PatientTimelineEvent = TimelineBase & (
@@ -15,9 +18,10 @@ export type PatientTimelineEvent = TimelineBase & (
   | { kind: 'plan'; data: PlanWithPatient }
   | { kind: 'laboratory'; data: LabBiomarkers }
   | { kind: 'soap'; data: Appointment }
+  | { kind: 'study_order'; data: StudyOrder; phase: StudyOrderStatus }
 )
 
-export function buildPatientTimeline(patient: Patient, consultations: Consultation[], plans: PlanWithPatient[], appointments: Appointment[] = []): PatientTimelineEvent[] {
+export function buildPatientTimeline(patient: Patient, consultations: Consultation[], plans: PlanWithPatient[], appointments: Appointment[] = [], orders: StudyOrder[] = []): PatientTimelineEvent[] {
   const ownConsultations = consultations.filter(item => item.patient_id === patient.id)
   const events: PatientTimelineEvent[] = ownConsultations.map(data => ({ id: `consultation:${data.id}`, date: data.date, kind: 'consultation', title: data.chief_complaint, data }))
   for (const [index, data] of (patient.weight_history ?? []).entries()) {
@@ -31,14 +35,28 @@ export function buildPatientTimeline(patient: Patient, consultations: Consultati
     events.push({ id: `plan:${data.id}`, date: data.created_at, kind: 'plan', title: 'Plan nutricional', data })
   }
   const bio = patient.biomarkers
+  for (const data of orders.filter(order => order.patient_id === patient.id && order.doctor_id === patient.doctor_id)) {
+    events.push({ id: `study:${data.id}:requested`, date: data.requested_date, kind: 'study_order', phase: 'requested', title: 'Solicitud de estudios', data })
+    if (data.results) events.push({ id: `study:${data.id}:received`, date: data.results.received_date, kind: 'study_order', phase: 'received', title: 'Resultados recibidos', data })
+    if (data.review) events.push({ id: `study:${data.id}:reviewed`, date: data.review.date, kind: 'study_order', phase: 'reviewed', title: 'Resultados revisados', data })
+    const cancelled = data.events.findLast(event => event.action === 'cancelled')
+    if (cancelled) events.push({ id: `study:${data.id}:cancelled`, date: cancelled.at, kind: 'study_order', phase: 'cancelled', title: 'Orden de estudios cancelada', data })
+  }
   if (bio && Object.entries(bio).some(([key, value]) => key !== 'last_lab_date' && typeof value === 'number')) {
     events.push({ id: `laboratory:${patient.id}`, date: bio.last_lab_date ?? patient.updated_at, kind: 'laboratory', title: 'Últimos resultados registrados', data: bio })
   }
-  return events.map(event => ({ ...event, date: calendarDate(event.date) })).sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id))
+  return events.map(event => ({ ...event, date: calendarDate(event.date) })).sort((a, b) => {
+    const byDate = b.date.localeCompare(a.date)
+    if (byDate) return byDate
+    if (a.kind === 'study_order' && b.kind === 'study_order' && a.data.id === b.data.id) {
+      return b.data.events.findIndex(event => event.action === b.phase) - a.data.events.findIndex(event => event.action === a.phase)
+    }
+    return a.id.localeCompare(b.id)
+  })
 }
 
 export async function getPatientTimeline(patient: Patient): Promise<PatientTimelineEvent[]> {
   const [current, consultations, plans, appointments] = await Promise.all([getPatientById(patient.id), getConsultationsByPatient(patient.id), getPlans(), getAppointments()])
   if (!current) throw new Error('El paciente ya no está disponible.')
-  return buildPatientTimeline(current, consultations, plans, appointments)
+  return buildPatientTimeline(current, consultations, plans, appointments, isDemo ? getStudyOrders(current.doctor_id) : [])
 }

@@ -161,7 +161,21 @@ export function parseLocalBackup(contents: string): LocalBackup {
     parsed = { ...legacy, version: 2, data: { ...legacy.data, studyOrders: [] } }
   }
   backupSchema(parsed, 'archivo')
-  return parsed as LocalBackup
+  const backup = parsed as LocalBackup
+  for (const order of backup.data.studyOrders) {
+    const path = `órdenes de estudios (${order.id})`
+    if (!order.reason.trim() || !order.professional.name.trim() || !order.studies.length || order.studies.some(study => !study.name.trim()) || order.events[0]?.action !== 'requested' || order.events.at(-1)?.action !== order.status) invalid(path)
+    const allowed: Record<string, string[]> = { requested: ['received', 'cancelled'], received: ['reviewed', 'cancelled'], reviewed: ['cancelled'], cancelled: [] }
+    for (let index = 0; index < order.events.length; index++) {
+      const event = order.events[index]
+      if (event.actor.id !== order.doctor_id || (index > 0 && !allowed[order.events[index - 1].action].includes(event.action))) invalid(path)
+    }
+    if (Boolean(order.results) !== order.events.some(event => event.action === 'received') || Boolean(order.review) !== order.events.some(event => event.action === 'reviewed')) invalid(path)
+    if (order.results && (!order.results.text.trim() || order.results.study_date < order.requested_date || order.results.received_date < order.results.study_date)) invalid(path)
+    if (order.review && (!order.review.notes.trim() || !order.results || order.review.date < order.results.received_date)) invalid(path)
+    if (order.status === 'cancelled' && !order.cancellation_reason?.trim()) invalid(path)
+  }
+  return backup
 }
 
 export function backupWarnings(backup: LocalBackup): string[] {

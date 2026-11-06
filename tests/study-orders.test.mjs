@@ -135,3 +135,13 @@ test('un fallo de almacenamiento durante recepción deja la orden en su estado p
   await assert.rejects(updateStudyOrder(order.id, 1, receipt, actor), /Sin espacio/)
   assert.equal(localStorage.getItem(STUDY_ORDERS_KEY), before)
 })
+
+test('la importación no admite estados de seguimiento sin informe o sin historial coherente', async () => {
+  const { input, actor } = await studyFixture()
+  await createStudyOrder(input, actor)
+  const backup = await createLocalBackup()
+  const order = backup.data.studyOrders[0]
+  for (const invalid of [{ ...order, status: 'reviewed' }, { ...order, events: [] }, { ...order, studies: [] }, { ...order, results: receipt.results }]) {
+    assert.throws(() => parseLocalBackup(JSON.stringify({ ...backup, data: { ...backup.data, studyOrders: [invalid] } })), /órdenes de estudios/)
+  }
+})

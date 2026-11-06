@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import {
   Activity, Flame, Droplets, Scale, AlertTriangle, CheckCircle2,
   Sparkles, Plus, TrendingDown, TrendingUp, HeartPulse, Pill,
@@ -107,6 +108,7 @@ export default function PatientDossierModal({
       onClose={onClose}
     >
       <div className="space-y-6">
+        <Link to={`/studies?patient=${encodeURIComponent(patient.id)}`} className="btn-secondary inline-flex items-center min-h-11 px-4 py-2 text-sm">Órdenes de estudios y seguimiento</Link>
         {/* Cabecera del Paciente */}
         <div className="min-w-0 space-y-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-900 text-white shadow-md">
           <div className="flex min-w-0 items-start gap-3 sm:gap-4">

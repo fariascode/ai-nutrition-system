@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/features/auth/context/AuthContext'
 import { getPatients } from '@/features/patients/services/patients.service'
 import { isDemo } from '@/lib/mockData'
@@ -14,9 +15,10 @@ import type { Consultation } from '@/types/consultation'
 
 export default function StudyOrdersPage() {
   const { user } = useAuth()
+  const [search] = useSearchParams()
   const [patients, setPatients] = useState<Patient[]>([])
   const [orders, setOrders] = useState<StudyOrder[]>([])
-  const [patientId, setPatientId] = useState('all')
+  const [patientId, setPatientId] = useState(search.get('patient') ?? 'all')
   const [status, setStatus] = useState<'all' | StudyOrderStatus>('all')
   const [revision, setRevision] = useState(0)
   const [error, setError] = useState('')
