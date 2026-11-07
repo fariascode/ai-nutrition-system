@@ -167,6 +167,7 @@ Los cambios de demostración permanecen en ese navegador. No se comparten autom�
 | Portal | Muestra el texto exacto del plan publicado y las indicaciones aprobadas de consultas cerradas. El menú fijo de demostración fue sustituido por la prescripción revisada. Las compras y equivalencias calculadas permanecen como referencias del profesional. |
 | Indicaciones | Documento con datos profesionales capturados manualmente, vista previa e impresión/PDF. La aprobación se guarda localmente; reapertura, modificación, anulación o retirada invalidan el contenido compartido. |
 | Respaldos locales | Exportación JSON, validación y vista previa, copia previa obligatoria y restauración con recuperación ante fallos. Disponible en modo demo desde el perfil; no respalda Supabase. [Uso y límites](docs/local-backups.md). |
+| Órdenes de estudios | Solicitudes por consulta con documento imprimible y seguimiento solicitado/recibido/revisado/cancelado, resultados manuales e historial. Incluidas en respaldos v2, con compatibilidad v1. [Uso y límites](docs/study-orders.md). |
 | WhatsApp | Construye el mensaje y abre un enlace para que el usuario lo envíe. No hay envío automático ni confirmación de entrega. |
 | Producción | Pendientes la persistencia remota completa, los controles de acceso del servidor y la validación del comportamiento clínico. |
 
@@ -252,7 +253,7 @@ npm run build    # TypeScript + compilación de producción
 npm run preview  # Vista local del resultado compilado
 ```
 
-Las **56 pruebas actuales** cubren sincronización del expediente, conservación de detalles, contexto de glucosa, citas de seguimiento, recuperación ante fallos, diagnósticos y tratamientos, documentos de indicaciones, historial unificado, aprobación/publicación del contenido del portal, entradas de laboratorio sin resultados inventados y respaldos locales con validación, restauración y recuperación tras interrupciones.
+Las **70 pruebas actuales** cubren sincronización del expediente, conservación de detalles, contexto de glucosa, citas de seguimiento, recuperación ante fallos, diagnósticos y tratamientos, documentos de indicaciones, historial unificado, aprobación/publicación del contenido del portal, entradas de laboratorio sin resultados inventados, respaldos locales con recuperación y órdenes de estudios con documento, seguimiento e historial.
 
 La revisión de interfaz abarca las cinco pantallas principales, ocho modales, el portal y tamaños de escritorio y móvil en ambos temas. El alcance y los límites de esa comprobación están documentados en [la revisión de navegación y temas](docs/navigation-theme-review.md).
 
@@ -273,12 +274,12 @@ La compilación conserva una advertencia de tamaño del bundle. La división de 
 - [x] Temas claro y oscuro con colores compartidos.
 - [x] Pruebas de regresión para los flujos locales principales.
 - [x] Exportación y restauración de respaldos locales con copia previa y recuperación.
+- [x] Órdenes de estudios por consulta, impresión, recepción y revisión de resultados.
 
 ### Próximas etapas
 
 - [ ] Persistencia remota completa y sincronización entre dispositivos.
 - [ ] Roles, controles de acceso y trazabilidad protegida en servidor.
-- [ ] Solicitudes de estudios vinculadas con el expediente.
 - [ ] Extracción real de resultados desde PDF e imágenes, con revisión del médico.
 - [ ] Seguimiento longitudinal de enfermedades crónicas.
 - [x] Retirar métricas heurísticas de eficacia de la interfaz y de los nuevos borradores.

@@ -6,6 +6,22 @@ const patient = { id: 'p1', updated_at: '2026-11-04T10:00:00Z', weight_history: 
 const consultation = { id: 'c1', patient_id: 'p1', date: '2026-11-03', status: 'closed', chief_complaint: 'Control', vitals: { weight_kg: 71 }, diagnoses: [{ name: 'Hallazgo' }], medications: [{ name: 'Tratamiento' }] }
 const plan = { id: 'plan1', patient_id: 'p1', created_at: '2026-11-02T14:00:00Z', status: 'published', edited_content: 'Prescripción revisada' }
 
+test('el historial conserva solicitud, recepción, revisión y cancelación solo del paciente y profesional indicados', () => {
+  const ownPatient = { ...patient, doctor_id: 'd1' }
+  const order = { id: 'o1', patient_id: 'p1', doctor_id: 'd1', requested_date: '2026-11-01', status: 'cancelled', studies: [{ name: 'Estudio QA' }], results: { received_date: '2026-11-02' }, review: { date: '2026-11-03' }, events: [{ action: 'cancelled', at: '2026-11-04T10:00:00Z' }] }
+  const source = JSON.stringify(order)
+  const events = buildPatientTimeline(ownPatient, [], [], [], [order, { ...order, id: 'otro-paciente', patient_id: 'p2' }, { ...order, id: 'otro-profesional', doctor_id: 'd2' }]).filter(event => event.kind === 'study_order')
+  assert.deepEqual(events.map(event => event.phase), ['cancelled', 'reviewed', 'received', 'requested'])
+  assert.equal(new Set(events.map(event => event.id)).size, 4)
+  assert.equal(JSON.stringify(order), source)
+})
+
+test('los cambios de una orden en el mismo día aparecen del último al primero', () => {
+  const order = { id: 'same-day', patient_id: 'p1', doctor_id: 'd1', requested_date: '2026-11-05', status: 'reviewed', results: { received_date: '2026-11-05' }, review: { date: '2026-11-05' }, events: [{ action: 'requested' }, { action: 'received' }, { action: 'reviewed' }] }
+  const events = buildPatientTimeline({ ...patient, doctor_id: 'd1', weight_history: [] }, [], [], [], [order])
+  assert.deepEqual(events.map(event => event.phase), ['reviewed', 'received', 'requested'])
+})
+
 test('ordena eventos de distintas fuentes y conserva los detalles de la consulta', () => {
   const events = buildPatientTimeline(patient, [consultation], [plan])
   assert.deepEqual(events.map(item => item.kind), ['consultation', 'plan', 'measurement'])

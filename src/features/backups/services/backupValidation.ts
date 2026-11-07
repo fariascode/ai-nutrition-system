@@ -125,16 +125,25 @@ const medicalRecord = object({
   habits: object({ smoking: choice('unknown', 'never', 'former', 'current'), alcohol: choice('unknown', 'none', 'occasional', 'frequent'), ...numericFields(['exercise_per_week', 'sleep_hours', 'water_liters']), diet_notes: optionalText, other: optionalText }),
   review_status: optional(object(stringFields(['personal', 'family', 'surgeries', 'hospitalizations', 'allergies', 'medications'], optional(choice('unknown', 'none', 'recorded'))))),
 })
-const backupSchema = object({
-  format: choice('nutriai-local-backup'), version: choice(1), createdAt: timestamp, mode: choice('demo-local'),
-  data: object({ patients, plans, appointments, consultations,
+const studyOrders = list(object({
+  id, patient_id: id, consultation_id: id, doctor_id: id, patient: object({ full_name: text, birth_date: date }), professional: profile,
+  requested_date: date, reason: text, status: choice('requested', 'received', 'reviewed', 'cancelled'),
+  studies: list(object({ id, kind: choice('laboratory', 'imaging', 'other'), name: text, preparation: text }), true),
+  results: optional(object({ study_date: date, received_date: date, facility: text, text })),
+  review: optional(object({ date, notes: text })), cancellation_reason: optionalText,
+  created_at: timestamp, updated_at: timestamp,
+  events: list(object({ at: timestamp, actor, action: choice('requested', 'received', 'reviewed', 'cancelled'), notes: text })),
+}), true)
+const originalDataFields = { patients, plans, appointments, consultations,
     medicalRecords: dictionary(medicalRecord, 'patient_id'), professionalProfiles: dictionary(profile),
     patientInstructions: dictionary(object({
       consultation_id: id, patient_id: id, patient: object({ full_name: text, birth_date: date }),
       approved_at: timestamp, actor, fingerprint: text, source: object({ ...instructionsFields, id: optional(id) }), professional: profile,
     }), 'consultation_id'),
-  }),
-})
+}
+const metadata = { format: choice('nutriai-local-backup'), createdAt: timestamp, mode: choice('demo-local') }
+const oldBackupSchema = object({ ...metadata, version: choice(1), data: object(originalDataFields) })
+const backupSchema = object({ ...metadata, version: choice(2), data: object({ ...originalDataFields, studyOrders }) })
 
 /** No escribe en almacenamiento; devuelve una copia aislada del archivo validado. */
 export function parseLocalBackup(contents: string): LocalBackup {
@@ -146,8 +155,27 @@ export function parseLocalBackup(contents: string): LocalBackup {
       return value
     })
   } catch { throw new Error('El archivo no contiene un JSON de respaldo válido. No se modificaron los datos locales.') }
+  if (parsed && typeof parsed === 'object' && (parsed as Row).version === 1) {
+    oldBackupSchema(parsed, 'archivo')
+    const legacy = parsed as { data: object }
+    parsed = { ...legacy, version: 2, data: { ...legacy.data, studyOrders: [] } }
+  }
   backupSchema(parsed, 'archivo')
-  return parsed as LocalBackup
+  const backup = parsed as LocalBackup
+  for (const order of backup.data.studyOrders) {
+    const path = `órdenes de estudios (${order.id})`
+    if (!order.reason.trim() || !order.professional.name.trim() || !order.studies.length || order.studies.some(study => !study.name.trim()) || order.events[0]?.action !== 'requested' || order.events.at(-1)?.action !== order.status) invalid(path)
+    const allowed: Record<string, string[]> = { requested: ['received', 'cancelled'], received: ['reviewed', 'cancelled'], reviewed: ['cancelled'], cancelled: [] }
+    for (let index = 0; index < order.events.length; index++) {
+      const event = order.events[index]
+      if (event.actor.id !== order.doctor_id || (index > 0 && !allowed[order.events[index - 1].action].includes(event.action))) invalid(path)
+    }
+    if (Boolean(order.results) !== order.events.some(event => event.action === 'received') || Boolean(order.review) !== order.events.some(event => event.action === 'reviewed')) invalid(path)
+    if (order.results && (!order.results.text.trim() || order.results.study_date < order.requested_date || order.results.received_date < order.results.study_date)) invalid(path)
+    if (order.review && (!order.review.notes.trim() || !order.results || order.review.date < order.results.received_date)) invalid(path)
+    if (order.status === 'cancelled' && !order.cancellation_reason?.trim()) invalid(path)
+  }
+  return backup
 }
 
 export function backupWarnings(backup: LocalBackup): string[] {
@@ -156,8 +184,8 @@ export function backupWarnings(backup: LocalBackup): string[] {
   const consultations = new Map(data.consultations.map(c => [c.id, c]))
   const appointments = new Map(data.appointments.map(a => [a.id, a]))
   const warnings: string[] = []
-  const labels = { plans: 'planes', appointments: 'citas', consultations: 'consultas', medicalRecords: 'expedientes', patientInstructions: 'indicaciones' }
-  for (const name of ['plans', 'appointments', 'consultations', 'medicalRecords', 'patientInstructions'] as const) {
+  const labels = { plans: 'planes', appointments: 'citas', consultations: 'consultas', medicalRecords: 'expedientes', patientInstructions: 'indicaciones', studyOrders: 'órdenes de estudios' }
+  for (const name of ['plans', 'appointments', 'consultations', 'medicalRecords', 'patientInstructions', 'studyOrders'] as const) {
     const items = Object.values(data[name])
     const missing = items.filter(item => !patients.has(item.patient_id)).length
     if (missing) warnings.push(`${missing} registros de ${labels[name]} no tienen su paciente en el archivo; se conservarán como registros sin ficha asociada.`)
@@ -165,5 +193,6 @@ export function backupWarnings(backup: LocalBackup): string[] {
   if (data.consultations.some(c => c.appointment_id && !appointments.has(c.appointment_id))) warnings.push('Algunas consultas remiten a citas que ya no están en la agenda del archivo.')
   if (data.appointments.some(a => a.source_consultation_id && !consultations.has(a.source_consultation_id))) warnings.push('Algunas citas remiten a consultas que no están en el archivo.')
   if (Object.values(data.patientInstructions).some(i => !consultations.has(i.consultation_id))) warnings.push('Algunas indicaciones no tienen su consulta original y no se mostrarán en el portal.')
+  if (data.studyOrders.some(order => !consultations.has(order.consultation_id))) warnings.push('Algunas órdenes remiten a consultas que no están en el archivo.')
   return warnings
 }

@@ -8,6 +8,7 @@ import type { Appointment } from '@/types/appointment'
 import type { Consultation } from '@/types/consultation'
 import type { MedicalRecord } from '@/types/medicalRecord'
 import type { ApprovedPatientInstructions, ProfessionalProfile } from '@/types/patientInstructions'
+import type { StudyOrder } from '@/types/studyOrder'
 
 export interface BackupData {
   patients: Patient[]
@@ -17,11 +18,12 @@ export interface BackupData {
   medicalRecords: Record<string, MedicalRecord>
   professionalProfiles: Record<string, ProfessionalProfile>
   patientInstructions: Record<string, ApprovedPatientInstructions>
+  studyOrders: StudyOrder[]
 }
 
 export interface LocalBackup {
   format: 'nutriai-local-backup'
-  version: 1
+  version: 2
   createdAt: string
   mode: 'demo-local'
   data: BackupData
@@ -35,12 +37,14 @@ export const BACKUP_STORES = {
   medicalRecords: 'nutriai_medical_records_v1',
   professionalProfiles: 'nutriai_professional_profiles_v1',
   patientInstructions: 'nutriai_patient_instructions_v1',
+  studyOrders: 'nutriai_study_orders_v1',
 } as const
 
 export const BACKUP_LABELS: Record<keyof BackupData, string> = {
   patients: 'Pacientes', plans: 'Planes nutricionales', appointments: 'Citas y notas SOAP',
   consultations: 'Consultas y sus versiones', medicalRecords: 'Expedientes médicos',
   professionalProfiles: 'Perfiles profesionales', patientInstructions: 'Indicaciones aprobadas',
+  studyOrders: 'Órdenes de estudios',
 }
 
 export function requireLocalDemo(): void {
@@ -61,8 +65,9 @@ export async function createLocalBackup(): Promise<LocalBackup> {
     medicalRecords: readLocalJson(BACKUP_STORES.medicalRecords, {}),
     professionalProfiles: readLocalJson(BACKUP_STORES.professionalProfiles, {}),
     patientInstructions: readLocalJson(BACKUP_STORES.patientInstructions, {}),
+    studyOrders: readLocalJson(BACKUP_STORES.studyOrders, []),
   }
-  return parseLocalBackup(JSON.stringify({ format: 'nutriai-local-backup', version: 1, createdAt: new Date().toISOString(), mode: 'demo-local', data }))
+  return parseLocalBackup(JSON.stringify({ format: 'nutriai-local-backup', version: 2, createdAt: new Date().toISOString(), mode: 'demo-local', data }))
 }
 
 export function backupCounts(backup: LocalBackup): [string, number][] {

@@ -17,17 +17,20 @@ function captureRaw(): RawSnapshot {
 
 function backupFromRaw(raw: RawSnapshot): LocalBackup {
   const data = Object.fromEntries(names.map(name => [name, raw[name] === null
-    ? (['patients', 'plans', 'appointments', 'consultations'].includes(name) ? [] : {})
+    ? (['patients', 'plans', 'appointments', 'consultations', 'studyOrders'].includes(name) ? [] : {})
     : JSON.parse(raw[name]!),
   ]))
-  return parseLocalBackup(JSON.stringify({ format: 'nutriai-local-backup', version: 1, createdAt: new Date().toISOString(), mode: 'demo-local', data }))
+  return parseLocalBackup(JSON.stringify({ format: 'nutriai-local-backup', version: 2, createdAt: new Date().toISOString(), mode: 'demo-local', data }))
 }
 
-function checkRaw(raw: unknown): asserts raw is RawSnapshot {
+function checkRaw(raw: unknown): RawSnapshot {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('Registro de recuperación inválido.')
-  const values = raw as Record<string, unknown>
+  const source = raw as Record<string, unknown>
+  // Un journal de la versión anterior se creó antes de existir las órdenes.
+  const values = Object.keys(source).length === names.length - 1 && !Object.hasOwn(source, 'studyOrders') ? { ...source, studyOrders: null } : source
   if (Object.keys(values).length !== names.length || names.some(name => !Object.hasOwn(values, name) || (values[name] !== null && typeof values[name] !== 'string'))) throw new Error('Registro de recuperación incompleto.')
   backupFromRaw(values as RawSnapshot)
+  return values as RawSnapshot
 }
 
 function writeRaw(raw: RawSnapshot): void {
@@ -62,13 +65,13 @@ export async function restoreLocalBackup(backup: LocalBackup, prepared: Prepared
   requireLocalDemo()
   // Se vuelve a validar al confirmar; la vista previa nunca autoriza escrituras por sí sola.
   const validated = parseLocalBackup(JSON.stringify(backup))
-  checkRaw(prepared.baseline)
-  if (JSON.stringify(backupFromRaw(prepared.baseline).data) !== JSON.stringify(prepared.safetyBackup.data)) throw new Error('La copia previa no coincide con los datos preparados.')
+  const baseline = checkRaw(prepared.baseline)
+  if (JSON.stringify(backupFromRaw(baseline).data) !== JSON.stringify(prepared.safetyBackup.data)) throw new Error('La copia previa no coincide con los datos preparados.')
   const target = Object.fromEntries(names.map(name => [name, JSON.stringify(validated.data[name])])) as RawSnapshot
   await withRestoreLock(() => {
     checkNoRecovery()
     const current = captureRaw()
-    if (names.some(name => current[name] !== prepared.baseline[name])) throw new Error('Los datos locales cambiaron después de la copia previa. Descarga una nueva copia antes de restaurar.')
+    if (names.some(name => current[name] !== baseline[name])) throw new Error('Los datos locales cambiaron después de la copia previa. Descarga una nueva copia antes de restaurar.')
     // Si no hay espacio para proteger los originales, no se inicia el reemplazo.
     localStorage.setItem(RESTORE_JOURNAL_KEY, JSON.stringify({ format: 'nutriai-local-restore', version: 1, previous: current }))
     try {
@@ -92,8 +95,7 @@ function readJournal(): RawSnapshot | null {
   try {
     const journal = JSON.parse(raw)
     if (!journal || journal.format !== 'nutriai-local-restore' || journal.version !== 1 || Object.keys(journal).sort().join(',') !== 'format,previous,version') throw new Error()
-    checkRaw(journal.previous)
-    return journal.previous
+    return checkRaw(journal.previous)
   } catch { throw new Error('No se pudo validar el registro de recuperación. No se borró ni se sobrescribió. Conserva tu copia previa antes de reparar el almacenamiento.') }
 }
 

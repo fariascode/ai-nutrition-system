@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { STUDY_STATUS_LABELS } from '@/types/studyOrder'
 import type { Patient, LabBiomarkers } from '@/types/patient'
 import { getPatientTimeline, type PatientTimelineEvent } from '../services/patientTimeline.service'
 import { DiagnosisSummary } from '@/features/consultations/components/DiagnosisEditor'
 import { TreatmentSummary } from '@/features/consultations/components/TreatmentEditor'
 import { storageError } from '@/lib/localStorage'
 
-const LABELS = { consultation: 'Consulta médica', measurement: 'Medición', plan: 'Nutrición', laboratory: 'Laboratorio', soap: 'Nota SOAP' }
+const LABELS = { consultation: 'Consulta médica', measurement: 'Medición', plan: 'Nutrición', laboratory: 'Laboratorio', soap: 'Nota SOAP', study_order: 'Órdenes de estudios' }
 const LAB_LABELS: Record<keyof LabBiomarkers, string> = {
   fasting_glucose: 'Glucosa en ayuno (mg/dL)', fasting_insulin: 'Insulina (µU/mL)', hba1c: 'HbA1c (%)',
   systolic_bp: 'Presión sistólica (mmHg)', diastolic_bp: 'Presión diastólica (mmHg)', cholesterol_total: 'Colesterol total (mg/dL)',
@@ -65,6 +67,15 @@ export default function PatientTimeline({ patient, onOpenConsultations }: { pati
             <p className="text-xs text-muted">{{ draft: 'Borrador', published: 'Publicado', archived: 'Archivado' }[event.data.status]}</p>
             <details className="text-xs"><summary className="font-bold cursor-pointer">Ver prescripción</summary><p className="whitespace-pre-wrap mt-2">{event.data.edited_content ?? event.data.ai_generated_content}</p></details>
           </>}
+          {event.kind === 'study_order' && <div className="text-xs space-y-2">
+            <p>{event.data.studies.map(study => study.name).join(' · ')}</p>
+            <p className="text-muted">Estado actual de la orden: {STUDY_STATUS_LABELS[event.data.status]}</p>
+            {event.phase === 'requested' && <p className="whitespace-pre-wrap">Motivo: {event.data.reason}</p>}
+            {event.phase === 'received' && event.data.results && <details><summary className="cursor-pointer font-bold">Ver informe capturado</summary><p className="mt-2 text-muted">Estudio: {event.data.results.study_date} · Centro: {event.data.results.facility || 'Sin registrar'}</p><p className="whitespace-pre-wrap">{event.data.results.text}</p></details>}
+            {event.phase === 'reviewed' && <p className="whitespace-pre-wrap">Revisión profesional: {event.data.review?.notes}</p>}
+            {event.phase === 'cancelled' && <p className="whitespace-pre-wrap text-danger">Motivo: {event.data.cancellation_reason}</p>}
+            <Link to={`/studies?patient=${encodeURIComponent(patient.id)}`} className="inline-flex items-center min-h-11 font-bold text-accent underline">Abrir órdenes de este paciente</Link>
+          </div>}
           {event.kind === 'laboratory' && <details className="text-xs"><summary className="font-bold cursor-pointer">Ver valores registrados</summary>
             <p className="text-muted my-2">Esta ficha conserva el último conjunto de resultados; no incluye versiones anteriores de laboratorio.</p>
             {Object.entries(event.data).map(([key, value]) => <p key={key}>{LAB_LABELS[key as keyof LabBiomarkers]}: {value}</p>)}
