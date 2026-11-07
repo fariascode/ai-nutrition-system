@@ -6,6 +6,7 @@ import { saveConsultation } from '../src/features/consultations/services/consult
 import { getMedicalRecord, saveMedicalRecord } from '../src/features/medical-record/services/medicalRecord.service.ts'
 import { approvePatientInstructions, saveProfessionalProfile, getApprovedPatientInstructions } from '../src/features/consultations/services/patientInstructions.service.ts'
 import { parseLocalBackup } from '../src/features/backups/services/backupValidation.ts'
+import { recoverBeforeMount } from '../src/features/backups/services/recoveryBootstrap.ts'
 
 let store
 beforeEach(() => {
@@ -14,6 +15,22 @@ beforeEach(() => {
 })
 const raw = () => Object.fromEntries(Object.values(BACKUP_STORES).map(key => [key, localStorage.getItem(key)]))
 const journal = previous => JSON.stringify({ format: 'nutriai-local-restore', version: 1, previous })
+
+test('el inicio sin recuperación pendiente no inicializa colecciones clínicas', async () => {
+  assert.equal(await recoverBeforeMount(), false)
+  assert.equal(store.size, 0)
+})
+
+test('el inicio con recuperación pendiente recupera los originales y bloquea un registro ilegible', async () => {
+  const prepared = await prepareLocalRestore()
+  localStorage.setItem(RESTORE_JOURNAL_KEY, journal(prepared.baseline))
+  localStorage.setItem(BACKUP_STORES.patients, '[]')
+  assert.equal(await recoverBeforeMount(), true)
+  assert.deepEqual((await createLocalBackup()).data, prepared.safetyBackup.data)
+  localStorage.setItem(RESTORE_JOURNAL_KEY, '{roto')
+  await assert.rejects(recoverBeforeMount(), /validar el registro/)
+  assert.equal(localStorage.getItem(RESTORE_JOURNAL_KEY), '{roto')
+})
 
 async function fullBackup() {
   const initial = await createLocalBackup()

@@ -2,10 +2,7 @@ import type { Patient, PatientInsert, PatientUpdate, WeightRecord } from '@/type
 import type { NutritionPlan, PlanInsert, PlanUpdate, PlanWithPatient, ClinicalProtocol, MacroTargets } from '@/types/plan'
 import { generateHighPrecisionAiPlan, calculateClinicalMacros } from './clinicalEngine'
 
-export const isDemo =
-  import.meta.env.VITE_DEMO_MODE === 'true' ||
-  !import.meta.env.VITE_SUPABASE_URL ||
-  import.meta.env.VITE_SUPABASE_URL.includes('your-project')
+export { isDemo } from './demoMode'
 
 const DEMO_PATIENTS_KEY = 'nutriai_demo_patients_v2'
 const DEMO_PLANS_KEY = 'nutriai_demo_plans_v2'

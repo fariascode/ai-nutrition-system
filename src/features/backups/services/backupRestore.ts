@@ -2,7 +2,8 @@ import { BACKUP_STORES, createLocalBackup, requireLocalDemo } from './localBacku
 import type { BackupData, LocalBackup } from './localBackup'
 import { parseLocalBackup } from './backupValidation'
 
-export const RESTORE_JOURNAL_KEY = 'nutriai_local_restore_journal_v1'
+import { RESTORE_JOURNAL_KEY } from './recoveryBootstrap'
+export { RESTORE_JOURNAL_KEY } from './recoveryBootstrap'
 export class PendingRestoreError extends Error {}
 type RawSnapshot = Record<keyof BackupData, string | null>
 export interface PreparedRestore {
