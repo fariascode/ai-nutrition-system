@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Utensils, Sparkles, ShieldCheck, Activity, ArrowRight, Lock, Mail } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { ThemeToggle } from '@/context/ThemeContext'
-import { isDemo } from '@/lib/mockData'
+import { isDemo } from '@/lib/demoMode'
 
 export default function LoginPage() {
   const { signIn } = useAuth()

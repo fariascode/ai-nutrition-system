@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
-import { isDemo } from '@/lib/mockData'
+import { isDemo } from '@/lib/demoMode'
 
 interface AuthContextValue {
   user: User | null

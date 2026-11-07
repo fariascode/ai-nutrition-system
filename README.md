@@ -253,9 +253,11 @@ npm run build    # TypeScript + compilación de producción
 npm run preview  # Vista local del resultado compilado
 ```
 
-Las **70 pruebas actuales** cubren sincronización del expediente, conservación de detalles, contexto de glucosa, citas de seguimiento, recuperación ante fallos, diagnósticos y tratamientos, documentos de indicaciones, historial unificado, aprobación/publicación del contenido del portal, entradas de laboratorio sin resultados inventados, respaldos locales con recuperación y órdenes de estudios con documento, seguimiento e historial.
+Las **72 pruebas actuales** cubren sincronización del expediente, conservación de detalles, contexto de glucosa, citas de seguimiento, recuperación ante fallos, diagnósticos y tratamientos, documentos de indicaciones, historial unificado, aprobación/publicación del contenido del portal, entradas de laboratorio sin resultados inventados, respaldos locales con recuperación, inicio seguro sin inicializar colecciones clínicas y órdenes de estudios con documento, seguimiento e historial.
 
 La revisión de interfaz abarca las cinco pantallas principales, ocho modales, el portal y tamaños de escritorio y móvil en ambos temas. El alcance y los límites de esa comprobación están documentados en [la revisión de navegación y temas](docs/navigation-theme-review.md).
+
+Las pantallas se cargan bajo demanda y conservan estados de carga y error. La primera visita al login pasó de 806,17 a 462,53 kB de JavaScript (42,6% menos). La [medición de carga por rutas](docs/route-loading.md) incluye dependencias compartidas, gzip, límites y comandos para repetirla.
 
 La compilación conserva una advertencia de tamaño del bundle. La división de carga por rutas es una mejora pendiente.
 
@@ -284,7 +286,8 @@ La compilación conserva una advertencia de tamaño del bundle. La división de 
 - [ ] Seguimiento longitudinal de enfermedades crónicas.
 - [x] Retirar métricas heurísticas de eficacia de la interfaz y de los nuevos borradores.
 - [ ] Validación de los resultados generados.
-- [ ] Optimización del bundle y ampliación de pruebas de interfaz.
+- [x] Carga por rutas y recuperación bajo demanda, con medición de JavaScript inicial.
+- [ ] Carga diferida de modales pesados y ampliación de pruebas de interfaz.
 
 ## Autoría y colaboración
 
